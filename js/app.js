@@ -16,13 +16,10 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // ============================================================================
-// 🎥 CONFIGURAÇÃO CLOUDFLARE R2 (NUVEM DE VÍDEOS)
+// 🎥 CONFIGURAÇÃO CLOUDFLARE R2 E VARIÁVEIS GLOBAIS
 // ============================================================================
 const urlNuvemR2 = "https://pub-b5f6932035684a59b4f704ebec0be62c.r2.dev";
 
-// ============================================================================
-// VARIÁVEIS GLOBAIS DO APLICATIVO
-// ============================================================================
 let salaAtual = null; 
 let salaSelecionadaTemp = null; 
 let refSalaAtual = null; 
@@ -38,6 +35,8 @@ let perfilAtual = null;
 let cantorAoVivo = null; 
 let cantor2AoVivo = null; 
 let musicaAoVivo = null;
+let ultimoVotoGlobal = null; // Guarda o último voto para salvar na nuvem
+let ultimoVotoVisto = 0;     // Controla se a animação já tocou no celular
 
 let musicasAtuaisFiltradas = []; 
 let paginaAtual = 1;
@@ -61,7 +60,7 @@ const playerVideo = document.getElementById('player-video');
 const somAplauso = document.getElementById('som-aplauso');
 
 // ============================================================================
-// SISTEMA DE ALERTAS CUSTOMIZADOS
+// ALERTAS E NUVEM
 // ============================================================================
 function mostrarAlerta(mensagem, titulo = "Aviso", icone = "fa-bell") {
     document.getElementById('titulo-alerta').innerHTML = `<i class="fa-solid ${icone} texto-destaque"></i> ${titulo}`;
@@ -73,15 +72,9 @@ function fecharModalAlerta() {
     document.getElementById('modal-alerta').classList.add('escondido');
 }
 
-// ============================================================================
-// LÓGICA DE NUVEM - SALAS E DADOS (FIREBASE)
-// ============================================================================
-
 db.ref('salas_abertas').on('value', snapshot => {
     salasCriadas = snapshot.val() || [];
-    if (!salaAtual) {
-        renderizarLobbySalas();
-    }
+    if (!salaAtual) renderizarLobbySalas();
 });
 
 function salvarListaSalasGlobais() {
@@ -118,7 +111,6 @@ function criarSala() {
 
         salasCriadas.push({ nome: nome, senha: senha !== "" ? senha : null });
         salvarListaSalasGlobais(); 
-
         efetivarEntradaSala(nome);
     } else {
         mostrarAlerta("Por favor, digite um nome para a sala!", "Nome Inválido", "fa-triangle-exclamation");
@@ -127,7 +119,6 @@ function criarSala() {
 
 function tentarEntrarSala(nomeBusca) {
     if (!nomeBusca || nomeBusca === "") return;
-    
     const salaExiste = salasCriadas.find(s => s.nome.toLowerCase() === nomeBusca.toLowerCase());
     
     if(salaExiste) {
@@ -145,7 +136,6 @@ function tentarEntrarSala(nomeBusca) {
 
 function verificarSenha() {
     const senhaDigitada = document.getElementById('input-senha-acesso').value.trim();
-    
     if(senhaDigitada === salaSelecionadaTemp.senha) {
         const nomeDaSalaLiberada = salaSelecionadaTemp.nome;
         fecharModalSenha();
@@ -167,10 +157,7 @@ function efetivarEntradaSala(nome) {
 }
 
 function sairDaSala() {
-    if (refSalaAtual) {
-        refSalaAtual.off(); 
-        refSalaAtual = null;
-    }
+    if (refSalaAtual) { refSalaAtual.off(); refSalaAtual = null; }
     
     salaAtual = null;
     perfilAtual = null;
@@ -184,6 +171,9 @@ function sairDaSala() {
     renderizarLobbySalas(); 
 }
 
+// ============================================================================
+// ENTRADA NO SISTEMA E ESCUTA DA NUVEM (PLATEIA E VOTOS)
+// ============================================================================
 function entrarNoSistema() {
     renderizarSeletorAvatares();
     renderizarCategorias();
@@ -205,40 +195,76 @@ function entrarNoSistema() {
         const idAtualSalvo = localStorage.getItem('karaoke_perfil_atual_id');
         if (idAtualSalvo) { 
             let perfilEncontrado = perfisFamilia.find(p => String(p.id) === String(idAtualSalvo));
-            if(perfilEncontrado) {
-                perfilAtual = perfilEncontrado; 
-            }
+            if(perfilEncontrado) perfilAtual = perfilEncontrado; 
         }
 
-        // ==========================================
-        // SINCRONIZAÇÃO DA PLATÉIA (O SEGREDO DA NUVEM)
-        // ==========================================
+        // --- LÓGICA DA PLATÉIA (ATUALIZAR DADOS DO PALCO PARA QUEM ASSISTE) ---
         if (dados.palco && dados.palco.cantor) {
-            // Verifica se quem está no palco é diferente de você (Para não bugar o player de quem está cantando de verdade)
+            // Se quem está no palco NÃO for o seu perfil atual
             if (!cantorAoVivo || (cantorAoVivo && String(cantorAoVivo.id) !== String(dados.palco.cantor))) {
                 const perfilCantor = perfisFamilia.find(p => String(p.id) === String(dados.palco.cantor));
                 const perfilCantor2 = dados.palco.cantor2 ? perfisFamilia.find(p => String(p.id) === String(dados.palco.cantor2)) : null;
                 const musicaPalco = catalogoMusicas.find(m => String(m.id) === String(dados.palco.musica));
                 
                 if (perfilCantor && musicaPalco) {
-                     // Alguém assumiu o palco na nuvem! Atualiza os dados para a platéia ver o card
                      cantorAoVivo = perfilCantor;
                      cantor2AoVivo = perfilCantor2;
                      musicaAoVivo = musicaPalco;
+                     ultimoVotoGlobal = dados.palco.ultimoVoto || null;
                      
-                     // Mantém a tela do palco "escondida" ou "minimizada" para a platéia (não dá autoplay no video)
-                     if (!telaPalcoOverlay.classList.contains('escondido') === false) {
-                         telaPalcoOverlay.classList.add('minimizado');
-                         telaPalcoOverlay.classList.remove('escondido');
+                     // Preenche o palco para o visitante, mas o mantém ESCONDIDO até ele clicar em "Ver Palco"
+                     document.getElementById('titulo-atual').innerText = musicaPalco.titulo;
+                     document.getElementById('artista-atual').innerText = musicaPalco.artista;
+                     document.getElementById('palco-foto-cantor').src = perfilCantor.foto;
+                     
+                     let nomeAnuncio = perfilCantor.nome;
+                     const foto2 = document.getElementById('palco-foto-cantor-2');
+                     if(perfilCantor2) {
+                         nomeAnuncio += ` & ${perfilCantor2.nome}`;
+                         foto2.src = perfilCantor2.foto;
+                         foto2.classList.remove('escondido');
+                     } else {
+                         foto2.classList.add('escondido');
                      }
+                     document.getElementById('palco-nome-cantor').innerText = `🎤 ${nomeAnuncio}`;
+                     
+                     // Carrega o vídeo mutado (evita eco com quem canta)
+                     playerVideo.src = `${urlNuvemR2}/${encodeURIComponent(musicaPalco.arquivo)}`;
+                     playerVideo.muted = true; 
+                     telaPalcoOverlay.classList.add('escondido'); // Esconde o mini-player
                 }
             }
+
+            // --- LÓGICA DE REAÇÃO DE VOTOS SINCRONIZADA ---
+            if (dados.palco.ultimoVoto && dados.palco.ultimoVoto.timestamp > ultimoVotoVisto) {
+                let voto = dados.palco.ultimoVoto;
+                ultimoVotoVisto = voto.timestamp;
+                
+                // Explode confetes para todo mundo na sala
+                if(voto.nota === 10) {
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#ff2a7a', '#00e5ff', '#ffd700'] });
+                    somAplauso.currentTime = 0;
+                    somAplauso.play().catch(() => {});
+                }
+                
+                // Mostra a notificação no painel do Palco
+                const divAlertaPalco = document.getElementById('alerta-nota-palco');
+                if(voto.nota === 10) {
+                    divAlertaPalco.innerHTML = `⭐ NOTA 10 DA PLATEIA! ⭐`;
+                } else {
+                    divAlertaPalco.innerHTML = `+${voto.nota} PONTOS!`;
+                }
+                divAlertaPalco.classList.remove('escondido');
+                setTimeout(() => { divAlertaPalco.classList.add('escondido'); }, 3000);
+            }
+
         } else {
              // Nuvem avisou que o palco esvaziou
              if (cantorAoVivo && String(cantorAoVivo.id) !== String(idAtualSalvo)) {
                  cantorAoVivo = null;
                  cantor2AoVivo = null;
                  musicaAoVivo = null;
+                 playerVideo.pause();
                  telaPalcoOverlay.classList.add('escondido');
              }
         }
@@ -266,11 +292,11 @@ function salvarDados() {
         perfis: perfisFamilia,
         fila: filaDeReproducao,
         historico: historicoTocadas,
-        // Envia o estado do palco para a nuvem
         palco: {
             cantor: cantorAoVivo ? cantorAoVivo.id : null,
             cantor2: cantor2AoVivo ? cantor2AoVivo.id : null,
-            musica: musicaAoVivo ? musicaAoVivo.id : null
+            musica: musicaAoVivo ? musicaAoVivo.id : null,
+            ultimoVoto: ultimoVotoGlobal // Garante que o último voto não seja apagado ao salvar
         }
     });
 }
@@ -286,9 +312,8 @@ window.onload = () => {
 };
 
 // ============================================================================
-// NAVEGAÇÃO E LÓGICA DO APLICATIVO
+// NAVEGAÇÃO
 // ============================================================================
-
 function mudarTela(idTelaAlvo, elementoNav = null) {
     if (!salaAtual && idTelaAlvo !== 'tela-salas') return; 
 
@@ -340,6 +365,9 @@ function pararPrevia() {
     clearTimeout(previewTimer);
 }
 
+// ============================================================================
+// PERFIS
+// ============================================================================
 function renderizarSeletorAvatares() {
     const container = document.getElementById('seletor-avatares');
     container.innerHTML = '';
@@ -421,13 +449,17 @@ function atualizarPerfilGlobal() {
     if(perfilAtual) { document.getElementById('dash-foto-perfil').src = perfilAtual.foto; }
 }
 
+// ============================================================================
+// DASHBOARD
+// ============================================================================
 function atualizarDashboard() {
     document.getElementById('dash-qtd-musicas').innerText = catalogoMusicas.length;
     document.getElementById('dash-qtd-cantores').innerText = perfisFamilia.length;
     document.getElementById('dash-qtd-salas').innerText = salasCriadas.length;
 
     const bannerAoVivo = document.getElementById('banner-ao-vivo');
-    if (cantorAoVivo && musicaAoVivo && telaPalcoOverlay.classList.contains('minimizado')) {
+    // Para a plateia, se o palco estiver rolando, o banner deve aparecer!
+    if (cantorAoVivo && musicaAoVivo) {
         bannerAoVivo.classList.remove('escondido');
         document.getElementById('ao-vivo-foto').src = cantorAoVivo.foto;
         
@@ -684,6 +716,9 @@ function puxarDaFilaParaPalco(instanciaId) {
     }
 }
 
+// ============================================================================
+// CONTROLE DO PALCO E VOTAÇÃO
+// ============================================================================
 function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     if(!perfilAtual) { 
         mostrarAlerta("Identifique-se na aba Perfil antes de cantar!", "Atenção", "fa-user"); 
@@ -705,7 +740,7 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     cantor2AoVivo = parceiro;
     musicaAoVivo = musica;
 
-    salvarDados(); // AVISA A NUVEM QUE O PALCO ESTÁ OCUPADO
+    salvarDados(); // AVISA A NUVEM QUE O PALCO ESTÁ OCUPADO PARA A PLATEIA ENTRAR
 
     document.getElementById('titulo-atual').innerText = musica.titulo;
     document.getElementById('artista-atual').innerText = musica.artista;
@@ -732,10 +767,12 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     telaPalcoOverlay.classList.remove('escondido');
     telaPalcoOverlay.classList.remove('minimizado');
 
+    // Quem canta escuta o áudio alto
     playerVideo.src = `${urlNuvemR2}/${encodeURIComponent(musica.arquivo)}`;
+    playerVideo.muted = false;
 
     if (pularContagem) {
-        playerVideo.play().catch(e => console.log("Autoplay bloqueado pelo navegador."));
+        playerVideo.play().catch(e => console.log("Autoplay bloqueado."));
     } else {
         const divTransicao = document.getElementById('tela-transicao-palco');
         document.getElementById('transicao-nome').innerText = nomeAnuncio;
@@ -755,7 +792,7 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
 
         timerTransicao = setTimeout(() => {
             divTransicao.classList.add('escondido');
-            playerVideo.play().catch(e => console.log("Autoplay bloqueado pelo navegador."));
+            playerVideo.play().catch(e => console.log("Autoplay bloqueado."));
         }, 5000);
     }
 
@@ -770,6 +807,13 @@ function minimizarPalco() {
 
 function maximizarPalco() {
     telaPalcoOverlay.classList.remove('minimizado');
+    telaPalcoOverlay.classList.remove('escondido');
+    
+    // Se for a plateia abrindo o palco, força o play mutado
+    if (cantorAoVivo && String(cantorAoVivo.id) !== localStorage.getItem('karaoke_perfil_atual_id')) {
+        playerVideo.play().catch(e => console.log("Autoplay bloqueado para a plateia."));
+    }
+    
     atualizarDashboard(); 
 }
 
@@ -792,7 +836,7 @@ function encerrarPalco(forcarFechamento = false) {
     telaPalcoOverlay.classList.add('escondido');
     telaPalcoOverlay.classList.remove('minimizado');
     
-    salvarDados(); // AVISA A NUVEM QUE O PALCO ESVAZIOU
+    salvarDados(); // AVISA A NUVEM QUE O PALCO ESVAZIOU (some pros convidados)
     atualizarDashboard();
 }
 
@@ -824,29 +868,26 @@ function votar(nota) {
     if(cantorAoVivo && !cantorAoVivo.isGuest) { let c1 = perfisFamilia.find(p => String(p.id) === String(cantorAoVivo.id)); if(c1) { c1.pontos += nota; pontuou = true; } }
     if(cantor2AoVivo && !cantor2AoVivo.isGuest) { let c2 = perfisFamilia.find(p => String(p.id) === String(cantor2AoVivo.id)); if(c2) { c2.pontos += nota; pontuou = true; } }
 
-    if(pontuou) salvarDados(); 
+    ultimoVotoGlobal = { nota: nota, timestamp: Date.now() };
+
+    if(pontuou) {
+        salvarDados(); 
+    } else {
+        // Visitante não ganha ponto, mas o gatilho visual e sonoro sobe pra nuvem mesmo assim
+        refSalaAtual.child('palco/ultimoVoto').set(ultimoVotoGlobal);
+    }
 
     const frases = { 1: "Piedade... 💀", 5: "Dá pra melhorar! 🎤", 8: "Mandou bem! 🔥", 10: "ESTRELA NASCEU! 🌟" };
     let comentario = frases[nota] || "Nota registrada!";
     if(!pontuou) { comentario = "Nota dada! (Visitante não pontua)"; }
     
-    const divAlertaPalco = document.getElementById('alerta-nota-palco');
+    document.getElementById('resultado-voto').innerHTML = `<span class="fade-in">Voto enviado à nuvem: ${comentario}</span>`;
     
-    if(nota === 10) {
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#ff2a7a', '#00e5ff', '#ffd700'] });
-        somAplauso.currentTime = 0;
-        somAplauso.play().catch(() => {});
-        
-        document.getElementById('resultado-voto').innerHTML = `<span class="fade-in" style="color: gold; text-shadow: 0 0 10px gold;">⭐ NOTA 10! ${comentario}</span>`;
-        divAlertaPalco.innerHTML = `⭐ NOTA 10 DA PLATEIA! ⭐`;
-        divAlertaPalco.classList.remove('escondido');
-    } else {
-        document.getElementById('resultado-voto').innerHTML = `<span class="fade-in">Voto: +${nota} - ${comentario}</span>`;
-        divAlertaPalco.innerHTML = `+${nota} PONTOS!`;
-        divAlertaPalco.classList.remove('escondido');
-    }
-
-    setTimeout(() => { divAlertaPalco.classList.add('escondido'); }, 3000);
+    // Tira o eleitor da cabine e joga ele de volta pra plateia do palco
+    setTimeout(() => { 
+        document.getElementById('tela-votacao').classList.remove('ativa');
+        maximizarPalco(); 
+    }, 1500);
 }
 
 playerVideo.addEventListener('ended', () => {
