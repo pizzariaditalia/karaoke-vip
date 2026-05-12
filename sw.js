@@ -1,4 +1,4 @@
-const CACHE_NAME = 'karaoke-vip-v3';
+const CACHE_NAME = 'karaoke-vip-v4';
 const urlsToCache = [
     './',
     './index.html',
@@ -8,26 +8,28 @@ const urlsToCache = [
     './image/icon.png'
 ];
 
-// Instala o Service Worker e guarda os arquivos em cache
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
-                console.log('Cache aberto');
                 return cache.addAll(urlsToCache);
             })
     );
 });
 
-// Intercepta as requisições para funcionar mais rápido
 self.addEventListener('fetch', event => {
+    // A MÁGICA: Se for um vídeo (mp4) ou uma requisição de partes (range), o SW ignora e não quebra o vídeo!
+    if (event.request.url.endsWith('.mp4') || event.request.headers.get('range')) {
+        return; 
+    }
+
     event.respondWith(
         caches.match(event.request)
             .then(response => {
                 if (response) {
-                    return response; // Se tem no cache, usa do cache
+                    return response; 
                 }
-                return fetch(event.request); // Se não, busca na internet
+                return fetch(event.request); 
             })
     );
 });
