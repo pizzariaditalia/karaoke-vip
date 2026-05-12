@@ -1,346 +1,259 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Karaokê VIP Premium</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Karaokê VIP</title>
     
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#ff2a7a">
-    <link rel="apple-touch-icon" href="image/icon.png">
-
-    <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        /* Estilos de emergência caso o CSS falhe, garante que as telas fiquem escondidas corretamente */
+        .escondido { display: none !important; }
+        .tela { display: none; padding-bottom: 80px; }
+        .tela.ativa { display: block; }
+        #tela-palco { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1000; }
+        #tela-palco.minimizado { height: 150px; top: auto; bottom: 60px; z-index: 900; }
+    </style>
 </head>
 <body>
 
-    <audio id="som-aplauso" src="https://www.myinstants.com/media/sounds/crowd-cheer.mp3" preload="auto"></audio>
-
-    <nav id="bottom-bar" class="bottom-bar escondido">
-        <div class="nav-item ativo" onclick="mudarTela('tela-dashboard', this)">
-            <i class="fa-solid fa-house"></i><span>Início</span>
-        </div>
-        <div class="nav-item" onclick="mudarTela('tela-playlist', this)">
-            <i class="fa-solid fa-music"></i><span>Catálogo</span>
-        </div>
-        <div class="nav-item" onclick="mudarTela('tela-fila', this)">
-            <i class="fa-solid fa-list-ol"></i><span>Espera</span>
-        </div>
-        <div class="nav-item" onclick="mudarTela('tela-ranking', this)">
-            <i class="fa-solid fa-trophy"></i><span>Ranking</span>
-        </div>
-        <div class="nav-item" onclick="mudarTela('tela-perfil', this)">
-            <i class="fa-solid fa-user"></i><span>Perfil</span>
-        </div>
-    </nav>
-
-    <div id="modal-alerta" class="modal-overlay escondido">
-        <div class="modal-content glass-effect">
-            <h3 id="titulo-alerta"><i class="fa-solid fa-bell texto-destaque"></i> Aviso</h3>
-            <p id="mensagem-alerta" class="texto-pequeno mt-15 mb-20" style="font-size: 1rem;">Sua mensagem aqui.</p>
-            <div class="botoes-modal">
-                <button class="btn-vibrante-sm w-100" onclick="fecharModalAlerta()">OK</button>
-            </div>
-        </div>
+    <div id="console-celular" style="position: fixed; top: 0; left: 0; width: 100%; height: 30%; background: rgba(0,0,0,0.95); color: #0f0; font-family: monospace; font-size: 11px; overflow-y: scroll; z-index: 999999; padding: 10px; border-bottom: 3px solid #ff0055;">
+        <div style="color: #fff; margin-bottom: 5px; font-weight: bold;">--- CONSOLE DE DETETIVE (KARAOKÊ VIP) ---</div>
     </div>
+    <script>
+        const painelConsole = document.getElementById('console-celular');
+        function printConsole(msg, cor) {
+            const linha = document.createElement('div');
+            linha.style.color = cor;
+            linha.style.marginBottom = '4px';
+            linha.style.borderBottom = '1px solid #333';
+            linha.style.paddingBottom = '4px';
+            linha.textContent = msg;
+            painelConsole.appendChild(linha);
+            painelConsole.scrollTop = painelConsole.scrollHeight;
+        }
+        
+        // Captura o erro fatal de sintaxe (geralmente do data.js)
+        window.onerror = function(mensagem, fonte, linha, coluna, erro) {
+            let nomeArquivo = fonte ? fonte.split('/').pop() : "Desconhecido";
+            printConsole(`🚨 ERRO GRAVE: ${mensagem}`, '#ff3333');
+            printConsole(`📍 ARQUIVO: ${nomeArquivo} | LINHA: ${linha}`, '#ffaaaa');
+            printConsole(`🔍 DICA: Verifique a linha ${linha} do arquivo ${nomeArquivo}. Provavelmente tem uma aspa faltando ou símbolo quebrado.`, '#ffff00');
+            return false;
+        };
 
-    <div id="modal-dueto" class="modal-overlay escondido">
-        <div class="modal-content glass-effect">
-            <h3>Cantar em Dupla 🎤🎤</h3>
-            <p class="texto-pequeno mt-10">Quem vai cantar com você?</p>
-            <div id="lista-parceiros-modal" class="perfis-grid mt-15 mb-20"></div>
-            <div class="botoes-modal">
-                <button class="btn-secundario" onclick="fecharModalDueto()">Cancelar</button>
-            </div>
-        </div>
-    </div>
+        const consoleOriginal = console.log;
+        console.log = function(...args) {
+            printConsole(`👉 ${args.join(' ')}`, '#00ff00');
+            consoleOriginal.apply(console, args);
+        };
 
-    <div id="modal-senha" class="modal-overlay escondido">
-        <div class="modal-content glass-effect">
-            <h3><i class="fa-solid fa-lock" style="color: var(--rosa-neon);"></i> Sala Privada</h3>
-            <p class="texto-pequeno mt-10">Esta sala exige uma senha para entrar.</p>
-            <div class="criar-perfil-box mt-15 mb-20">
-                <input type="password" id="input-senha-acesso" placeholder="Digite a senha...">
-            </div>
-            <div class="botoes-modal">
-                <button class="btn-secundario" onclick="fecharModalSenha()">Cancelar</button>
-                <button class="btn-vibrante-sm" onclick="verificarSenha()">Entrar</button>
-            </div>
-        </div>
-    </div>
+        const erroOriginal = console.error;
+        console.error = function(...args) {
+            printConsole(`❌ ERRO: ${args.join(' ')}`, '#ff3333');
+            erroOriginal.apply(console, args);
+        };
+    </script>
+    <audio id="som-aplauso" src="assets/aplausos.mp3"></audio>
 
-    <section id="tela-salas" class="tela ativa fade-in">
-        <div class="hero-container text-center mt-20">
-            <div class="logo-premium"><i class="fa-solid fa-microphone-lines"></i></div>
-            <h1 class="titulo-principal mb-10">KARAOKÊ <span class="destaque">VIP</span></h1>
-            <p class="texto-cinza mb-20">Entre em uma sala para ter acesso ao catálogo de músicas.</p>
+    <div id="tela-salas" class="tela ativa">
+        <div style="padding: 20px; text-align: center;">
+            <h1 style="color: var(--rosa-neon);">Karaokê VIP</h1>
             
-            <button id="btn-instalar-app" class="btn-secundario escondido" style="display: block; max-width: 250px; margin: 0 auto 25px auto; color: var(--azul-neon); border-color: var(--azul-neon);">
-                <i class="fa-solid fa-mobile-screen-button"></i> Instalar Aplicativo
+            <div style="margin-bottom: 20px;">
+                <input type="text" id="input-criar-sala" placeholder="Nome da nova sala" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+                <input type="password" id="input-senha-sala" placeholder="Senha (opcional)" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+                <button onclick="criarSala()" style="width: 100%; padding: 10px; background: var(--rosa-neon); border: none; color: white; border-radius: 5px;">Criar e Entrar</button>
+            </div>
+
+            <hr style="border-color: #333; margin: 20px 0;">
+            <h3>Salas Rolando Agora:</h3>
+            <div id="lista-salas-abertas"></div>
+
+            <button id="btn-instalar-app" class="escondido" style="margin-top: 20px; padding: 10px; background: #38bdf8; color: black; border: none; border-radius: 5px; width: 100%;">
+                <i class="fa-solid fa-download"></i> Instalar App no Celular
             </button>
+        </div>
+    </div>
 
-            <div class="glass-effect p-20 mb-20 text-left">
-                <h3><i class="fa-solid fa-plus texto-destaque"></i> Criar Nova Sala</h3>
-                <p class="texto-pequeno mb-15">Invente um nome bem legal e proteja sua festa!</p>
-                <div class="criar-perfil-box" style="flex-direction: column; gap: 10px;">
-                    <input type="text" id="input-criar-sala" placeholder="Nome da Sala (Ex: Churrasco)">
-                    <div style="display: flex; gap: 10px;">
-                        <input type="password" id="input-senha-sala" placeholder="Senha (Opcional)">
-                        <button class="btn-vibrante-sm" onclick="criarSala()">Criar</button>
-                    </div>
+    <div id="tela-dashboard" class="tela">
+        <div style="padding: 20px;">
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                <img id="dash-foto-perfil" src="" style="width: 60px; height: 60px; border-radius: 50%;">
+                <div id="badge-nome-sala" style="background: #1e293b; padding: 5px 10px; border-radius: 5px;"></div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; margin-bottom: 20px;">
+                <div style="background: #1e293b; padding: 10px; border-radius: 5px;">
+                    <i class="fa-solid fa-music"></i> <br> <span id="dash-qtd-musicas">0</span>
+                </div>
+                <div style="background: #1e293b; padding: 10px; border-radius: 5px;">
+                    <i class="fa-solid fa-microphone"></i> <br> <span id="dash-qtd-cantores">0</span>
+                </div>
+                <div style="background: #1e293b; padding: 10px; border-radius: 5px;">
+                    <i class="fa-solid fa-door-open"></i> <br> <span id="dash-qtd-salas">0</span>
                 </div>
             </div>
 
-            <div class="glass-effect p-20 text-left">
-                <h3><i class="fa-solid fa-door-open icone-azul"></i> Salas Abertas</h3>
-                <p class="texto-pequeno mb-15">Clique em uma sala para entrar:</p>
-                <div id="lista-salas-abertas" class="categorias-lista" style="flex-wrap: wrap;"></div>
-            </div>
-        </div>
-    </section>
-
-    <section id="tela-dashboard" class="tela fade-in">
-        <div class="container-tela">
-            <div class="header-tela">
+            <div id="banner-ao-vivo" class="escondido" style="background: #be185d; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center;" onclick="maximizarPalco()">
+                <h3><i class="fa-solid fa-broadcast-tower"></i> AO VIVO NO PALCO</h3>
                 <div>
-                    <h2>Visão Geral</h2>
-                    <span id="badge-nome-sala" class="badge-sala"><i class="fa-solid fa-door-open"></i> Sala: <strong>Nenhuma</strong> <i class="fa-solid fa-right-from-bracket" style="margin-left: 10px; cursor: pointer; color: var(--rosa-neon);" onclick="sairDaSala()" title="Sair da Sala"></i></span>
+                    <img id="ao-vivo-foto" src="" style="width: 40px; border-radius: 50%;">
+                    <img id="ao-vivo-foto-2" src="" class="escondido" style="width: 40px; border-radius: 50%; margin-left: -15px;">
                 </div>
-                <div class="perfil-logado-mini" onclick="mudarTela('tela-perfil', document.querySelectorAll('.nav-item')[4])">
-                    <img id="dash-foto-perfil" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Visitante&backgroundColor=b6e3f4" class="foto-perfil-mini">
-                </div>
+                <strong id="ao-vivo-nome"></strong><br>
+                <span id="ao-vivo-musica"></span>
             </div>
+
+            <h3>Top Cantores</h3>
+            <div id="dash-top-cantores"></div>
+
+            <h3 style="margin-top: 20px;">Top Músicas</h3>
+            <div id="dash-top-musicas"></div>
+        </div>
+    </div>
+
+    <div id="tela-playlist" class="tela">
+        <div style="padding: 20px;">
+            <input type="text" id="input-busca" placeholder="🔍 Buscar música ou cantor..." style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px;">
+            <div id="container-categorias" style="display: flex; gap: 10px; overflow-x: auto; margin-bottom: 15px;"></div>
+            <div id="lista-musicas"></div>
+            <div id="paginacao-container" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <div id="tela-fila" class="tela">
+        <div style="padding: 20px;">
+            <h2 style="text-align: center;"><i class="fa-solid fa-list-ol"></i> Fila do Palco</h2>
+            <div id="lista-fila"></div>
+        </div>
+    </div>
+
+    <div id="tela-ranking" class="tela">
+        <div style="padding: 20px;">
+            <h2 style="text-align: center;"><i class="fa-solid fa-trophy"></i> Ranking Completo</h2>
+            <div id="lista-ranking-completa"></div>
+        </div>
+    </div>
+
+    <div id="tela-perfil" class="tela">
+        <div style="padding: 20px;">
+            <h2>Criar Perfil Oficial</h2>
+            <div id="seletor-avatares" style="display: flex; gap: 10px; overflow-x: auto; margin-bottom: 15px;"></div>
+            <input type="text" id="input-novo-perfil" placeholder="Nome do Cantor" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+            <button onclick="criarPerfil()" style="width: 100%; padding: 10px; background: #38bdf8; border: none; border-radius: 5px;">Cadastrar Oficial</button>
+
+            <hr style="margin: 20px 0; border-color: #333;">
             
-            <div id="banner-ao-vivo" class="banner-ao-vivo escondido">
-                <div class="ao-vivo-header">
-                    <span class="ponto-vermelho pulse-anim"></span> AO VIVO AGORA
-                </div>
-                <div class="ao-vivo-conteudo mb-15">
-                    <div class="avatares-dupla">
-                        <img id="ao-vivo-foto" src="" class="foto-perfil-mini">
-                        <img id="ao-vivo-foto-2" src="" class="foto-perfil-mini foto-sobreposta escondido">
-                    </div>
-                    <div class="ao-vivo-textos">
-                        <strong id="ao-vivo-nome" class="texto-destaque">Cantor</strong><br>
-                        <span id="ao-vivo-musica" class="texto-pequeno">Música</span>
-                    </div>
-                </div>
-                <div class="botoes-banner-live">
-                    <button class="btn-secundario" onclick="maximizarPalco()"><i class="fa-solid fa-tv"></i> Ver Palco</button>
-                    <button class="btn-vibrante-sm" onclick="abrirCabineVotacao()"><i class="fa-solid fa-star"></i> Votar</button>
-                </div>
-            </div>
+            <h2>Entrada Rápida (Visitante)</h2>
+            <input type="text" id="input-convidado" placeholder="Nome do Visitante" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+            <button onclick="entrarComoConvidado()" style="width: 100%; padding: 10px; background: #94a3b8; border: none; border-radius: 5px; color: black;">Entrar sem cadastro</button>
 
-            <div class="cards-grid">
-                <div class="card-info glass-effect" onclick="mudarTela('tela-playlist', document.querySelectorAll('.nav-item')[1])">
-                    <div class="dados-card-mini">
-                        <i class="fa-solid fa-compact-disc icone-azul"></i>
-                        <h3 id="dash-qtd-musicas">0</h3>
-                    </div>
-                    <p class="texto-pequeno">Músicas</p>
-                </div>
-                <div class="card-info glass-effect" onclick="mudarTela('tela-perfil', document.querySelectorAll('.nav-item')[4])">
-                    <div class="dados-card-mini">
-                        <i class="fa-solid fa-users icone-rosa"></i>
-                        <h3 id="dash-qtd-cantores">0</h3>
-                    </div>
-                    <p class="texto-pequeno">Cantores</p>
-                </div>
-                <div class="card-info glass-effect">
-                    <div class="dados-card-mini">
-                        <i class="fa-solid fa-tower-broadcast icone-azul"></i>
-                        <h3 id="dash-qtd-salas">0</h3>
-                    </div>
-                    <p class="texto-pequeno">Salas Online</p>
-                </div>
-            </div>
-
-            <div class="card-ranking-resumo glass-effect mb-20">
-                <h3><i class="fa-solid fa-crown" style="color: gold;"></i> Hall da Fama (Top 5)</h3>
-                <div id="dash-top-cantores" class="lista-top"></div>
-                <button class="btn-secundario mt-10" onclick="mudarTela('tela-ranking', document.querySelectorAll('.nav-item')[3])">Ver Ranking Completo</button>
-            </div>
-
-            <div class="card-ranking-resumo glass-effect">
-                <h3><i class="fa-solid fa-fire pulse-anim" style="color: #ff5e00;"></i> As Mais Tocadas (Top 7)</h3>
-                <div id="dash-top-musicas" class="lista-top mt-10"></div>
-            </div>
-        </div>
-    </section>
-
-    <section id="tela-perfil" class="tela fade-in">
-        <div class="container-tela">
-            <h2>Gestão de Cantores</h2>
-            <div class="glass-effect p-20 mb-20">
-                <h3><i class="fa-solid fa-star texto-destaque"></i> Cantor Oficial</h3>
-                <p class="texto-pequeno mb-15">Salva no sistema e participa do ranking oficial.</p>
-                <p class="instrucao-perfil">1. Escolha seu Avatar:</p>
-                <div id="seletor-avatares" class="avatares-grid mb-15"></div>
-                <p class="instrucao-perfil">2. Digite seu Nome:</p>
-                <div class="criar-perfil-box">
-                    <input type="text" id="input-novo-perfil" placeholder="Seu nome...">
-                    <button id="btn-add-perfil" onclick="criarPerfil()"><i class="fa-solid fa-check"></i></button>
-                </div>
-            </div>
-
-            <div class="glass-effect p-20 mb-20">
-                <h3><i class="fa-solid fa-user-astronaut icone-azul"></i> Convidado Rápido</h3>
-                <p class="texto-pequeno mb-15">Canta na hora, mas não salva pontuação no ranking.</p>
-                <div class="criar-perfil-box">
-                    <input type="text" id="input-convidado" placeholder="Nome do visitante...">
-                    <button class="btn-convidado" onclick="entrarComoConvidado()">Entrar</button>
-                </div>
-            </div>
-
-            <div class="glass-effect p-20">
-                <h3>Mudar de Cantor</h3>
-                <p class="instrucao-perfil">Clique em um perfil salvo para selecioná-lo:</p>
-                <div id="lista-perfis" class="perfis-grid mt-10"></div>
-            </div>
-        </div>
-    </section>
-
-    <section id="tela-playlist" class="tela fade-in">
-        <div class="container-tela">
-            <h2>Catálogo</h2>
-            <div class="busca-caixa glass-effect">
-                <i class="fa-solid fa-search"></i>
-                <input type="text" id="input-busca" placeholder="Buscar música ou artista...">
-            </div>
-            <div id="container-categorias" class="categorias-lista"></div>
-            <div class="secao-lista">
-                <div id="lista-musicas" class="grid-musicas"></div>
-                <div id="paginacao-container" class="paginacao"></div>
-            </div>
-        </div>
-    </section>
-
-    <section id="tela-fila" class="tela fade-in">
-        <div class="container-tela">
-            <h2>Na Fila</h2>
-            <div class="glass-effect p-20">
-                <div id="lista-fila" class="itens-fila-grandes">
-                    <div class="empty-state">
-                        <i class="fa-solid fa-microphone-slash fa-3x"></i>
-                        <p>O palco está livre!</p>
-                    </div>
-                </div>
-                <button class="btn-vibrante w-100 mt-20" onclick="mudarTela('tela-playlist', document.querySelectorAll('.nav-item')[1])">Escolher Música</button>
-            </div>
-        </div>
-    </section>
-
-    <section id="tela-ranking" class="tela fade-in">
-        <div class="container-tela">
-            <h2>Rank Oficial</h2>
-            <div class="glass-effect p-20">
-                <div id="lista-ranking-completa" class="itens-ranking"></div>
-            </div>
-        </div>
-    </section>
-
-    <section id="tela-votacao" class="tela fade-in">
-        <div class="container-tela">
-            <h2>Cabine de Votos</h2>
-            <div class="sessao-votacao glass-effect p-20 text-center">
-                <div class="avatares-dupla-palco" style="justify-content: center; margin-bottom: 10px;">
-                    <img id="voto-foto-cantor" src="" class="foto-cantor-palco">
-                    <img id="voto-foto-cantor-2" src="" class="foto-cantor-palco foto-sobreposta-palco escondido">
-                </div>
-                <h3 id="voto-nome-cantor" class="texto-destaque">Cantor</h3>
-                <p id="voto-musica" class="texto-cinza mb-20">Música</p>
-
-                <h3>Atribuir Nota:</h3>
-                <div class="votos-grid">
-                    <button class="btn-voto" onclick="votar(1)">1</button>
-                    <button class="btn-voto" onclick="votar(2)">2</button>
-                    <button class="btn-voto" onclick="votar(3)">3</button>
-                    <button class="btn-voto" onclick="votar(4)">4</button>
-                    <button class="btn-voto" onclick="votar(5)">5</button>
-                    <button class="btn-voto" onclick="votar(6)">6</button>
-                    <button class="btn-voto" onclick="votar(7)">7</button>
-                    <button class="btn-voto" onclick="votar(8)">8</button>
-                    <button class="btn-voto" onclick="votar(9)">9</button>
-                    <button class="btn-voto btn-nota-10" onclick="votar(10)"><i class="fa-solid fa-star"></i> 10</button>
-                </div>
-                <div id="resultado-voto" class="resultado-voto">Aguardando seu voto...</div>
-            </div>
-        </div>
-    </section>
-
-    <section id="tela-palco" class="tela-palco-overlay escondido">
-        <div class="palco-container fade-in">
-            <div class="acoes-palco-topo">
-                <button class="btn-acao-palco" onclick="minimizarPalco()"><i class="fa-solid fa-compress"></i> Minimizar</button>
-                <button class="btn-acao-palco btn-fechar" onclick="encerrarPalco(true)"><i class="fa-solid fa-xmark"></i> Encerrar Show</button>
-            </div>
+            <hr style="margin: 20px 0; border-color: #333;">
             
-            <div class="player-wrapper">
-                <video id="player-video" playsinline controls controlsList="nodownload"></video>
-                
-                <div id="tela-transicao-palco" class="transicao-palco glass-effect escondido">
-                    <h2 class="texto-azul blink-anim">PREPARE-SE!</h2>
-                    <div id="transicao-fotos" class="avatares-dupla-palco mt-15 mb-10" style="justify-content: center;"></div>
-                    <h3 id="transicao-nome" class="texto-destaque" style="font-size: 1.8rem; text-align: center; padding: 0 10px;">Cantor</h3>
-                    <p id="transicao-musica" class="texto-claro mb-20 text-center">Música</p>
-                    <div class="contador-circular">
-                        <span id="transicao-contador">20</span>
-                    </div>
-                </div>
+            <h3>Quem já está na sala:</h3>
+            <div id="lista-perfis" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div>
+        </div>
+    </div>
 
-                <div id="capa-mini-player" class="capa-mini escondido" onclick="maximizarPalco()">
-                    <i class="fa-solid fa-expand"></i>
+    <div id="tela-votacao" class="tela">
+        <div style="padding: 20px; text-align: center;">
+            <h2>Avalie o Show!</h2>
+            <div>
+                <img id="voto-foto-cantor" src="" style="width: 80px; border-radius: 50%;">
+                <img id="voto-foto-cantor-2" src="" class="escondido" style="width: 80px; border-radius: 50%; margin-left: -20px;">
+            </div>
+            <h3 id="voto-nome-cantor"></h3>
+            <p id="voto-musica"></p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+                <button onclick="votar(1)" style="padding: 20px; background: #ef4444; color: white; border: none; border-radius: 8px; font-size: 18px;">1 Ponto 💀</button>
+                <button onclick="votar(5)" style="padding: 20px; background: #f59e0b; color: white; border: none; border-radius: 8px; font-size: 18px;">5 Pontos 😐</button>
+                <button onclick="votar(8)" style="padding: 20px; background: #10b981; color: white; border: none; border-radius: 8px; font-size: 18px;">8 Pontos 🔥</button>
+                <button onclick="votar(10)" style="padding: 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-size: 18px;">10 Pontos 🌟</button>
+            </div>
+            <p id="resultado-voto" style="margin-top: 20px; font-weight: bold;"></p>
+        </div>
+    </div>
+
+    <div id="tela-palco" class="escondido">
+        <div style="position: absolute; top: 10px; right: 10px; z-index: 1001; display: flex; gap: 10px;">
+            <button onclick="minimizarPalco()" style="padding: 10px; background: rgba(255,255,255,0.2); border: none; color: white; border-radius: 5px;"><i class="fa-solid fa-compress"></i> Minimizar</button>
+            <button onclick="encerrarPalco(true)" style="padding: 10px; background: rgba(239,68,68,0.8); border: none; color: white; border-radius: 5px;"><i class="fa-solid fa-xmark"></i> Encerrar Show</button>
+        </div>
+        
+        <video id="player-video" controls style="width: 100%; height: 70%; object-fit: contain; background: black;"></video>
+        
+        <div style="padding: 15px; color: white;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <img id="palco-foto-cantor" src="" style="width: 50px; height: 50px; border-radius: 50%;">
+                <img id="palco-foto-cantor-2" src="" class="escondido" style="width: 50px; height: 50px; border-radius: 50%; margin-left: -20px;">
+                <div>
+                    <strong id="palco-nome-cantor" style="color: var(--rosa-neon);"></strong><br>
+                    <span id="titulo-atual" style="font-weight: bold; font-size: 18px;"></span><br>
+                    <span id="artista-atual" style="color: #aaa;"></span>
                 </div>
             </div>
+            <button onclick="abrirCabineVotacao()" style="width: 100%; padding: 15px; background: #10b981; color: white; border: none; border-radius: 5px; margin-top: 15px; font-weight: bold; font-size: 16px;">
+                <i class="fa-solid fa-star"></i> ABRIR CABINE DE VOTAÇÃO
+            </button>
+        </div>
+        <div id="alerta-nota-palco" class="escondido" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; font-weight: bold; color: gold; text-shadow: 0 0 20px #000; z-index: 1002;"></div>
+    </div>
 
-            <div class="conteudo-palco-expandido">
-                <div class="info-cantando glass-effect">
-                    <div class="avatares-dupla-palco">
-                        <img id="palco-foto-cantor" src="" class="foto-cantor-palco pulse-anim">
-                        <img id="palco-foto-cantor-2" src="" class="foto-cantor-palco foto-sobreposta-palco pulse-anim escondido">
-                    </div>
-                    <div class="textos-palco">
-                        <p id="palco-nome-cantor" class="nome-cantor-palco">Cantor</p>
-                        <h2 id="titulo-atual">Música</h2>
-                        <p id="artista-atual">Artista</p>
-                    </div>
-                </div>
+    <div id="tela-transicao-palco" class="escondido" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: white;">
+        <div id="transicao-fotos" style="display: flex; justify-content: center; margin-bottom: 20px;"></div>
+        <h1 style="color: #38bdf8; font-size: 40px; margin: 0;">PREPARE-SE!</h1>
+        <h2 id="transicao-nome" style="font-size: 30px; margin: 10px 0;"></h2>
+        <p style="font-size: 20px;">vai cantar</p>
+        <h3 id="transicao-musica" style="color: var(--rosa-neon); font-size: 28px; max-width: 80%; margin: 0 auto;"></h3>
+        <div style="font-size: 80px; font-weight: bold; color: gold; margin-top: 30px;" id="transicao-contador">5</div>
+    </div>
 
-                <div class="status-transmissao glass-effect text-center p-20 mt-15">
-                    <h3 class="texto-azul"><i class="fa-solid fa-tower-broadcast pulse-anim"></i> Plateia Online</h3>
-                    <p class="texto-cinza mt-10">Os jurados estão avaliando pelo aplicativo...</p>
-                    
-                    <div class="equalizer mt-15">
-                        <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
-                    </div>
+    <div id="modal-alerta" class="escondido" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; display: flex; align-items: center; justify-content: center;">
+        <div style="background: #1e293b; padding: 20px; border-radius: 8px; text-align: center; width: 80%; max-width: 300px;">
+            <h3 id="titulo-alerta" style="margin-top: 0; color: #fff;"></h3>
+            <p id="mensagem-alerta" style="color: #ccc; margin-bottom: 20px;"></p>
+            <button onclick="fecharModalAlerta()" style="padding: 10px 20px; background: #38bdf8; border: none; border-radius: 5px; color: black; font-weight: bold;">OK</button>
+        </div>
+    </div>
 
-                    <div id="alerta-nota-palco" class="alerta-nota-palco escondido mt-20"></div>
-                </div>
+    <div id="modal-senha" class="escondido" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; display: flex; align-items: center; justify-content: center;">
+        <div style="background: #1e293b; padding: 20px; border-radius: 8px; text-align: center; width: 80%; max-width: 300px;">
+            <h3 style="color: #fff; margin-top: 0;"><i class="fa-solid fa-lock"></i> Sala Privada</h3>
+            <input type="password" id="input-senha-acesso" placeholder="Digite a senha" style="width: 100%; padding: 10px; margin-bottom: 15px;">
+            <div style="display: flex; gap: 10px;">
+                <button onclick="fecharModalSenha()" style="flex: 1; padding: 10px; background: #475569; border: none; border-radius: 5px; color: white;">Cancelar</button>
+                <button onclick="verificarSenha()" style="flex: 1; padding: 10px; background: var(--rosa-neon); border: none; border-radius: 5px; color: white;">Entrar</button>
             </div>
         </div>
-    </section>
+    </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+    <div id="modal-dueto" class="escondido" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; display: flex; align-items: center; justify-content: center;">
+        <div style="background: #1e293b; padding: 20px; border-radius: 8px; text-align: center; width: 90%; max-width: 400px;">
+            <h3 style="color: #fff; margin-top: 0;">🎤 Escolha seu parceiro</h3>
+            <div id="lista-parceiros-modal" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 250px; overflow-y: auto; margin-bottom: 15px;"></div>
+            <button onclick="fecharModalDueto()" style="width: 100%; padding: 10px; background: #ef4444; border: none; border-radius: 5px; color: white;">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="bottom-bar" class="escondido" style="position: fixed; bottom: 0; left: 0; width: 100%; background: #0f172a; border-top: 1px solid #334155; display: flex; justify-content: space-around; padding: 10px 0; z-index: 500;">
+        <div class="nav-item" onclick="mudarTela('tela-dashboard', this)" style="color: #64748b; text-align: center; cursor: pointer; padding: 5px;"><i class="fa-solid fa-house"></i><br><span style="font-size: 10px;">Início</span></div>
+        <div class="nav-item" onclick="mudarTela('tela-playlist', this)" style="color: #64748b; text-align: center; cursor: pointer; padding: 5px;"><i class="fa-solid fa-music"></i><br><span style="font-size: 10px;">Músicas</span></div>
+        <div class="nav-item" onclick="mudarTela('tela-fila', this)" style="color: #64748b; text-align: center; cursor: pointer; padding: 5px;"><i class="fa-solid fa-list-ol"></i><br><span style="font-size: 10px;">Fila</span></div>
+        <div class="nav-item" onclick="mudarTela('tela-ranking', this)" style="color: #64748b; text-align: center; cursor: pointer; padding: 5px;"><i class="fa-solid fa-trophy"></i><br><span style="font-size: 10px;">Ranking</span></div>
+        <div class="nav-item" onclick="mudarTela('tela-perfil', this)" style="color: #64748b; text-align: center; cursor: pointer; padding: 5px;"><i class="fa-solid fa-user"></i><br><span style="font-size: 10px;">Perfil</span></div>
+    </div>
 
     <script src="js/data.js"></script>
     <script src="js/app.js"></script>
-
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('PWA: Service Worker registrado com sucesso!', registration.scope);
-                    })
-                    .catch(error => {
-                        console.log('PWA: Falha ao registrar o Service Worker:', error);
-                    });
-            });
-        }
-    </script>
 </body>
 </html>
-
