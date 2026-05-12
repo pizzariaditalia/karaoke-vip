@@ -1,5 +1,5 @@
 // ============================================================================
-// ☁️ CONFIGURAÇÃO DO FIREBASE (DADOS EM TEMPO REAL)
+// ☁️ CONFIGURAÇÃO DO FIREBASE (NOSSA NUVEM EM TEMPO REAL)
 // ============================================================================
 const firebaseConfig = {
     apiKey: "AIzaSyBJ6OrvDbqmJSVbhYfJCS5mhjIrA21_Mgk",
@@ -61,7 +61,7 @@ const playerVideo = document.getElementById('player-video');
 const somAplauso = document.getElementById('som-aplauso');
 
 // ============================================================================
-// SISTEMA DE ALERTAS E UTILITÁRIOS
+// SISTEMA DE ALERTAS CUSTOMIZADOS
 // ============================================================================
 function mostrarAlerta(mensagem, titulo = "Aviso", icone = "fa-bell") {
     document.getElementById('titulo-alerta').innerHTML = `<i class="fa-solid ${icone} texto-destaque"></i> ${titulo}`;
@@ -74,11 +74,14 @@ function fecharModalAlerta() {
 }
 
 // ============================================================================
-// LÓGICA DE SALAS (FIREBASE)
+// LÓGICA DE NUVEM - SALAS E DADOS (FIREBASE)
 // ============================================================================
+
 db.ref('salas_abertas').on('value', snapshot => {
     salasCriadas = snapshot.val() || [];
-    if (!salaAtual) renderizarLobbySalas();
+    if (!salaAtual) {
+        renderizarLobbySalas();
+    }
 });
 
 function salvarListaSalasGlobais() {
@@ -91,6 +94,7 @@ function renderizarLobbySalas() {
         container.innerHTML = '<p class="texto-cinza">Nenhuma sala rolando no momento.</p>';
         return;
     }
+    
     container.innerHTML = '';
     salasCriadas.forEach(sala => {
         const icone = sala.senha ? 'fa-lock' : 'fa-door-open';
@@ -105,19 +109,27 @@ function renderizarLobbySalas() {
 function criarSala() {
     const nome = document.getElementById('input-criar-sala').value.trim();
     const senha = document.getElementById('input-senha-sala').value.trim();
+    
     if (nome !== "") {
         if(salasCriadas.find(s => s.nome.toLowerCase() === nome.toLowerCase())) {
-            mostrarAlerta("Já existe uma sala com esse nome!", "Atenção", "fa-circle-xmark");
+            mostrarAlerta("Já existe uma sala com esse nome! Escolha outro ou entre nela na lista abaixo.", "Sala já existe", "fa-circle-xmark");
             return;
         }
+
         salasCriadas.push({ nome: nome, senha: senha !== "" ? senha : null });
         salvarListaSalasGlobais(); 
+
         efetivarEntradaSala(nome);
+    } else {
+        mostrarAlerta("Por favor, digite um nome para a sala!", "Nome Inválido", "fa-triangle-exclamation");
     }
 }
 
 function tentarEntrarSala(nomeBusca) {
+    if (!nomeBusca || nomeBusca === "") return;
+    
     const salaExiste = salasCriadas.find(s => s.nome.toLowerCase() === nomeBusca.toLowerCase());
+    
     if(salaExiste) {
         if(salaExiste.senha) {
             salaSelecionadaTemp = salaExiste;
@@ -126,16 +138,20 @@ function tentarEntrarSala(nomeBusca) {
         } else {
             efetivarEntradaSala(salaExiste.nome);
         }
+    } else {
+        mostrarAlerta("Sala não encontrada!", "Erro", "fa-circle-xmark");
     }
 }
 
 function verificarSenha() {
     const senhaDigitada = document.getElementById('input-senha-acesso').value.trim();
+    
     if(senhaDigitada === salaSelecionadaTemp.senha) {
-        efetivarEntradaSala(salaSelecionadaTemp.nome);
+        const nomeDaSalaLiberada = salaSelecionadaTemp.nome;
         fecharModalSenha();
+        efetivarEntradaSala(nomeDaSalaLiberada);
     } else {
-        mostrarAlerta("Senha Incorreta!", "Erro", "fa-lock");
+        mostrarAlerta("Senha Incorreta! Acesso negado.", "Acesso Negado", "fa-lock");
     }
 }
 
@@ -151,11 +167,20 @@ function efetivarEntradaSala(nome) {
 }
 
 function sairDaSala() {
-    if (refSalaAtual) refSalaAtual.off();
+    if (refSalaAtual) {
+        refSalaAtual.off(); 
+        refSalaAtual = null;
+    }
+    
     salaAtual = null;
+    perfilAtual = null;
     localStorage.removeItem('karaoke_sala_ativa');
+    localStorage.removeItem('karaoke_perfil_atual_id'); 
+    
     document.getElementById('bottom-bar').classList.add('escondido');
-    mudarTela('tela-salas');
+    telas.forEach(tela => tela.classList.remove('ativa'));
+    document.getElementById('tela-salas').classList.add('ativa');
+    
     renderizarLobbySalas(); 
 }
 
@@ -163,72 +188,116 @@ function entrarNoSistema() {
     renderizarSeletorAvatares();
     renderizarCategorias();
     prepararLista(catalogoMusicas);
+    
     refSalaAtual = db.ref('dados_salas/' + salaAtual);
+    
     refSalaAtual.on('value', snapshot => {
         const dados = snapshot.val() || {};
         perfisFamilia = dados.perfis || [];
         filaDeReproducao = dados.fila || [];
         historicoTocadas = dados.historico || {};
-        const idSalvo = localStorage.getItem('karaoke_perfil_atual_id');
-        if (idSalvo) perfilAtual = perfisFamilia.find(p => p.id == idSalvo) || perfilAtual;
+
+        const idAtualSalvo = localStorage.getItem('karaoke_perfil_atual_id');
+        if (idAtualSalvo) { 
+            perfilAtual = perfisFamilia.find(p => p.id == idAtualSalvo) || perfilAtual; 
+        }
+
         renderizarPerfis();
         atualizarPerfilGlobal();
         atualizarFilaUI();
         if(document.getElementById('tela-dashboard').classList.contains('ativa')) atualizarDashboard();
         if(document.getElementById('tela-ranking').classList.contains('ativa')) renderizarRanking();
     });
-    if (!perfilAtual) perfilAtual = { id: 'visitante', nome: "Visitante", foto: listaURLsAvatares[0], pontos: 0, isGuest: true };
-    document.getElementById('badge-nome-sala').innerHTML = `<i class="fa-solid fa-door-open"></i> Sala: <strong>${salaAtual}</strong> <i class="fa-solid fa-right-from-bracket" onclick="sairDaSala()" style="cursor:pointer; margin-left:10px;"></i>`;
+
+    if (!perfilAtual) {
+        perfilAtual = { id: 'convidado_base', nome: "Visitante", foto: `https://api.dicebear.com/7.x/avataaars/svg?seed=Visitante&backgroundColor=e2e2e2`, pontos: 0, isGuest: true };
+    }
+    
+    document.getElementById('badge-nome-sala').innerHTML = `<i class="fa-solid fa-door-open"></i> Sala: <strong>${salaAtual}</strong> <i class="fa-solid fa-right-from-bracket" style="margin-left: 10px; cursor: pointer; color: var(--rosa-neon);" onclick="sairDaSala()" title="Sair"></i>`;
     document.getElementById('bottom-bar').classList.remove('escondido');
     mudarTela('tela-dashboard', navItems[0]); 
 }
 
 function salvarDados() {
     if (!salaAtual || !refSalaAtual) return; 
-    refSalaAtual.set({ perfis: perfisFamilia, fila: filaDeReproducao, historico: historicoTocadas });
-    if (perfilAtual && !perfilAtual.isGuest) localStorage.setItem('karaoke_perfil_atual_id', perfilAtual.id);
+    
+    refSalaAtual.set({
+        perfis: perfisFamilia,
+        fila: filaDeReproducao,
+        historico: historicoTocadas
+    });
+    
+    if (perfilAtual) { 
+        localStorage.setItem('karaoke_perfil_atual_id', perfilAtual.id); 
+    }
 }
 
+window.onload = () => { 
+    const salaSalva = localStorage.getItem('karaoke_sala_ativa');
+    if (salaSalva) {
+        salaAtual = salaSalva;
+        entrarNoSistema();
+    } else {
+        document.getElementById('bottom-bar').classList.add('escondido');
+    }
+};
+
 // ============================================================================
-// NAVEGAÇÃO E PLAYER
+// NAVEGAÇÃO E LÓGICA DO APLICATIVO
 // ============================================================================
+
 function mudarTela(idTelaAlvo, elementoNav = null) {
+    if (!salaAtual && idTelaAlvo !== 'tela-salas') return; 
+
     pararPrevia(); 
     telas.forEach(tela => tela.classList.remove('ativa'));
     document.getElementById(idTelaAlvo).classList.add('ativa');
+    
     if(elementoNav) {
         navItems.forEach(item => item.classList.remove('ativo'));
         elementoNav.classList.add('ativo');
     }
+
+    if(idTelaAlvo === 'tela-dashboard') atualizarDashboard();
+    if(idTelaAlvo === 'tela-ranking') renderizarRanking();
+    if(idTelaAlvo === 'tela-fila') atualizarFilaUI();
+
     window.scrollTo(0, 0); 
 }
 
 function tocarPrevia(idMusica) {
-    if (musicaPreviaAtualId === idMusica && !playerPrevia.paused) { pararPrevia(); return; }
+    if (musicaPreviaAtualId === idMusica && !playerPrevia.paused) {
+        pararPrevia();
+        return;
+    }
     pararPrevia(); 
     const musica = catalogoMusicas.find(m => m.id === idMusica);
+    if(!musica) return;
+
     const btn = document.getElementById(`btn-previa-${idMusica}`);
     if(btn) btn.innerHTML = '<i class="fa-solid fa-circle-stop"></i>';
-    // Puxa prévia do R2
-    playerPrevia.src = `${urlNuvemR2}/${musica.arquivo}`;
-    playerPrevia.onloadedmetadata = () => { playerPrevia.currentTime = 30; playerPrevia.play(); };
+
+    // AQUI OCORRE A MAGICA DO CLOUDFLARE R2 COM ENCODE (Trata os espaços)
+    playerPrevia.src = `${urlNuvemR2}/${encodeURIComponent(musica.arquivo)}`;
+    
+    playerPrevia.onloadedmetadata = () => {
+        playerPrevia.currentTime = 30; 
+        playerPrevia.play().catch(e => console.log("Prévia bloqueada."));
+    };
     musicaPreviaAtualId = idMusica;
-    previewTimer = setTimeout(pararPrevia, 30000);
+    previewTimer = setTimeout(() => { pararPrevia(); }, 30000);
 }
 
 function pararPrevia() {
     playerPrevia.pause();
     if (musicaPreviaAtualId) {
-        const btn = document.getElementById(`btn-previa-${musicaPreviaAtualId}`);
-        if(btn) btn.innerHTML = '<i class="fa-solid fa-headphones"></i>';
+        const btnAntigo = document.getElementById(`btn-previa-${musicaPreviaAtualId}`);
+        if(btnAntigo) btnAntigo.innerHTML = '<i class="fa-solid fa-headphones"></i>';
     }
     musicaPreviaAtualId = null;
     clearTimeout(previewTimer);
 }
 
-// ============================================================================
-// GESTÃO DE CANTORES E FILA
-// ============================================================================
 function renderizarSeletorAvatares() {
     const container = document.getElementById('seletor-avatares');
     container.innerHTML = '';
@@ -243,62 +312,170 @@ function renderizarSeletorAvatares() {
 }
 
 function criarPerfil() {
-    const nome = document.getElementById('input-novo-perfil').value.trim();
-    if (nome) {
-        const novo = { id: Date.now(), nome: nome, foto: avatarSelecionadoCriacao, pontos: 0, isGuest: false };
-        perfisFamilia.push(novo);
-        perfilAtual = novo;
-        salvarDados();
-        document.getElementById('input-novo-perfil').value = "";
-        mostrarAlerta("Perfil criado!", "Sucesso", "fa-check");
+    const inputNome = document.getElementById('input-novo-perfil');
+    const nome = inputNome.value.trim();
+    if (nome !== "") {
+        const novoPerfil = { id: Date.now(), nome: nome, foto: avatarSelecionadoCriacao, pontos: 0, isGuest: false };
+        perfisFamilia.push(novoPerfil);
+        perfilAtual = novoPerfil;
+        salvarDados(); 
+        inputNome.value = "";
+        mostrarAlerta(`Cantor Oficial ${nome} registrado na sala ${salaAtual}!`, "Sucesso", "fa-circle-check");
+    } else { 
+        mostrarAlerta("Por favor, digite um nome válido!", "Atenção", "fa-triangle-exclamation"); 
     }
 }
 
 function entrarComoConvidado() {
-    const nome = document.getElementById('input-convidado').value.trim();
-    if (nome) {
-        perfilAtual = { id: 'conv_'+Date.now(), nome: nome + " (Convidado)", foto: listaURLsAvatares[1], pontos: 0, isGuest: true };
+    const inputConvidado = document.getElementById('input-convidado');
+    const nome = inputConvidado.value.trim();
+    if (nome !== "") {
+        const perfilConvidado = { id: 'convidado_' + Date.now(), nome: `${nome} (Convidado)`, foto: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(nome + 'conv')}&backgroundColor=e2e2e2`, pontos: 0, isGuest: true };
+        perfilAtual = perfilConvidado;
         atualizarPerfilGlobal();
-        mudarTela('tela-playlist', navItems[1]);
+        renderizarPerfis(); 
+        inputConvidado.value = '';
+        mostrarAlerta(`Bem-vindo, ${nome}! Você está na sala ${salaAtual}.`, "Visitante", "fa-user-astronaut");
+        mudarTela('tela-playlist', navItems[1]); 
+    } else { 
+        mostrarAlerta("Digite o nome do visitante!", "Atenção", "fa-triangle-exclamation"); 
     }
 }
 
 function renderizarPerfis() {
-    const lista = document.getElementById('lista-perfis');
-    lista.innerHTML = '';
-    perfisFamilia.forEach(p => {
-        const div = document.createElement('div');
-        div.className = `card-perfil ${perfilAtual?.id === p.id ? 'ativo' : ''}`;
-        div.innerHTML = `<img src="${p.foto}" class="foto-perfil"><span>${p.nome}</span>`;
-        div.onclick = () => { perfilAtual = p; salvarDados(); };
-        lista.appendChild(div);
+    const listaPerfis = document.getElementById('lista-perfis');
+    listaPerfis.innerHTML = '';
+    if(perfisFamilia.length === 0) {
+        listaPerfis.innerHTML = '<p class="texto-cinza">Nenhum cantor oficial cadastrado nesta sala ainda.</p>';
+        return;
+    }
+    perfisFamilia.forEach(perfil => {
+        const card = document.createElement('div');
+        card.classList.add('card-perfil');
+        if (perfilAtual && perfil.id === perfilAtual.id) card.classList.add('ativo');
+        card.innerHTML = `<img src="${perfil.foto}" class="foto-perfil"><span class="nome-perfil">${perfil.nome}</span>`;
+        card.onclick = () => { perfilAtual = perfil; salvarDados(); };
+        listaPerfis.appendChild(card);
     });
 }
 
 function atualizarPerfilGlobal() {
-    if(perfilAtual) document.getElementById('dash-foto-perfil').src = perfilAtual.foto;
+    if(perfilAtual) { document.getElementById('dash-foto-perfil').src = perfilAtual.foto; }
 }
 
-// ============================================================================
-// CATÁLOGO E FILTRO
-// ============================================================================
+function atualizarDashboard() {
+    document.getElementById('dash-qtd-musicas').innerText = catalogoMusicas.length;
+    document.getElementById('dash-qtd-cantores').innerText = perfisFamilia.length;
+    document.getElementById('dash-qtd-salas').innerText = salasCriadas.length;
+
+    const bannerAoVivo = document.getElementById('banner-ao-vivo');
+    if (cantorAoVivo && musicaAoVivo && telaPalcoOverlay.classList.contains('minimizado')) {
+        bannerAoVivo.classList.remove('escondido');
+        document.getElementById('ao-vivo-foto').src = cantorAoVivo.foto;
+        
+        const foto2 = document.getElementById('ao-vivo-foto-2');
+        if(cantor2AoVivo) {
+            foto2.src = cantor2AoVivo.foto;
+            foto2.classList.remove('escondido');
+            document.getElementById('ao-vivo-nome').innerText = `${cantorAoVivo.nome} & ${cantor2AoVivo.nome}`;
+        } else {
+            foto2.classList.add('escondido');
+            document.getElementById('ao-vivo-nome').innerText = cantorAoVivo.nome;
+        }
+        document.getElementById('ao-vivo-musica').innerText = musicaAoVivo.titulo;
+    } else {
+        bannerAoVivo.classList.add('escondido');
+    }
+
+    const containerTopCantores = document.getElementById('dash-top-cantores');
+    let cantoresComPonto = [...perfisFamilia].filter(p => p.pontos > 0 && !p.isGuest).sort((a, b) => b.pontos - a.pontos);
+
+    if (cantoresComPonto.length === 0) {
+        containerTopCantores.innerHTML = '<p class="texto-cinza text-center">Nenhum voto registrado nesta sala.</p>';
+    } else {
+        containerTopCantores.innerHTML = '';
+        cantoresComPonto.slice(0, 5).forEach((perfil, index) => { 
+            let cor = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#cd7f32' : 'var(--texto-cinza)';
+            containerTopCantores.innerHTML += `
+                <div class="item-rank">
+                    <div class="rank-info">
+                        <span class="rank-pos" style="color:${cor}">${index + 1}º</span>
+                        <img src="${perfil.foto}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
+                        <span>${perfil.nome}</span>
+                    </div>
+                    <span class="rank-pontos">${perfil.pontos} pts</span>
+                </div>
+            `;
+        });
+    }
+
+    const containerTopHits = document.getElementById('dash-top-musicas');
+    let hitsOrdenados = Object.entries(historicoTocadas).sort((a, b) => b[1] - a[1]).slice(0, 7);
+
+    if (hitsOrdenados.length === 0) {
+        containerTopHits.innerHTML = '<p class="texto-cinza text-center mt-10">Nenhuma música cantada nesta sala ainda.</p>';
+    } else {
+        containerTopHits.innerHTML = '';
+        hitsOrdenados.forEach(([idStr, qtd], index) => {
+            const musica = catalogoMusicas.find(m => m.id === parseInt(idStr));
+            if(musica) {
+                containerTopHits.innerHTML += `
+                    <div class="item-rank-musica">
+                        <div class="info-hit">
+                            <span class="titulo-hit">${index + 1}. ${musica.titulo}</span>
+                            <span class="artista-hit">${musica.artista}</span>
+                        </div>
+                        <span class="qtd-hit"><i class="fa-solid fa-fire"></i> ${qtd}x</span>
+                    </div>
+                `;
+            }
+        });
+    }
+}
+
+function renderizarRanking() {
+    const containerRanking = document.getElementById('lista-ranking-completa');
+    let cantoresComPonto = [...perfisFamilia].filter(p => p.pontos > 0 && !p.isGuest).sort((a, b) => b.pontos - a.pontos);
+
+    if (cantoresComPonto.length === 0) {
+        containerRanking.innerHTML = '<div class="empty-state"><i class="fa-solid fa-medal fa-3x"></i><p>A competição desta sala ainda não começou!</p></div>';
+        return;
+    }
+
+    containerRanking.innerHTML = '';
+    cantoresComPonto.forEach((perfil, index) => {
+        let corPodio = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#cd7f32' : 'var(--texto-cinza)';
+        containerRanking.innerHTML += `
+            <div class="item-rank" style="margin-bottom: 10px;">
+                <div class="rank-info">
+                    <span class="rank-pos" style="color: ${corPodio};">${index + 1}º</span>
+                    <img src="${perfil.foto}" style="width: 45px; height: 45px; border-radius: 50%; object-fit:cover;">
+                    <strong>${perfil.nome}</strong>
+                </div>
+                <span class="rank-pontos">${perfil.pontos} <i class="fa-solid fa-star"></i></span>
+            </div>
+        `;
+    });
+}
+
 function renderizarCategorias() {
-    const container = document.getElementById('container-categorias');
+    const containerCategorias = document.getElementById('container-categorias');
     const categorias = ["Todas", ...new Set(catalogoMusicas.map(m => m.categoria))];
-    container.innerHTML = '';
+    containerCategorias.innerHTML = '';
     categorias.forEach(cat => {
         const btn = document.createElement('button');
-        btn.className = `btn-categoria ${cat === categoriaAtual ? 'ativo' : ''}`;
+        btn.classList.add('btn-categoria');
+        if(cat === categoriaAtual) btn.classList.add('ativo');
         btn.innerText = cat;
         btn.onclick = () => { categoriaAtual = cat; renderizarCategorias(); filtrarMusicas(); };
-        container.appendChild(btn);
+        containerCategorias.appendChild(btn);
     });
 }
 
 function filtrarMusicas() {
     const termo = document.getElementById('input-busca').value.toLowerCase();
     const filtradas = catalogoMusicas.filter(m => 
-        (m.titulo.toLowerCase().includes(termo) || m.artista.toLowerCase().includes(termo)) &&
+        (m.titulo.toLowerCase().includes(termo) || m.artista.toLowerCase().includes(termo) || m.codigo?.includes(termo)) &&
         (categoriaAtual === "Todas" || m.categoria === categoriaAtual)
     );
     prepararLista(filtradas);
@@ -310,161 +487,404 @@ function prepararLista(musicas) {
     mudarPagina(1);
 }
 
-function mudarPagina(num) {
-    const total = Math.ceil(musicasAtuaisFiltradas.length / musicasPorPagina);
-    if (num < 1) num = 1; if (num > total) num = total;
-    paginaAtual = num;
-    const inicio = (num - 1) * musicasPorPagina;
-    renderizarMusicas(musicasAtuaisFiltradas.slice(inicio, inicio + musicasPorPagina));
-    renderizarControlesPaginacao(total);
+function mudarPagina(numeroPagina) {
+    pararPrevia(); 
+    const totalPaginas = Math.ceil(musicasAtuaisFiltradas.length / musicasPorPagina);
+    if (numeroPagina < 1) numeroPagina = 1;
+    if (numeroPagina > totalPaginas && totalPaginas > 0) numeroPagina = totalPaginas;
+    paginaAtual = numeroPagina;
+    const inicio = (paginaAtual - 1) * musicasPorPagina;
+    const musicasDaPagina = musicasAtuaisFiltradas.slice(inicio, inicio + musicasPorPagina);
+    renderizarMusicas(musicasDaPagina);
+    renderizarControlesPaginacao(totalPaginas);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function renderizarControlesPaginacao(total) {
-    const container = document.getElementById('paginacao-container');
-    if (total <= 1) { container.innerHTML = ''; return; }
-    container.innerHTML = `
-        <button class="btn-pagina" onclick="mudarPagina(${paginaAtual - 1})"><i class="fa-solid fa-chevron-left"></i></button>
-        <span class="info-pagina">${paginaAtual} / ${total}</span>
-        <button class="btn-pagina" onclick="mudarPagina(${paginaAtual + 1})"><i class="fa-solid fa-chevron-right"></i></button>
+function renderizarControlesPaginacao(totalPaginas) {
+    const paginacaoContainer = document.getElementById('paginacao-container');
+    if (totalPaginas <= 1) { paginacaoContainer.innerHTML = ''; return; }
+    paginacaoContainer.innerHTML = `
+        <button class="btn-pagina" onclick="mudarPagina(${paginaAtual - 1})" ${paginaAtual === 1 ? 'disabled' : ''}><i class="fa-solid fa-chevron-left"></i></button>
+        <span class="info-pagina">Página ${paginaAtual} de ${totalPaginas}</span>
+        <button class="btn-pagina" onclick="mudarPagina(${paginaAtual + 1})" ${paginaAtual === totalPaginas ? 'disabled' : ''}><i class="fa-solid fa-chevron-right"></i></button>
     `;
 }
 
 function renderizarMusicas(musicas) {
-    const container = document.getElementById('lista-musicas');
-    container.innerHTML = '';
-    musicas.forEach(m => {
-        const div = document.createElement('div');
-        div.className = 'card-musica';
-        div.innerHTML = `
-            <div class="info-musica"><strong>${m.titulo}</strong><br><small>${m.artista}</small></div>
+    const listaMusicas = document.getElementById('lista-musicas');
+    listaMusicas.innerHTML = '';
+    if (musicas.length === 0) {
+        listaMusicas.innerHTML = '<div class="empty-state"><i class="fa-solid fa-music fa-3x"></i><p>Nenhuma música encontrada.</p></div>';
+        return;
+    }
+    musicas.forEach(musica => {
+        const card = document.createElement('div');
+        card.classList.add('card-musica');
+        
+        card.innerHTML = `
+            <div class="info-musica">
+                <div class="titulo-musica">${musica.titulo}</div>
+                <div class="artista-musica">${musica.artista}</div>
+            </div>
             <div class="botoes-card">
-                <button class="btn-acao btn-previa" id="btn-previa-${m.id}" onclick="tocarPrevia(${m.id})"><i class="fa-solid fa-headphones"></i></button>
-                <button class="btn-acao btn-fila" onclick="adicionarFila(${m.id})"><i class="fa-solid fa-plus"></i></button>
-                <button class="btn-acao btn-cantar" onclick="irParaPalco(${m.id})">Cantar</button>
+                <button class="btn-acao btn-previa" id="btn-previa-${musica.id}" onclick="tocarPrevia(${musica.id})" title="Ouvir Prévia"><i class="fa-solid fa-headphones"></i></button>
+                <button class="btn-acao btn-fila" onclick="adicionarFila(${musica.id})" title="Add Solo"><i class="fa-solid fa-plus"></i></button>
+                <button class="btn-acao btn-dueto" onclick="abrirModalDueto(${musica.id})" title="Add Dueto"><i class="fa-solid fa-user-group"></i></button>
+                <button class="btn-acao btn-cantar" onclick="irParaPalco(${musica.id}, null)">Cantar</button>
             </div>
         `;
-        container.appendChild(div);
+        listaMusicas.appendChild(card);
     });
 }
 
+let idMusicaDuetoTemporaria = null;
+
+function abrirModalDueto(idMusica) {
+    if(!perfilAtual) { 
+        mostrarAlerta("Identifique-se na aba 'Perfil' primeiro!", "Atenção", "fa-user"); 
+        mudarTela('tela-perfil', navItems[4]); 
+        return; 
+    }
+    idMusicaDuetoTemporaria = idMusica;
+    const modal = document.getElementById('modal-dueto');
+    document.getElementById('lista-parceiros-modal').innerHTML = '';
+    const parceirosDisponiveis = perfisFamilia.filter(p => p.id !== perfilAtual.id);
+    if(parceirosDisponiveis.length === 0) { 
+        mostrarAlerta("Cadastre mais um Cantor nesta sala para fazer dueto!", "Atenção", "fa-user-group"); 
+        return; 
+    }
+    parceirosDisponiveis.forEach(perfil => {
+        const card = document.createElement('div');
+        card.classList.add('card-perfil');
+        card.innerHTML = `<img src="${perfil.foto}" class="foto-perfil"><span class="nome-perfil">${perfil.nome}</span>`;
+        card.onclick = () => { adicionarFila(idMusicaDuetoTemporaria, perfil); fecharModalDueto(); };
+        document.getElementById('lista-parceiros-modal').appendChild(card);
+    });
+    modal.classList.remove('escondido');
+}
+
+function fecharModalDueto() { document.getElementById('modal-dueto').classList.add('escondido'); idMusicaDuetoTemporaria = null; }
+
 function adicionarFila(id, parceiro = null) {
-    if(!perfilAtual) { mostrarAlerta("Se identifique primeiro!"); return; }
+    if(!perfilAtual) { 
+        mostrarAlerta("Selecione um cantor na aba 'Perfil' primeiro!", "Atenção", "fa-user"); 
+        mudarTela('tela-perfil', navItems[4]); 
+        return; 
+    }
     const musica = catalogoMusicas.find(m => m.id === id);
     filaDeReproducao.push({ ...musica, cantor: perfilAtual, cantor2: parceiro, instanciaId: Date.now() });
-    salvarDados();
-    mostrarAlerta(`${musica.titulo} na fila!`);
+    salvarDados(); 
+    if(parceiro) {
+        mostrarAlerta(`Dueto de ${perfilAtual.nome} & ${parceiro.nome} na fila!`, "Sucesso", "fa-list-ol");
+    } else {
+        mostrarAlerta(`${musica.titulo} na fila!`, "Sucesso", "fa-list-ol");
+    }
+}
+
+function removerDaFila(instanciaId) {
+    filaDeReproducao = filaDeReproducao.filter(m => m.instanciaId !== instanciaId);
+    salvarDados(); 
 }
 
 function atualizarFilaUI() {
-    const container = document.getElementById('lista-fila');
-    container.innerHTML = '';
-    if (filaDeReproducao.length === 0) { container.innerHTML = '<p>Palco livre!</p>'; return; }
-    filaDeReproducao.forEach((m, i) => {
-        const div = document.createElement('div');
-        div.className = 'item-fila-grande';
-        div.innerHTML = `
-            <div class="fila-rank">${i+1}º</div>
-            <div class="fila-info-textos"><strong>${m.cantor.nome}</strong><br>${m.titulo}</div>
+    const listaFila = document.getElementById('lista-fila');
+    if (filaDeReproducao.length === 0) {
+        listaFila.innerHTML = '<div class="empty-state"><i class="fa-solid fa-microphone-slash fa-3x"></i><p>O palco está livre!</p></div>';
+        return;
+    }
+    listaFila.innerHTML = '';
+    filaDeReproducao.forEach((m, index) => {
+        const item = document.createElement('div');
+        item.classList.add('item-fila-grande');
+        let htmlAvatares = `<img src="${m.cantor.foto}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">`;
+        let nomeCantor = m.cantor.nome;
+        if(m.cantor2) {
+            htmlAvatares += `<img src="${m.cantor2.foto}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;" class="foto-sobreposta">`;
+            nomeCantor += ` & ${m.cantor2.nome}`;
+        }
+        item.innerHTML = `
+            <div class="fila-rank">${index + 1}º</div>
+            <div class="avatares-dupla">${htmlAvatares}</div>
+            <div class="fila-info-textos">
+                <strong class="fila-nome">${nomeCantor}</strong>
+                <span class="fila-musica">${m.titulo}</span>
+            </div>
             <div class="fila-acoes">
-                <button class="btn-acao btn-cantar" onclick="irParaPalco(${m.id}, null, true, ${m.instanciaId})"><i class="fa-solid fa-play"></i></button>
-                <button class="btn-remover" onclick="removerFila(${m.instanciaId})"><i class="fa-solid fa-trash"></i></button>
+                <button class="btn-acao btn-cantar" style="padding: 10px 15px;" onclick="puxarDaFilaParaPalco(${m.instanciaId})"><i class="fa-solid fa-play"></i></button>
+                <button class="btn-remover" onclick="removerDaFila(${m.instanciaId})"><i class="fa-solid fa-trash-can"></i></button>
             </div>
         `;
-        container.appendChild(div);
+        listaFila.appendChild(item);
     });
 }
 
-function removerFila(id) {
-    filaDeReproducao = filaDeReproducao.filter(m => m.instanciaId !== id);
-    salvarDados();
+function puxarDaFilaParaPalco(instanciaId) {
+    const itemFila = filaDeReproducao.find(m => m.instanciaId === instanciaId);
+    if(itemFila) {
+        irParaPalco(itemFila.id, itemFila.cantor2);
+        removerDaFila(instanciaId); 
+    }
 }
 
-// ============================================================================
-// PALCO E VOTAÇÃO
-// ============================================================================
-function irParaPalco(idMusica, parceiro = null, daFila = false, idInstancia = null) {
+function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
+    if(!perfilAtual) { 
+        mostrarAlerta("Identifique-se na aba Perfil antes de cantar!", "Atenção", "fa-user"); 
+        mudarTela('tela-perfil', navItems[4]); 
+        return; 
+    }
+    
+    pararPrevia(); 
+    document.getElementById('tela-transicao-palco').classList.add('escondido');
+    clearInterval(intervaloContador);
+    clearTimeout(timerTransicao);
+    window.speechSynthesis.cancel(); 
+    somAplauso.onended = null;       
+
+    historicoTocadas[idMusica] = (historicoTocadas[idMusica] || 0) + 1;
+    salvarDados(); 
+
     const musica = catalogoMusicas.find(m => m.id === idMusica);
-    if(daFila) removerFila(idInstancia);
-    
     cantorAoVivo = perfilAtual;
+    cantor2AoVivo = parceiro;
     musicaAoVivo = musica;
-    
+
     document.getElementById('titulo-atual').innerText = musica.titulo;
     document.getElementById('artista-atual').innerText = musica.artista;
-    document.getElementById('palco-nome-cantor').innerText = perfilAtual.nome;
-    document.getElementById('palco-foto-cantor').src = perfilAtual.foto;
-
-    telaPalcoOverlay.classList.remove('escondido');
-    // PUXA DO R2
-    playerVideo.src = `${urlNuvemR2}/${musica.arquivo}`;
-    playerVideo.play();
     
-    historicoTocadas[idMusica] = (historicoTocadas[idMusica] || 0) + 1;
-    salvarDados();
+    const foto2 = document.getElementById('palco-foto-cantor-2');
+    
+    let nomeAnuncio = perfilAtual.nome;
+    let htmlFotos = `<img src="${perfilAtual.foto}" class="foto-transicao">`;
+
+    if(parceiro) {
+        nomeAnuncio += ` & ${parceiro.nome}`;
+        htmlFotos += `<img src="${parceiro.foto}" class="foto-transicao foto-sobreposta-palco">`;
+        document.getElementById('palco-nome-cantor').innerText = `🎤 ${perfilAtual.nome} & ${parceiro.nome}`;
+        foto2.src = parceiro.foto;
+        foto2.classList.remove('escondido');
+    } else {
+        document.getElementById('palco-nome-cantor').innerText = `🎤 ${perfilAtual.nome}`;
+        foto2.classList.add('escondido');
+    }
+    document.getElementById('palco-foto-cantor').src = perfilAtual.foto;
+    
+    document.getElementById('alerta-nota-palco').classList.add('escondido');
+    
+    telaPalcoOverlay.classList.remove('escondido');
+    telaPalcoOverlay.classList.remove('minimizado');
+
+    // AQUI OCORRE A MAGICA DO CLOUDFLARE R2 COM ENCODE
+    playerVideo.src = `${urlNuvemR2}/${encodeURIComponent(musica.arquivo)}`;
+
+    if (pularContagem) {
+        playerVideo.play().catch(e => console.log("Autoplay bloqueado pelo navegador."));
+    } else {
+        const divTransicao = document.getElementById('tela-transicao-palco');
+        document.getElementById('transicao-nome').innerText = nomeAnuncio;
+        document.getElementById('transicao-musica').innerText = musica.titulo;
+        document.getElementById('transicao-fotos').innerHTML = htmlFotos;
+        
+        divTransicao.classList.remove('escondido');
+        
+        let contagem = 5;
+        document.getElementById('transicao-contador').innerText = contagem;
+        
+        intervaloContador = setInterval(() => {
+            contagem--;
+            document.getElementById('transicao-contador').innerText = contagem;
+            if(contagem <= 0) clearInterval(intervaloContador);
+        }, 1000);
+
+        timerTransicao = setTimeout(() => {
+            divTransicao.classList.add('escondido');
+            playerVideo.play().catch(e => console.log("Autoplay bloqueado pelo navegador."));
+        }, 5000);
+    }
+
+    atualizarDashboard();
 }
 
-function minimizarPalco() { telaPalcoOverlay.classList.add('minimizado'); }
-function maximizarPalco() { telaPalcoOverlay.classList.remove('minimizado'); }
-function encerrarPalco() { 
-    playerVideo.pause(); playerVideo.src = ""; 
-    telaPalcoOverlay.classList.add('escondido'); 
-    cantorAoVivo = null; 
+function minimizarPalco() {
+    if (document.fullscreenElement) { document.exitFullscreen().catch(() => {}); }
+    telaPalcoOverlay.classList.add('minimizado');
+    atualizarDashboard(); 
+}
+
+function maximizarPalco() {
+    telaPalcoOverlay.classList.remove('minimizado');
+    atualizarDashboard(); 
+}
+
+function encerrarPalco(forcarFechamento = false) {
+    if (document.fullscreenElement) { document.exitFullscreen().catch(() => {}); }
+    
+    pararPrevia(); 
+    clearInterval(intervaloContador);
+    clearTimeout(timerTransicao);
+    window.speechSynthesis.cancel();
+    somAplauso.onended = null;
+    
+    playerVideo.pause();
+    playerVideo.src = ""; 
+    cantorAoVivo = null;
+    cantor2AoVivo = null;
+    musicaAoVivo = null;
+    
+    document.getElementById('tela-transicao-palco').classList.add('escondido');
+    telaPalcoOverlay.classList.add('escondido');
+    telaPalcoOverlay.classList.remove('minimizado');
+    atualizarDashboard();
 }
 
 function abrirCabineVotacao() {
-    document.getElementById('voto-nome-cantor').innerText = cantorAoVivo.nome;
+    if(!cantorAoVivo) { 
+        mostrarAlerta("Ninguém está no palco agora!", "Palco Vazio", "fa-microphone-slash"); 
+        return; 
+    }
+    
     document.getElementById('voto-musica').innerText = musicaAoVivo.titulo;
+    
+    const foto2Voto = document.getElementById('voto-foto-cantor-2');
+    if(cantor2AoVivo) {
+        document.getElementById('voto-nome-cantor').innerText = `${cantorAoVivo.nome} & ${cantor2AoVivo.nome}`;
+        foto2Voto.src = cantor2AoVivo.foto;
+        foto2Voto.classList.remove('escondido');
+    } else {
+        document.getElementById('voto-nome-cantor').innerText = cantorAoVivo.nome;
+        foto2Voto.classList.add('escondido');
+    }
     document.getElementById('voto-foto-cantor').src = cantorAoVivo.foto;
+    document.getElementById('resultado-voto').innerText = "Aguardando seu voto...";
+
     mudarTela('tela-votacao');
 }
 
 function votar(nota) {
-    const c = perfisFamilia.find(p => p.id === cantorAoVivo.id);
-    if(c) c.pontos += nota;
-    salvarDados();
-    mostrarAlerta("Voto registrado!");
-    mudarTela('tela-dashboard', navItems[0]);
-}
+    let pontuou = false;
+    if(cantorAoVivo && !cantorAoVivo.isGuest) { let c1 = perfisFamilia.find(p => p.id === cantorAoVivo.id); if(c1) { c1.pontos += nota; pontuou = true; } }
+    if(cantor2AoVivo && !cantor2AoVivo.isGuest) { let c2 = perfisFamilia.find(p => p.id === cantor2AoVivo.id); if(c2) { c2.pontos += nota; pontuou = true; } }
 
-// ============================================================================
-// DASHBOARD E RANKING
-// ============================================================================
-function atualizarDashboard() {
-    document.getElementById('dash-qtd-musicas').innerText = catalogoMusicas.length;
-    document.getElementById('dash-qtd-cantores').innerText = perfisFamilia.length;
+    if(pontuou) salvarDados(); 
+
+    const frases = { 1: "Piedade... 💀", 5: "Dá pra melhorar! 🎤", 8: "Mandou bem! 🔥", 10: "ESTRELA NASCEU! 🌟" };
+    let comentario = frases[nota] || "Nota registrada!";
+    if(!pontuou) { comentario = "Nota dada! (Visitante não pontua)"; }
     
-    const container = document.getElementById('dash-top-cantores');
-    const tops = [...perfisFamilia].sort((a,b) => b.pontos - a.pontos).slice(0,5);
-    container.innerHTML = '';
-    tops.forEach((p, i) => {
-        container.innerHTML += `<div class="item-rank"><span>${i+1}º ${p.nome}</span> <span>${p.pontos} pts</span></div>`;
-    });
+    const divAlertaPalco = document.getElementById('alerta-nota-palco');
+    
+    if(nota === 10) {
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#ff2a7a', '#00e5ff', '#ffd700'] });
+        somAplauso.currentTime = 0;
+        somAplauso.play().catch(() => {});
+        
+        document.getElementById('resultado-voto').innerHTML = `<span class="fade-in" style="color: gold; text-shadow: 0 0 10px gold;">⭐ NOTA 10! ${comentario}</span>`;
+        divAlertaPalco.innerHTML = `⭐ NOTA 10 DA PLATEIA! ⭐`;
+        divAlertaPalco.classList.remove('escondido');
+    } else {
+        document.getElementById('resultado-voto').innerHTML = `<span class="fade-in">Voto: +${nota} - ${comentario}</span>`;
+        divAlertaPalco.innerHTML = `+${nota} PONTOS!`;
+        divAlertaPalco.classList.remove('escondido');
+    }
+
+    setTimeout(() => { divAlertaPalco.classList.add('escondido'); }, 3000);
 }
 
-function renderizarRanking() {
-    const container = document.getElementById('lista-ranking-completa');
-    const ordenados = [...perfisFamilia].sort((a,b) => b.pontos - a.pontos);
-    container.innerHTML = '';
-    ordenados.forEach((p, i) => {
-        container.innerHTML += `<div class="item-rank"><span>${i+1}º ${p.nome}</span> <span>${p.pontos} pts</span></div>`;
-    });
-}
+playerVideo.addEventListener('ended', () => {
+    somAplauso.currentTime = 0;
+    somAplauso.play().catch(() => {});
 
-// ============================================================================
-// INICIALIZAÇÃO E PWA
-// ============================================================================
-window.onload = () => {
-    const salva = localStorage.getItem('karaoke_sala_ativa');
-    if(salva) { salaAtual = salva; entrarNoSistema(); }
-};
+    if (filaDeReproducao.length > 0) {
+        if (telaPalcoOverlay.classList.contains('minimizado')) { maximizarPalco(); }
 
-let promptInstalacao;
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    promptInstalacao = e;
-    document.getElementById('btn-instalar-app').classList.remove('escondido');
+        const proximo = filaDeReproducao[0];
+        
+        let eOMesmoCantor = false;
+        if (cantorAoVivo) {
+            let atualIds = cantorAoVivo.id + (cantor2AoVivo ? "_" + cantor2AoVivo.id : "");
+            let proximoIds = proximo.cantor.id + (proximo.cantor2 ? "_" + proximo.cantor2.id : "");
+            let atualInvertido = (cantor2AoVivo ? cantor2AoVivo.id + "_" : "") + cantorAoVivo.id;
+            if (atualIds === proximoIds || atualInvertido === proximoIds) { eOMesmoCantor = true; }
+        }
+
+        removerDaFila(proximo.instanciaId); 
+
+        let nomeAnuncio = proximo.cantor.nome;
+        if(proximo.cantor2) { nomeAnuncio += ` e ${proximo.cantor2.nome}`; }
+        
+        const divTransicao = document.getElementById('tela-transicao-palco');
+        document.getElementById('transicao-nome').innerText = nomeAnuncio;
+        document.getElementById('transicao-musica').innerText = proximo.titulo;
+        
+        let htmlFotos = `<img src="${proximo.cantor.foto}" class="foto-transicao">`;
+        if (proximo.cantor2) { htmlFotos += `<img src="${proximo.cantor2.foto}" class="foto-transicao foto-sobreposta-palco">`; }
+        document.getElementById('transicao-fotos').innerHTML = htmlFotos;
+        divTransicao.classList.remove('escondido');
+        
+        let contagem = 20;
+        document.getElementById('transicao-contador').innerText = contagem;
+        
+        intervaloContador = setInterval(() => {
+            contagem--;
+            document.getElementById('transicao-contador').innerText = contagem;
+            if(contagem <= 0) clearInterval(intervaloContador);
+        }, 1000);
+
+        somAplauso.onended = () => {
+            if (!eOMesmoCantor) {
+                let textoVoz = `Atenção! Próximo cantor no palco: ${nomeAnuncio}. Preparem-se!`;
+                const voz = new SpeechSynthesisUtterance(textoVoz);
+                voz.lang = 'pt-BR'; 
+                voz.pitch = 0.8; 
+                voz.rate = 1.1;  
+                window.speechSynthesis.speak(voz);
+            }
+            somAplauso.onended = null; 
+        };
+
+        timerTransicao = setTimeout(() => {
+            divTransicao.classList.add('escondido');
+            perfilAtual = proximo.cantor; 
+            irParaPalco(proximo.id, proximo.cantor2, true); 
+        }, 20000);
+
+    } else {
+        const divAlerta = document.getElementById('alerta-nota-palco');
+        divAlerta.innerHTML = `Fim do Show! O palco está livre.`;
+        divAlerta.classList.remove('escondido');
+        
+        timerTransicao = setTimeout(() => {
+            divAlerta.classList.add('escondido');
+            encerrarPalco();
+        }, 5000);
+    }
 });
 
-document.getElementById('btn-instalar-app').addEventListener('click', () => {
-    if(promptInstalacao) promptInstalacao.prompt();
+// ============================================================================
+// SISTEMA DE INSTALAÇÃO DO APLICATIVO (PWA)
+// ============================================================================
+let promptDeInstalacao;
+const btnInstalar = document.getElementById('btn-instalar-app');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    promptDeInstalacao = e;
+    if (btnInstalar) btnInstalar.classList.remove('escondido');
+});
+
+if (btnInstalar) {
+    btnInstalar.addEventListener('click', async () => {
+        if (promptDeInstalacao) {
+            promptDeInstalacao.prompt();
+            const { outcome } = await promptDeInstalacao.userChoice;
+            if (outcome === 'accepted') {
+                console.log('App instalado com sucesso!');
+                btnInstalar.classList.add('escondido');
+            }
+            promptDeInstalacao = null;
+        }
+    });
+}
+
+window.addEventListener('appinstalled', () => {
+    if (btnInstalar) btnInstalar.classList.add('escondido');
 });
