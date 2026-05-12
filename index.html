@@ -25,43 +25,6 @@
 </head>
 <body>
 
-    <div id="console-celular" style="position: fixed; top: 0; left: 0; width: 100%; height: 30%; background: rgba(0,0,0,0.95); color: #0f0; font-family: monospace; font-size: 11px; overflow-y: scroll; z-index: 999999; padding: 10px; border-bottom: 3px solid #ff0055;">
-        <div style="color: #fff; margin-bottom: 5px; font-weight: bold;">--- CONSOLE DE DETETIVE (KARAOKÊ VIP) ---</div>
-    </div>
-    <script>
-        const painelConsole = document.getElementById('console-celular');
-        function printConsole(msg, cor) {
-            const linha = document.createElement('div');
-            linha.style.color = cor;
-            linha.style.marginBottom = '4px';
-            linha.style.borderBottom = '1px solid #333';
-            linha.style.paddingBottom = '4px';
-            linha.textContent = msg;
-            painelConsole.appendChild(linha);
-            painelConsole.scrollTop = painelConsole.scrollHeight;
-        }
-        
-        // Captura o erro fatal de sintaxe (geralmente do data.js)
-        window.onerror = function(mensagem, fonte, linha, coluna, erro) {
-            let nomeArquivo = fonte ? fonte.split('/').pop() : "Desconhecido";
-            printConsole(`🚨 ERRO GRAVE: ${mensagem}`, '#ff3333');
-            printConsole(`📍 ARQUIVO: ${nomeArquivo} | LINHA: ${linha}`, '#ffaaaa');
-            printConsole(`🔍 DICA: Verifique a linha ${linha} do arquivo ${nomeArquivo}. Provavelmente tem uma aspa faltando ou símbolo quebrado.`, '#ffff00');
-            return false;
-        };
-
-        const consoleOriginal = console.log;
-        console.log = function(...args) {
-            printConsole(`👉 ${args.join(' ')}`, '#00ff00');
-            consoleOriginal.apply(console, args);
-        };
-
-        const erroOriginal = console.error;
-        console.error = function(...args) {
-            printConsole(`❌ ERRO: ${args.join(' ')}`, '#ff3333');
-            erroOriginal.apply(console, args);
-        };
-    </script>
     <audio id="som-aplauso" src="assets/aplausos.mp3"></audio>
 
     <div id="tela-salas" class="tela ativa">
