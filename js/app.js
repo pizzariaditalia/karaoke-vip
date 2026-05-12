@@ -193,13 +193,23 @@ function entrarNoSistema() {
     
     refSalaAtual.on('value', snapshot => {
         const dados = snapshot.val() || {};
-        perfisFamilia = dados.perfis || [];
-        filaDeReproducao = dados.fila || [];
+        
+        // Tratamento de segurança caso o Firebase converta array vazio em objeto
+        let pRaw = dados.perfis || [];
+        perfisFamilia = Array.isArray(pRaw) ? pRaw : Object.values(pRaw);
+
+        let fRaw = dados.fila || [];
+        filaDeReproducao = Array.isArray(fRaw) ? fRaw : Object.values(fRaw);
+
         historicoTocadas = dados.historico || {};
 
+        // Tenta recuperar o perfil salvo
         const idAtualSalvo = localStorage.getItem('karaoke_perfil_atual_id');
         if (idAtualSalvo) { 
-            perfilAtual = perfisFamilia.find(p => p.id == idAtualSalvo) || perfilAtual; 
+            let perfilEncontrado = perfisFamilia.find(p => String(p.id) === String(idAtualSalvo));
+            if(perfilEncontrado) {
+                perfilAtual = perfilEncontrado; 
+            }
         }
 
         renderizarPerfis();
@@ -226,10 +236,6 @@ function salvarDados() {
         fila: filaDeReproducao,
         historico: historicoTocadas
     });
-    
-    if (perfilAtual) { 
-        localStorage.setItem('karaoke_perfil_atual_id', perfilAtual.id); 
-    }
 }
 
 window.onload = () => { 
@@ -277,7 +283,6 @@ function tocarPrevia(idMusica) {
     const btn = document.getElementById(`btn-previa-${idMusica}`);
     if(btn) btn.innerHTML = '<i class="fa-solid fa-circle-stop"></i>';
 
-    // AQUI OCORRE A MAGICA DO CLOUDFLARE R2 COM ENCODE (Trata os espaços)
     playerPrevia.src = `${urlNuvemR2}/${encodeURIComponent(musica.arquivo)}`;
     
     playerPrevia.onloadedmetadata = () => {
@@ -318,9 +323,13 @@ function criarPerfil() {
         const novoPerfil = { id: Date.now(), nome: nome, foto: avatarSelecionadoCriacao, pontos: 0, isGuest: false };
         perfisFamilia.push(novoPerfil);
         perfilAtual = novoPerfil;
+        
+        // Salva direto no celular e na nuvem
+        localStorage.setItem('karaoke_perfil_atual_id', novoPerfil.id);
         salvarDados(); 
+        
         inputNome.value = "";
-        mostrarAlerta(`Cantor Oficial ${nome} registrado na sala ${salaAtual}!`, "Sucesso", "fa-circle-check");
+        mostrarAlerta(`Cantor Oficial ${nome} registrado e conectado!`, "Sucesso", "fa-circle-check");
     } else { 
         mostrarAlerta("Por favor, digite um nome válido!", "Atenção", "fa-triangle-exclamation"); 
     }
@@ -332,6 +341,10 @@ function entrarComoConvidado() {
     if (nome !== "") {
         const perfilConvidado = { id: 'convidado_' + Date.now(), nome: `${nome} (Convidado)`, foto: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(nome + 'conv')}&backgroundColor=e2e2e2`, pontos: 0, isGuest: true };
         perfilAtual = perfilConvidado;
+        
+        // Remove do cache caso estivesse logado em um oficial antes
+        localStorage.removeItem('karaoke_perfil_atual_id');
+        
         atualizarPerfilGlobal();
         renderizarPerfis(); 
         inputConvidado.value = '';
@@ -349,12 +362,23 @@ function renderizarPerfis() {
         listaPerfis.innerHTML = '<p class="texto-cinza">Nenhum cantor oficial cadastrado nesta sala ainda.</p>';
         return;
     }
+    
     perfisFamilia.forEach(perfil => {
         const card = document.createElement('div');
         card.classList.add('card-perfil');
-        if (perfilAtual && perfil.id === perfilAtual.id) card.classList.add('ativo');
+        if (perfilAtual && String(perfil.id) === String(perfilAtual.id)) card.classList.add('ativo');
+        
         card.innerHTML = `<img src="${perfil.foto}" class="foto-perfil"><span class="nome-perfil">${perfil.nome}</span>`;
-        card.onclick = () => { perfilAtual = perfil; salvarDados(); };
+        
+        // A MÁGICA ACONTECE AQUI: Atualiza visual e salva no celular imediatamente
+        card.onclick = () => { 
+            perfilAtual = perfil; 
+            localStorage.setItem('karaoke_perfil_atual_id', perfil.id);
+            atualizarPerfilGlobal();
+            renderizarPerfis();
+            mostrarAlerta(`Bem-vindo de volta! Você agora é: ${perfil.nome}`, "Perfil Selecionado", "fa-user-check");
+        };
+        
         listaPerfis.appendChild(card);
     });
 }
@@ -417,7 +441,7 @@ function atualizarDashboard() {
     } else {
         containerTopHits.innerHTML = '';
         hitsOrdenados.forEach(([idStr, qtd], index) => {
-            const musica = catalogoMusicas.find(m => m.id === parseInt(idStr));
+            const musica = catalogoMusicas.find(m => String(m.id) === String(idStr));
             if(musica) {
                 containerTopHits.innerHTML += `
                     <div class="item-rank-musica">
@@ -540,15 +564,15 @@ function renderizarMusicas(musicas) {
 let idMusicaDuetoTemporaria = null;
 
 function abrirModalDueto(idMusica) {
-    if(!perfilAtual) { 
-        mostrarAlerta("Identifique-se na aba 'Perfil' primeiro!", "Atenção", "fa-user"); 
+    if(!perfilAtual || perfilAtual.isGuest) { 
+        mostrarAlerta("Identifique-se como Oficial na aba 'Perfil' primeiro!", "Atenção", "fa-user"); 
         mudarTela('tela-perfil', navItems[4]); 
         return; 
     }
     idMusicaDuetoTemporaria = idMusica;
     const modal = document.getElementById('modal-dueto');
     document.getElementById('lista-parceiros-modal').innerHTML = '';
-    const parceirosDisponiveis = perfisFamilia.filter(p => p.id !== perfilAtual.id);
+    const parceirosDisponiveis = perfisFamilia.filter(p => String(p.id) !== String(perfilAtual.id));
     if(parceirosDisponiveis.length === 0) { 
         mostrarAlerta("Cadastre mais um Cantor nesta sala para fazer dueto!", "Atenção", "fa-user-group"); 
         return; 
@@ -673,7 +697,6 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     telaPalcoOverlay.classList.remove('escondido');
     telaPalcoOverlay.classList.remove('minimizado');
 
-    // AQUI OCORRE A MAGICA DO CLOUDFLARE R2 COM ENCODE
     playerVideo.src = `${urlNuvemR2}/${encodeURIComponent(musica.arquivo)}`;
 
     if (pularContagem) {
@@ -761,8 +784,8 @@ function abrirCabineVotacao() {
 
 function votar(nota) {
     let pontuou = false;
-    if(cantorAoVivo && !cantorAoVivo.isGuest) { let c1 = perfisFamilia.find(p => p.id === cantorAoVivo.id); if(c1) { c1.pontos += nota; pontuou = true; } }
-    if(cantor2AoVivo && !cantor2AoVivo.isGuest) { let c2 = perfisFamilia.find(p => p.id === cantor2AoVivo.id); if(c2) { c2.pontos += nota; pontuou = true; } }
+    if(cantorAoVivo && !cantorAoVivo.isGuest) { let c1 = perfisFamilia.find(p => String(p.id) === String(cantorAoVivo.id)); if(c1) { c1.pontos += nota; pontuou = true; } }
+    if(cantor2AoVivo && !cantor2AoVivo.isGuest) { let c2 = perfisFamilia.find(p => String(p.id) === String(cantor2AoVivo.id)); if(c2) { c2.pontos += nota; pontuou = true; } }
 
     if(pontuou) salvarDados(); 
 
