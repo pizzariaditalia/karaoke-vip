@@ -194,7 +194,6 @@ function entrarNoSistema() {
     refSalaAtual.on('value', snapshot => {
         const dados = snapshot.val() || {};
         
-        // Tratamento de segurança caso o Firebase converta array vazio em objeto
         let pRaw = dados.perfis || [];
         perfisFamilia = Array.isArray(pRaw) ? pRaw : Object.values(pRaw);
 
@@ -203,13 +202,45 @@ function entrarNoSistema() {
 
         historicoTocadas = dados.historico || {};
 
-        // Tenta recuperar o perfil salvo
         const idAtualSalvo = localStorage.getItem('karaoke_perfil_atual_id');
         if (idAtualSalvo) { 
             let perfilEncontrado = perfisFamilia.find(p => String(p.id) === String(idAtualSalvo));
             if(perfilEncontrado) {
                 perfilAtual = perfilEncontrado; 
             }
+        }
+
+        // ==========================================
+        // SINCRONIZAÇÃO DA PLATÉIA (O SEGREDO DA NUVEM)
+        // ==========================================
+        if (dados.palco && dados.palco.cantor) {
+            // Verifica se quem está no palco é diferente de você (Para não bugar o player de quem está cantando de verdade)
+            if (!cantorAoVivo || (cantorAoVivo && String(cantorAoVivo.id) !== String(dados.palco.cantor))) {
+                const perfilCantor = perfisFamilia.find(p => String(p.id) === String(dados.palco.cantor));
+                const perfilCantor2 = dados.palco.cantor2 ? perfisFamilia.find(p => String(p.id) === String(dados.palco.cantor2)) : null;
+                const musicaPalco = catalogoMusicas.find(m => String(m.id) === String(dados.palco.musica));
+                
+                if (perfilCantor && musicaPalco) {
+                     // Alguém assumiu o palco na nuvem! Atualiza os dados para a platéia ver o card
+                     cantorAoVivo = perfilCantor;
+                     cantor2AoVivo = perfilCantor2;
+                     musicaAoVivo = musicaPalco;
+                     
+                     // Mantém a tela do palco "escondida" ou "minimizada" para a platéia (não dá autoplay no video)
+                     if (!telaPalcoOverlay.classList.contains('escondido') === false) {
+                         telaPalcoOverlay.classList.add('minimizado');
+                         telaPalcoOverlay.classList.remove('escondido');
+                     }
+                }
+            }
+        } else {
+             // Nuvem avisou que o palco esvaziou
+             if (cantorAoVivo && String(cantorAoVivo.id) !== String(idAtualSalvo)) {
+                 cantorAoVivo = null;
+                 cantor2AoVivo = null;
+                 musicaAoVivo = null;
+                 telaPalcoOverlay.classList.add('escondido');
+             }
         }
 
         renderizarPerfis();
@@ -234,7 +265,13 @@ function salvarDados() {
     refSalaAtual.set({
         perfis: perfisFamilia,
         fila: filaDeReproducao,
-        historico: historicoTocadas
+        historico: historicoTocadas,
+        // Envia o estado do palco para a nuvem
+        palco: {
+            cantor: cantorAoVivo ? cantorAoVivo.id : null,
+            cantor2: cantor2AoVivo ? cantor2AoVivo.id : null,
+            musica: musicaAoVivo ? musicaAoVivo.id : null
+        }
     });
 }
 
@@ -324,7 +361,6 @@ function criarPerfil() {
         perfisFamilia.push(novoPerfil);
         perfilAtual = novoPerfil;
         
-        // Salva direto no celular e na nuvem
         localStorage.setItem('karaoke_perfil_atual_id', novoPerfil.id);
         salvarDados(); 
         
@@ -342,7 +378,6 @@ function entrarComoConvidado() {
         const perfilConvidado = { id: 'convidado_' + Date.now(), nome: `${nome} (Convidado)`, foto: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(nome + 'conv')}&backgroundColor=e2e2e2`, pontos: 0, isGuest: true };
         perfilAtual = perfilConvidado;
         
-        // Remove do cache caso estivesse logado em um oficial antes
         localStorage.removeItem('karaoke_perfil_atual_id');
         
         atualizarPerfilGlobal();
@@ -370,7 +405,6 @@ function renderizarPerfis() {
         
         card.innerHTML = `<img src="${perfil.foto}" class="foto-perfil"><span class="nome-perfil">${perfil.nome}</span>`;
         
-        // A MÁGICA ACONTECE AQUI: Atualiza visual e salva no celular imediatamente
         card.onclick = () => { 
             perfilAtual = perfil; 
             localStorage.setItem('karaoke_perfil_atual_id', perfil.id);
@@ -665,12 +699,13 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     somAplauso.onended = null;       
 
     historicoTocadas[idMusica] = (historicoTocadas[idMusica] || 0) + 1;
-    salvarDados(); 
 
     const musica = catalogoMusicas.find(m => m.id === idMusica);
     cantorAoVivo = perfilAtual;
     cantor2AoVivo = parceiro;
     musicaAoVivo = musica;
+
+    salvarDados(); // AVISA A NUVEM QUE O PALCO ESTÁ OCUPADO
 
     document.getElementById('titulo-atual').innerText = musica.titulo;
     document.getElementById('artista-atual').innerText = musica.artista;
@@ -756,6 +791,8 @@ function encerrarPalco(forcarFechamento = false) {
     document.getElementById('tela-transicao-palco').classList.add('escondido');
     telaPalcoOverlay.classList.add('escondido');
     telaPalcoOverlay.classList.remove('minimizado');
+    
+    salvarDados(); // AVISA A NUVEM QUE O PALCO ESVAZIOU
     atualizarDashboard();
 }
 
