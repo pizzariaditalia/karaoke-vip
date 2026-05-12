@@ -1,4 +1,4 @@
-const musicasData = [
+const catalogoMusicas = [
     { id: 1, titulo: "10 MINUTOS LONGE DE VOCÊ", artista: "VICTOR E LÉO", categoria: "Nacional", arquivo: "10 MINUTOS LONGE DE VOCÊ - VICTOR E LÉO KARAOKÊ SEM VOCAL PLAYBACK COM LETRA (720 X 1280).mp4" },
     { id: 2, titulo: "10 Minutos Longe de Você Victor e Léo (Versão Silfarley) Karaokê sem vocal (720 X 1280)", artista: "Diversos", categoria: "Nacional", arquivo: "10 Minutos Longe de Você Victor e Léo (Versão Silfarley) Karaokê sem vocal (720 X 1280).mp4" },
     { id: 3, titulo: "100 Parea", artista: "Amar seus defeitos (Mudar pra Quê) Karaokê (1080 X 1920)", categoria: "Nacional", arquivo: "100 Parea - Amar seus defeitos (Mudar pra Quê) Karaokê (1080 X 1920).mp4" },
