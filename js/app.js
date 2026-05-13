@@ -503,7 +503,8 @@ function atualizarDashboard() {
 
     const bannerAoVivo = document.getElementById('banner-ao-vivo');
     
-    if (cantorAoVivo && musicaAoVivo && (telaPalcoOverlay.classList.contains('minimizado') || telaPalcoOverlay.classList.contains('escondido'))) {
+    // ATUALIZADO: Mostra sempre o banner "Ao Vivo Agora" se tiver música rolando.
+    if (cantorAoVivo && musicaAoVivo) {
         bannerAoVivo.classList.remove('escondido');
         document.getElementById('ao-vivo-foto').src = cantorAoVivo.foto;
         
@@ -853,9 +854,8 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     atualizarDashboard();
 }
 
-// CORREÇÃO DO MINIMIZAR: Adicionado stopPropagation para evitar o "Efeito Bolha"
 function minimizarPalco() {
-    if(window.event) window.event.stopPropagation(); // Previne o clique de vazar pro fundo
+    if(window.event) window.event.stopPropagation(); 
     if (document.fullscreenElement) { document.exitFullscreen().catch(() => {}); }
     
     telaPalcoOverlay.classList.add('minimizado');
@@ -881,9 +881,7 @@ function maximizarPalco() {
     atualizarDashboard(); 
 }
 
-// Escuta o clique na caixa do Palco com blindagem contra os botões
 telaPalcoOverlay.addEventListener('click', function(e) {
-    // Se o clique foi exatamente em cima de algum botão, não faz a tela subir de novo
     if (e.target.closest('button')) return;
 
     if (this.classList.contains('minimizado')) {
@@ -892,7 +890,7 @@ telaPalcoOverlay.addEventListener('click', function(e) {
 });
 
 function encerrarPalco(forcarFechamento = false) {
-    if(window.event) window.event.stopPropagation(); // Previne o clique de vazar pro fundo
+    if(window.event) window.event.stopPropagation(); 
     if (document.fullscreenElement) { document.exitFullscreen().catch(() => {}); }
     
     pararPrevia(); 
