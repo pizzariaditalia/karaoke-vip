@@ -663,4 +663,18 @@ const catalogoMusicas = [
     { id: 662, titulo: "Xote dos Milagres", artista: "Falamansa", categoria: "Forró & São João", arquivo: "XOTE DOS MILAGRES - FALAMANSA KARAOKÊ SEM VOCAL PLAYBACK COM LETRA (720 X 1280).mp4" },
     { id: 663, titulo: "Lua de Cristal", artista: "Xuxa", categoria: "Infantil", arquivo: "XUXA - LUA DE CRISTAL ( KARAOKE ) (720 X 1280).mp4" },
     { id: 664, titulo: "Ilariê", artista: "Xuxa", categoria: "Infantil", arquivo: "Xuxa Ilariê Karaoke (478 X 854).mp4" },
-    { id: 665, titulo: "Carcará / Pisa na Fulô", artista: "Zé Ramalho", categoria: "MPB & Pop", arquivo: "Zé Ramalho - Carcará - Pisa na Fulô - O Canto da Ema - Karaokê (720 X 1280).mp4" },
+    { id: 665, titulo: "Carcará / Pisa na Fulô", artista: "Zé Ramalho", categoria: "MPB & Pop", arquivo: "Zé Ramalho - Carcará - Pisa na Fulô - O Canto da Ema - Karaokê (720 X 1280).mp4" },    { id: 666, titulo: "Kryptônia", artista: "Zé Ramalho", categoria: "MPB & Pop", arquivo: "Zé Ramalho - Kryptônia - Karaokê (1080 X 1920).mp4" },
+    { id: 667, titulo: "Entre a Serpente e a Estrela", artista: "Zé Ramalho", categoria: "MPB & Pop", arquivo: "Zé Ramalho Entre a serpente e a estrela Karaokê (720 X 1280).mp4" },
+    { id: 668, titulo: "Sinônimos", artista: "Zé Ramalho", categoria: "MPB & Pop", arquivo: "Zé Ramalho Sinônimos Karaokê (720 X 1280).mp4" },
+    { id: 669, titulo: "Naquela Mesa", artista: "Zeca Pagodinho", categoria: "Samba & Pagode", arquivo: "Zeca Pagodinho - Naquela Mesa - Karaokê (1080 X 1920).mp4" },
+    { id: 670, titulo: "Catedral", artista: "Zélia Duncan", categoria: "MPB & Pop", arquivo: "Zélia Ducan - Catedral - Karaokêplayback (Exclusivo) (1080 X 1920).mp4" },
+    { id: 671, titulo: "Antes de Voltar Pra Casa", artista: "Zezé Di Camargo e Luciano", categoria: "Sertanejo & Modão", arquivo: "Zezé Di Camargo Luciano - Antes de Voltar Pra Casa - Karaokê (1080 X 1920).mp4" },
+    { id: 672, titulo: "Eu Te Amo", artista: "Zezé Di Camargo e Luciano", categoria: "Sertanejo & Modão", arquivo: "Zezé Di Camargo Luciano - Eu Te Amo - Karaokê (1080 X 1920).mp4" },
+    { id: 673, titulo: "Outra Vez Por Amor", artista: "Zezé Di Camargo e Luciano", categoria: "Sertanejo & Modão", arquivo: "Zezé Di Camargo Luciano - Outra vez por amor - Karaokê (1080 X 1920).mp4" },
+    { id: 674, titulo: "Deus", artista: "Zezé Di Camargo e Luciano", categoria: "Sertanejo & Modão", arquivo: "Zezé e Luciano - Deus - Karaokê (720 X 1280).mp4" },
+    { id: 675, titulo: "Entre Ele e Eu", artista: "Zezé Di Camargo e Luciano", categoria: "Sertanejo & Modão", arquivo: "Zezé e Luciano - Entre ele e eu - Karaokê (720 X 1280).mp4" },
+    { id: 676, titulo: "Diz pro Meu Olhar", artista: "Zezé Di Camargo e Luciano", categoria: "Sertanejo & Modão", arquivo: "Zezé e Luciano Diz pro meu olhar Karaokê (720 X 1280).mp4" },
+    { id: 677, titulo: "Perigo", artista: "Zizi Possi", categoria: "MPB & Pop", arquivo: "Zizi Possi - Perigo - Karaokê (Tom mais baixo) (1080 X 1920).mp4" },
+    { id: 678, titulo: "Zóio de Lula", artista: "Charlie Brown Jr.", categoria: "Rock Nacional", arquivo: "ZOIO DE LUA - CHARLIE BROWN JR. ROCK NACIONAL KARAOKÊ SEM VOCAL PLAYBACK COM LETRA (1080 X 1920).mp4" }
+];
+
