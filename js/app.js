@@ -946,9 +946,9 @@ function votar(nota) {
     
     document.getElementById('resultado-voto').innerHTML = `<span class="fade-in">Voto enviado ao palco: ${comentario}</span>`;
     
-    // Tira o eleitor da cabine e joga de volta pra plateia
+    // CORREÇÃO: Volta pro Dashboard e abre o vídeo por cima para evitar a tela preta
     setTimeout(() => { 
-        document.getElementById('tela-votacao').classList.remove('ativa');
+        mudarTela('tela-dashboard', navItems[0]); 
         maximizarPalco(); 
     }, 1500);
 }
