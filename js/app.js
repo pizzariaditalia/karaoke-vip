@@ -244,7 +244,7 @@ function entrarNoSistema() {
                      playerVideo.muted = true; 
                      telaPalcoOverlay.classList.add('escondido'); 
                      telaPalcoOverlay.classList.remove('minimizado');
-                     playerVideo.style.pointerEvents = 'auto'; // Garante o player liberado
+                     playerVideo.style.pointerEvents = 'auto'; 
                 }
             }
 
@@ -298,12 +298,10 @@ function entrarNoSistema() {
 function salvarDados() {
     if (!salaAtual || !refSalaAtual) return; 
 
-    // Salva listas bases
     refSalaAtual.child('perfis').set(perfisFamilia);
     refSalaAtual.child('fila').set(filaDeReproducao);
     refSalaAtual.child('historico').set(historicoTocadas);
 
-    // Usa UPDATE no palco para não sobrescrever (apagar) os votos rolando no chat
     refSalaAtual.child('palco').update({
         cantor: cantorAoVivo ? cantorAoVivo.id : null,
         cantor2: cantor2AoVivo ? cantor2AoVivo.id : null,
@@ -322,7 +320,7 @@ window.onload = () => {
 };
 
 // ============================================================================
-// RENDERIZAÇÃO DO FEED DE VOTOS (O NOVO CHAT)
+// RENDERIZAÇÃO DO FEED DE VOTOS
 // ============================================================================
 function renderizarFeedVotos(votosObj) {
     const feed = document.getElementById('feed-votos-palco');
@@ -505,7 +503,6 @@ function atualizarDashboard() {
 
     const bannerAoVivo = document.getElementById('banner-ao-vivo');
     
-    // CORREÇÃO 1: Mostra o banner "Ao Vivo" sempre que houver alguém cantando e a tela do palco não estiver no modo tela cheia
     if (cantorAoVivo && musicaAoVivo && (telaPalcoOverlay.classList.contains('minimizado') || telaPalcoOverlay.classList.contains('escondido'))) {
         bannerAoVivo.classList.remove('escondido');
         document.getElementById('ao-vivo-foto').src = cantorAoVivo.foto;
@@ -822,7 +819,6 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     telaPalcoOverlay.classList.remove('escondido');
     telaPalcoOverlay.classList.remove('minimizado');
     
-    // Libera os controles e o clique do vídeo
     playerVideo.style.pointerEvents = 'auto';
     playerVideo.setAttribute('controls', 'controls');
 
@@ -857,13 +853,14 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     atualizarDashboard();
 }
 
-// CORREÇÃO 2: Controle inteligente de clique do Mini-Player
+// CORREÇÃO DO MINIMIZAR: Adicionado stopPropagation para evitar o "Efeito Bolha"
 function minimizarPalco() {
+    if(window.event) window.event.stopPropagation(); // Previne o clique de vazar pro fundo
     if (document.fullscreenElement) { document.exitFullscreen().catch(() => {}); }
+    
     telaPalcoOverlay.classList.add('minimizado');
     telaPalcoOverlay.classList.remove('escondido');
     
-    // Desliga a tela do vídeo para toques, repassando o clique para a "caixa" do Mini-Player
     playerVideo.style.pointerEvents = 'none';
     playerVideo.removeAttribute('controls');
     
@@ -874,7 +871,6 @@ function maximizarPalco() {
     telaPalcoOverlay.classList.remove('minimizado');
     telaPalcoOverlay.classList.remove('escondido');
     
-    // Religa a tela do vídeo e os controles do player
     playerVideo.style.pointerEvents = 'auto';
     playerVideo.setAttribute('controls', 'controls');
     
@@ -885,14 +881,18 @@ function maximizarPalco() {
     atualizarDashboard(); 
 }
 
-// Escuta o clique na caixa inteira do Palco quando ela estiver minimizada
+// Escuta o clique na caixa do Palco com blindagem contra os botões
 telaPalcoOverlay.addEventListener('click', function(e) {
+    // Se o clique foi exatamente em cima de algum botão, não faz a tela subir de novo
+    if (e.target.closest('button')) return;
+
     if (this.classList.contains('minimizado')) {
         maximizarPalco();
     }
 });
 
 function encerrarPalco(forcarFechamento = false) {
+    if(window.event) window.event.stopPropagation(); // Previne o clique de vazar pro fundo
     if (document.fullscreenElement) { document.exitFullscreen().catch(() => {}); }
     
     pararPrevia(); 
@@ -911,7 +911,6 @@ function encerrarPalco(forcarFechamento = false) {
     telaPalcoOverlay.classList.add('escondido');
     telaPalcoOverlay.classList.remove('minimizado');
     
-    // Zera o palco na nuvem apagando apenas os dados do palco atual (evita bugs no banco)
     refSalaAtual.child('palco').set({
         cantor: null,
         cantor2: null,
