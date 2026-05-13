@@ -1,4 +1,4 @@
-const CACHE_NAME = 'karaoke-vip-v100';
+const CACHE_NAME = 'karaoke-vip-v105';
 const urlsToCache = [
     './',
     './index.html',
