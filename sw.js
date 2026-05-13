@@ -1,11 +1,11 @@
-const CACHE_NAME = 'karaoke-vip-v85';
+const CACHE_NAME = 'karaoke-vip-v90';
 const urlsToCache = [
     './',
     './index.html',
     './css/style.css',
     './js/app.js',
     './js/data.js',
-    './image/icon.png'
+    './image/icone.png'
 ];
 
 self.addEventListener('install', event => {
