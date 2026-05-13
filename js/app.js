@@ -243,6 +243,8 @@ function entrarNoSistema() {
                      playerVideo.src = `${urlNuvemR2}/${encodeURIComponent(musicaPalco.arquivo)}`;
                      playerVideo.muted = true; 
                      telaPalcoOverlay.classList.add('escondido'); 
+                     telaPalcoOverlay.classList.remove('minimizado');
+                     playerVideo.style.pointerEvents = 'auto'; // Garante o player liberado
                 }
             }
 
@@ -293,7 +295,6 @@ function entrarNoSistema() {
     mudarTela('tela-dashboard', navItems[0]); 
 }
 
-// ATUALIZAÇÃO: Agora o salvarDados isola os itens para não quebrar os votos ou o rank!
 function salvarDados() {
     if (!salaAtual || !refSalaAtual) return; 
 
@@ -503,7 +504,9 @@ function atualizarDashboard() {
     document.getElementById('dash-qtd-salas').innerText = salasCriadas.length;
 
     const bannerAoVivo = document.getElementById('banner-ao-vivo');
-    if (cantorAoVivo && musicaAoVivo) {
+    
+    // CORREÇÃO 1: Mostra o banner "Ao Vivo" sempre que houver alguém cantando e a tela do palco não estiver no modo tela cheia
+    if (cantorAoVivo && musicaAoVivo && (telaPalcoOverlay.classList.contains('minimizado') || telaPalcoOverlay.classList.contains('escondido'))) {
         bannerAoVivo.classList.remove('escondido');
         document.getElementById('ao-vivo-foto').src = cantorAoVivo.foto;
         
@@ -790,7 +793,6 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     votosPalcoTemporario = {}; 
     ultimoVotoGlobal = null;
 
-    // Limpa o chat de votos na nuvem e atualiza a música no palco
     refSalaAtual.child('palco/votos').remove();
     refSalaAtual.child('palco/ultimoVoto').remove();
     salvarDados(); 
@@ -819,7 +821,9 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     
     telaPalcoOverlay.classList.remove('escondido');
     telaPalcoOverlay.classList.remove('minimizado');
-    document.getElementById('capa-mini-player').classList.add('escondido');
+    
+    // Libera os controles e o clique do vídeo
+    playerVideo.style.pointerEvents = 'auto';
     playerVideo.setAttribute('controls', 'controls');
 
     playerVideo.src = `${urlNuvemR2}/${encodeURIComponent(musica.arquivo)}`;
@@ -853,15 +857,14 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     atualizarDashboard();
 }
 
-// ATUALIZAÇÃO 2: Esconder os botões do player e ativar clique no mini-player
+// CORREÇÃO 2: Controle inteligente de clique do Mini-Player
 function minimizarPalco() {
     if (document.fullscreenElement) { document.exitFullscreen().catch(() => {}); }
     telaPalcoOverlay.classList.add('minimizado');
+    telaPalcoOverlay.classList.remove('escondido');
     
-    // Mostra o botão transparente por cima do vídeo para poder clicar
-    document.getElementById('capa-mini-player').classList.remove('escondido');
-    
-    // Remove os controles do vídeo para que não atrapalhe o clique
+    // Desliga a tela do vídeo para toques, repassando o clique para a "caixa" do Mini-Player
+    playerVideo.style.pointerEvents = 'none';
     playerVideo.removeAttribute('controls');
     
     atualizarDashboard(); 
@@ -871,10 +874,8 @@ function maximizarPalco() {
     telaPalcoOverlay.classList.remove('minimizado');
     telaPalcoOverlay.classList.remove('escondido');
     
-    // Esconde o botão transparente 
-    document.getElementById('capa-mini-player').classList.add('escondido');
-    
-    // Devolve os controles ao vídeo
+    // Religa a tela do vídeo e os controles do player
+    playerVideo.style.pointerEvents = 'auto';
     playerVideo.setAttribute('controls', 'controls');
     
     if (cantorAoVivo && String(cantorAoVivo.id) !== localStorage.getItem('karaoke_perfil_atual_id')) {
@@ -884,9 +885,9 @@ function maximizarPalco() {
     atualizarDashboard(); 
 }
 
-// Garante o clique direto no vídeo quando estiver minimizado
-playerVideo.addEventListener('click', () => {
-    if(telaPalcoOverlay.classList.contains('minimizado')) {
+// Escuta o clique na caixa inteira do Palco quando ela estiver minimizada
+telaPalcoOverlay.addEventListener('click', function(e) {
+    if (this.classList.contains('minimizado')) {
         maximizarPalco();
     }
 });
@@ -910,7 +911,7 @@ function encerrarPalco(forcarFechamento = false) {
     telaPalcoOverlay.classList.add('escondido');
     telaPalcoOverlay.classList.remove('minimizado');
     
-    // Zera o palco na nuvem
+    // Zera o palco na nuvem apagando apenas os dados do palco atual (evita bugs no banco)
     refSalaAtual.child('palco').set({
         cantor: null,
         cantor2: null,
@@ -943,11 +944,9 @@ function abrirCabineVotacao() {
     mudarTela('tela-votacao');
 }
 
-// ATUALIZAÇÃO 1: Salvando os pontos separadamente para não bugar o rank
 function votar(nota) {
     let pontuou = false;
 
-    // Busca o cantor localmente e envia só a pontuação nova para o banco de dados
     if(cantorAoVivo && !cantorAoVivo.isGuest) { 
         let c1Index = perfisFamilia.findIndex(p => String(p.id) === String(cantorAoVivo.id)); 
         if(c1Index !== -1) { 
@@ -973,7 +972,6 @@ function votar(nota) {
         timestamp: Date.now()
     };
     
-    // Envia o voto para o chat e solta os confetes SEM sobrescrever a sala
     refSalaAtual.child('palco/votos').push(novoVoto);
     refSalaAtual.child('palco/ultimoVoto').set(novoVoto);
 
@@ -983,7 +981,6 @@ function votar(nota) {
     
     document.getElementById('resultado-voto').innerHTML = `<span class="fade-in">Voto enviado ao palco: ${comentario}</span>`;
     
-    // Resolve a "tela preta": volta pro dashboard e depois abre o palco
     setTimeout(() => { 
         mudarTela('tela-dashboard', navItems[0]);
         maximizarPalco(); 
