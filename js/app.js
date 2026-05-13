@@ -38,7 +38,7 @@ let musicaAoVivo = null;
 
 let ultimoVotoGlobal = null; 
 let ultimoVotoVisto = 0;     
-let votosPalcoTemporario = {}; // <-- Segura a lista de votos da música atual
+let votosPalcoTemporario = {}; 
 
 let musicasAtuaisFiltradas = []; 
 let paginaAtual = 1;
@@ -75,7 +75,9 @@ function fecharModalAlerta() {
 }
 
 db.ref('salas_abertas').on('value', snapshot => {
-    salasCriadas = snapshot.val() || [];
+    let sRaw = snapshot.val() || [];
+    salasCriadas = Array.isArray(sRaw) ? sRaw : Object.values(sRaw);
+    salasCriadas = salasCriadas.filter(sala => sala != null);
     if (!salaAtual) renderizarLobbySalas();
 });
 
@@ -174,7 +176,7 @@ function sairDaSala() {
 }
 
 // ============================================================================
-// ENTRADA NO SISTEMA E ESCUTA DA NUVEM (PLATEIA E VOTOS)
+// ENTRADA NO SISTEMA E ESCUTA DA NUVEM
 // ============================================================================
 function entrarNoSistema() {
     renderizarSeletorAvatares();
@@ -203,7 +205,6 @@ function entrarNoSistema() {
         // --- LÓGICA DA PLATÉIA E DO FEED DE CHAT ---
         if (dados.palco && dados.palco.cantor) {
             
-            // Puxa o histórico de votos para o Chat
             if (dados.palco.votos) {
                 votosPalcoTemporario = dados.palco.votos;
                 renderizarFeedVotos(votosPalcoTemporario);
@@ -213,7 +214,6 @@ function entrarNoSistema() {
                 if(feed) feed.innerHTML = '<p class="texto-cinza text-center" style="margin: 0; font-style: italic;">Aguardando votos dos jurados...</p>';
             }
 
-            // Se quem está no palco NÃO for o seu perfil atual (vc é platéia)
             if (!cantorAoVivo || (cantorAoVivo && String(cantorAoVivo.id) !== String(dados.palco.cantor))) {
                 const perfilCantor = perfisFamilia.find(p => String(p.id) === String(dados.palco.cantor));
                 const perfilCantor2 = dados.palco.cantor2 ? perfisFamilia.find(p => String(p.id) === String(dados.palco.cantor2)) : null;
@@ -225,7 +225,6 @@ function entrarNoSistema() {
                      musicaAoVivo = musicaPalco;
                      ultimoVotoGlobal = dados.palco.ultimoVoto || null;
                      
-                     // Preenche o palco para o visitante, mas o mantém ESCONDIDO até ele clicar
                      document.getElementById('titulo-atual').innerText = musicaPalco.titulo;
                      document.getElementById('artista-atual').innerText = musicaPalco.artista;
                      document.getElementById('palco-foto-cantor').src = perfilCantor.foto;
@@ -247,7 +246,6 @@ function entrarNoSistema() {
                 }
             }
 
-            // --- REAÇÃO DE VOTOS SINCRONIZADA (CONFETES E GRITOS PRA TODOS) ---
             if (dados.palco.ultimoVoto && dados.palco.ultimoVoto.timestamp > ultimoVotoVisto) {
                 let voto = dados.palco.ultimoVoto;
                 ultimoVotoVisto = voto.timestamp;
@@ -269,7 +267,6 @@ function entrarNoSistema() {
             }
 
         } else {
-             // Nuvem avisou que o palco esvaziou
              if (cantorAoVivo && String(cantorAoVivo.id) !== String(idAtualSalvo)) {
                  cantorAoVivo = null;
                  cantor2AoVivo = null;
@@ -296,20 +293,20 @@ function entrarNoSistema() {
     mudarTela('tela-dashboard', navItems[0]); 
 }
 
+// ATUALIZAÇÃO: Agora o salvarDados isola os itens para não quebrar os votos ou o rank!
 function salvarDados() {
     if (!salaAtual || !refSalaAtual) return; 
-    
-    refSalaAtual.set({
-        perfis: perfisFamilia,
-        fila: filaDeReproducao,
-        historico: historicoTocadas,
-        palco: {
-            cantor: cantorAoVivo ? cantorAoVivo.id : null,
-            cantor2: cantor2AoVivo ? cantor2AoVivo.id : null,
-            musica: musicaAoVivo ? musicaAoVivo.id : null,
-            ultimoVoto: ultimoVotoGlobal,
-            votos: votosPalcoTemporario // Protege o histórico de votos para não sumir!
-        }
+
+    // Salva listas bases
+    refSalaAtual.child('perfis').set(perfisFamilia);
+    refSalaAtual.child('fila').set(filaDeReproducao);
+    refSalaAtual.child('historico').set(historicoTocadas);
+
+    // Usa UPDATE no palco para não sobrescrever (apagar) os votos rolando no chat
+    refSalaAtual.child('palco').update({
+        cantor: cantorAoVivo ? cantorAoVivo.id : null,
+        cantor2: cantor2AoVivo ? cantor2AoVivo.id : null,
+        musica: musicaAoVivo ? musicaAoVivo.id : null
     });
 }
 
@@ -359,7 +356,7 @@ function renderizarFeedVotos(votosObj) {
         feed.appendChild(div);
     });
     
-    feed.scrollTop = feed.scrollHeight; // Auto-scroll pro fim
+    feed.scrollTop = feed.scrollHeight; 
 }
 
 // ============================================================================
@@ -790,10 +787,13 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     cantor2AoVivo = parceiro;
     musicaAoVivo = musica;
 
-    votosPalcoTemporario = {}; // Zera os votos para a nova música
+    votosPalcoTemporario = {}; 
     ultimoVotoGlobal = null;
 
-    salvarDados(); // AVISA A NUVEM QUE O PALCO ESTÁ OCUPADO E ZERA OS VOTOS ANTIGOS
+    // Limpa o chat de votos na nuvem e atualiza a música no palco
+    refSalaAtual.child('palco/votos').remove();
+    refSalaAtual.child('palco/ultimoVoto').remove();
+    salvarDados(); 
 
     document.getElementById('titulo-atual').innerText = musica.titulo;
     document.getElementById('artista-atual').innerText = musica.artista;
@@ -819,8 +819,9 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     
     telaPalcoOverlay.classList.remove('escondido');
     telaPalcoOverlay.classList.remove('minimizado');
+    document.getElementById('capa-mini-player').classList.add('escondido');
+    playerVideo.setAttribute('controls', 'controls');
 
-    // Quem canta escuta o áudio alto
     playerVideo.src = `${urlNuvemR2}/${encodeURIComponent(musica.arquivo)}`;
     playerVideo.muted = false;
 
@@ -852,9 +853,17 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     atualizarDashboard();
 }
 
+// ATUALIZAÇÃO 2: Esconder os botões do player e ativar clique no mini-player
 function minimizarPalco() {
     if (document.fullscreenElement) { document.exitFullscreen().catch(() => {}); }
     telaPalcoOverlay.classList.add('minimizado');
+    
+    // Mostra o botão transparente por cima do vídeo para poder clicar
+    document.getElementById('capa-mini-player').classList.remove('escondido');
+    
+    // Remove os controles do vídeo para que não atrapalhe o clique
+    playerVideo.removeAttribute('controls');
+    
     atualizarDashboard(); 
 }
 
@@ -862,13 +871,25 @@ function maximizarPalco() {
     telaPalcoOverlay.classList.remove('minimizado');
     telaPalcoOverlay.classList.remove('escondido');
     
-    // Se for a plateia abrindo o palco, força o play mutado
+    // Esconde o botão transparente 
+    document.getElementById('capa-mini-player').classList.add('escondido');
+    
+    // Devolve os controles ao vídeo
+    playerVideo.setAttribute('controls', 'controls');
+    
     if (cantorAoVivo && String(cantorAoVivo.id) !== localStorage.getItem('karaoke_perfil_atual_id')) {
         playerVideo.play().catch(e => console.log("Autoplay bloqueado para a plateia."));
     }
     
     atualizarDashboard(); 
 }
+
+// Garante o clique direto no vídeo quando estiver minimizado
+playerVideo.addEventListener('click', () => {
+    if(telaPalcoOverlay.classList.contains('minimizado')) {
+        maximizarPalco();
+    }
+});
 
 function encerrarPalco(forcarFechamento = false) {
     if (document.fullscreenElement) { document.exitFullscreen().catch(() => {}); }
@@ -889,7 +910,13 @@ function encerrarPalco(forcarFechamento = false) {
     telaPalcoOverlay.classList.add('escondido');
     telaPalcoOverlay.classList.remove('minimizado');
     
-    salvarDados(); // AVISA A NUVEM QUE O PALCO ESVAZIOU
+    // Zera o palco na nuvem
+    refSalaAtual.child('palco').set({
+        cantor: null,
+        cantor2: null,
+        musica: null
+    });
+    
     atualizarDashboard();
 }
 
@@ -916,10 +943,28 @@ function abrirCabineVotacao() {
     mudarTela('tela-votacao');
 }
 
+// ATUALIZAÇÃO 1: Salvando os pontos separadamente para não bugar o rank
 function votar(nota) {
     let pontuou = false;
-    if(cantorAoVivo && !cantorAoVivo.isGuest) { let c1 = perfisFamilia.find(p => String(p.id) === String(cantorAoVivo.id)); if(c1) { c1.pontos += nota; pontuou = true; } }
-    if(cantor2AoVivo && !cantor2AoVivo.isGuest) { let c2 = perfisFamilia.find(p => String(p.id) === String(cantor2AoVivo.id)); if(c2) { c2.pontos += nota; pontuou = true; } }
+
+    // Busca o cantor localmente e envia só a pontuação nova para o banco de dados
+    if(cantorAoVivo && !cantorAoVivo.isGuest) { 
+        let c1Index = perfisFamilia.findIndex(p => String(p.id) === String(cantorAoVivo.id)); 
+        if(c1Index !== -1) { 
+            perfisFamilia[c1Index].pontos += nota; 
+            refSalaAtual.child(`perfis/${c1Index}/pontos`).set(perfisFamilia[c1Index].pontos);
+            pontuou = true; 
+        } 
+    }
+    
+    if(cantor2AoVivo && !cantor2AoVivo.isGuest) { 
+        let c2Index = perfisFamilia.findIndex(p => String(p.id) === String(cantor2AoVivo.id)); 
+        if(c2Index !== -1) { 
+            perfisFamilia[c2Index].pontos += nota; 
+            refSalaAtual.child(`perfis/${c2Index}/pontos`).set(perfisFamilia[c2Index].pontos);
+            pontuou = true; 
+        } 
+    }
 
     const novoVoto = {
         nome: perfilAtual.nome,
@@ -928,17 +973,9 @@ function votar(nota) {
         timestamp: Date.now()
     };
     
-    ultimoVotoGlobal = novoVoto;
-
-    // Dispara para o Chat da Plateia Online na nuvem
+    // Envia o voto para o chat e solta os confetes SEM sobrescrever a sala
     refSalaAtual.child('palco/votos').push(novoVoto);
-    
-    // Dispara o gatinho das animações sincronizadas
     refSalaAtual.child('palco/ultimoVoto').set(novoVoto);
-
-    if(pontuou) {
-        salvarDados(); // Salva a pontuação se for um perfil válido
-    } 
 
     const frases = { 1: "Piedade... 💀", 5: "Dá pra melhorar! 🎤", 8: "Mandou bem! 🔥", 10: "ESTRELA NASCEU! 🌟" };
     let comentario = frases[nota] || "Nota registrada!";
@@ -946,9 +983,9 @@ function votar(nota) {
     
     document.getElementById('resultado-voto').innerHTML = `<span class="fade-in">Voto enviado ao palco: ${comentario}</span>`;
     
-    // CORREÇÃO: Volta pro Dashboard e abre o vídeo por cima para evitar a tela preta
+    // Resolve a "tela preta": volta pro dashboard e depois abre o palco
     setTimeout(() => { 
-        mudarTela('tela-dashboard', navItems[0]); 
+        mudarTela('tela-dashboard', navItems[0]);
         maximizarPalco(); 
     }, 1500);
 }
