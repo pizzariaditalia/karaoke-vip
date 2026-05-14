@@ -178,11 +178,12 @@
                 <p class="texto-pequeno mb-15">Salva no sistema e participa do ranking oficial.</p>
                 
                 <p class="instrucao-perfil" style="display: flex; justify-content: space-between; align-items: center;">
-                    1. Escolha seu Avatar ou Foto:
+                    1. Envie a sua Foto (Obrigatório):
                     <button id="btn-upload-foto" class="btn-secundario" style="padding: 5px 10px; font-size: 0.8rem; margin: 0;"><i class="fa-solid fa-camera"></i> Enviar Foto</button>
                 </p>
                 <input type="file" id="input-foto-perfil" accept="image/*" class="escondido">
-                <div id="seletor-avatares" class="avatares-grid mb-15"></div>
+                
+                <div id="seletor-avatares" class="avatares-grid mb-15" style="justify-content: center;"></div>
 
                 <p class="instrucao-perfil">2. Digite seu Nome:</p>
                 <div class="criar-perfil-box">
@@ -193,7 +194,7 @@
 
             <div class="glass-effect p-20 mb-20">
                 <h3><i class="fa-solid fa-user-astronaut icone-azul"></i> Convidado Rápido</h3>
-                <p class="texto-pequeno mb-15">Canta na hora, mas não salva pontuação no ranking.</p>
+                <p class="texto-pequeno mb-15">Canta na hora com avatar padrão, mas não salva pontuação.</p>
                 <div class="criar-perfil-box">
                     <input type="text" id="input-convidado" placeholder="Nome do visitante...">
                     <button class="btn-convidado" onclick="entrarComoConvidado()">Entrar</button>
@@ -346,7 +347,6 @@
                 navigator.serviceWorker.register('sw.js').then(registration => {
                     console.log('PWA: Service Worker registrado com sucesso!');
 
-                    // Monitoriza se há uma nova versão do sw.js no servidor
                     registration.addEventListener('updatefound', () => {
                         novoServiceWorker = registration.installing;
                         novoServiceWorker.addEventListener('statechange', () => {
@@ -359,7 +359,6 @@
                     console.log('PWA: Falha ao registrar o Service Worker:', error);
                 });
 
-                // Recarrega a aplicação quando o novo SW assume o controlo
                 let recarregando;
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
                     if (recarregando) return;
@@ -369,7 +368,6 @@
             });
         }
 
-        // Função para mostrar o modal de atualização inteligente
         function mostrarAvisoAtualizacao() {
             document.getElementById('titulo-alerta').innerHTML = `<i class="fa-solid fa-arrows-rotate texto-destaque"></i> Nova Versão!`;
             document.getElementById('mensagem-alerta').innerText = "Temos uma nova atualização do Karaokê VIP disponível. Clique abaixo para atualizar agora!";
@@ -380,7 +378,6 @@
             document.getElementById('modal-alerta').classList.remove('escondido');
         }
 
-        // Envia mensagem para o SW forçar a atualização (skip waiting)
         function aplicarAtualizacaoApp() {
             if (novoServiceWorker) {
                 novoServiceWorker.postMessage('SKIP_WAITING');
