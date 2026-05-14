@@ -1,35 +1,53 @@
-const CACHE_NAME = 'karaoke-vip-v120';
+
+const CACHE_NAME = 'karaoke-vip-v1'; 
+
 const urlsToCache = [
     './',
     './index.html',
     './css/style.css',
-    './js/app.js',
     './js/data.js',
-    './image/icone.png'
+    './js/app.js',
+    './js/upload.js'
 ];
 
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then(cache => {
-                return cache.addAll(urlsToCache);
-            })
+            .then(cache => cache.addAll(urlsToCache))
+    );
+});
+
+// Essa parte limpa o lixo da versão antiga do celular da pessoa
+self.addEventListener('activate', event => {
+    const cacheWhitelist = [CACHE_NAME];
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    if (cacheWhitelist.indexOf(cacheName) === -1) {
+                        return caches.delete(cacheName); 
+                    }
+                })
+            );
+        })
     );
 });
 
 self.addEventListener('fetch', event => {
-    // A MÁGICA: Se for um vídeo (mp4) ou uma requisição de partes (range), o SW ignora e não quebra o vídeo!
-    if (event.request.url.endsWith('.mp4') || event.request.headers.get('range')) {
-        return; 
-    }
-
     event.respondWith(
         caches.match(event.request)
             .then(response => {
                 if (response) {
-                    return response; 
+                    return response; // Puxa do cache se tiver
                 }
-                return fetch(event.request); 
+                return fetch(event.request); // Busca na internet se não tiver
             })
     );
+});
+
+// Mágica para o botão "Atualizar Agora" funcionar
+self.addEventListener('message', event => {
+    if (event.data === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
