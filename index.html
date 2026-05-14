@@ -339,16 +339,52 @@
     <script src="js/upload.js"></script>
 
     <script>
+        let novoServiceWorker;
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('PWA: Service Worker registrado com sucesso!', registration.scope);
-                    })
-                    .catch(error => {
-                        console.log('PWA: Falha ao registrar o Service Worker:', error);
+                navigator.serviceWorker.register('sw.js').then(registration => {
+                    console.log('PWA: Service Worker registrado com sucesso!');
+
+                    // Monitoriza se há uma nova versão do sw.js no servidor
+                    registration.addEventListener('updatefound', () => {
+                        novoServiceWorker = registration.installing;
+                        novoServiceWorker.addEventListener('statechange', () => {
+                            if (novoServiceWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                mostrarAvisoAtualizacao(); 
+                            }
+                        });
                     });
+                }).catch(error => {
+                    console.log('PWA: Falha ao registrar o Service Worker:', error);
+                });
+
+                // Recarrega a aplicação quando o novo SW assume o controlo
+                let recarregando;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (recarregando) return;
+                    window.location.reload();
+                    recarregando = true;
+                });
             });
+        }
+
+        // Função para mostrar o modal de atualização inteligente
+        function mostrarAvisoAtualizacao() {
+            document.getElementById('titulo-alerta').innerHTML = `<i class="fa-solid fa-arrows-rotate texto-destaque"></i> Nova Versão!`;
+            document.getElementById('mensagem-alerta').innerText = "Temos uma nova atualização do Karaokê VIP disponível. Clique abaixo para atualizar agora!";
+            
+            const botoesDiv = document.querySelector('.botoes-modal');
+            botoesDiv.innerHTML = `<button class="btn-vibrante w-100" onclick="aplicarAtualizacaoApp()">Atualizar Agora</button>`;
+            
+            document.getElementById('modal-alerta').classList.remove('escondido');
+        }
+
+        // Envia mensagem para o SW forçar a atualização (skip waiting)
+        function aplicarAtualizacaoApp() {
+            if (novoServiceWorker) {
+                novoServiceWorker.postMessage('SKIP_WAITING');
+            }
         }
     </script>
 </body>
