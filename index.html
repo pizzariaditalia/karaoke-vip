@@ -13,36 +13,51 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        #tour-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.85); z-index: 9998; transition: opacity 0.3s; }
+        #tour-balao { position: absolute; width: 90%; max-width: 320px; background: #1e293b; padding: 20px; border-radius: 12px; z-index: 10000; box-shadow: 0 10px 25px rgba(0,0,0,0.8); border: 2px solid var(--rosa-neon); left: 50%; transform: translateX(-50%); transition: all 0.3s ease; }
+        .tour-highlight { position: relative !important; z-index: 9999 !important; box-shadow: 0 0 20px var(--rosa-neon) !important; border-radius: 10px; background-color: rgba(30, 41, 59, 0.9) !important; pointer-events: none; }
+    </style>
 </head>
 <body>
 
     <audio id="som-aplauso" src="https://www.myinstants.com/media/sounds/crowd-cheer.mp3" preload="auto"></audio>
 
     <nav id="bottom-bar" class="bottom-bar escondido">
-        <div class="nav-item ativo" onclick="mudarTela('tela-dashboard', this)">
+        <div id="nav-inicio" class="nav-item ativo" onclick="mudarTela('tela-dashboard', this)">
             <i class="fa-solid fa-house"></i><span>Início</span>
         </div>
-        <div class="nav-item" onclick="mudarTela('tela-playlist', this)">
+        <div id="nav-catalogo" class="nav-item" onclick="mudarTela('tela-playlist', this)">
             <i class="fa-solid fa-music"></i><span>Catálogo</span>
         </div>
-        <div class="nav-item" onclick="mudarTela('tela-fila', this)">
+        <div id="nav-fila" class="nav-item" onclick="mudarTela('tela-fila', this)">
             <i class="fa-solid fa-list-ol"></i><span>Espera</span>
         </div>
-        <div class="nav-item" onclick="mudarTela('tela-ranking', this)">
+        <div id="nav-ranking" class="nav-item" onclick="mudarTela('tela-ranking', this)">
             <i class="fa-solid fa-trophy"></i><span>Ranking</span>
         </div>
-        <div class="nav-item" onclick="mudarTela('tela-perfil', this)">
+        <div id="nav-perfil" class="nav-item" onclick="mudarTela('tela-perfil', this)">
             <i class="fa-solid fa-user"></i><span>Perfil</span>
         </div>
     </nav>
+
+    <div id="tour-overlay" class="escondido">
+        <div id="tour-balao">
+            <h3 id="tour-titulo" style="color: var(--rosa-neon); margin-bottom: 8px; font-size: 1.2rem;">Título</h3>
+            <p id="tour-texto" class="texto-claro" style="font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">Texto</p>
+            <div style="display: flex; justify-content: space-between;">
+                <button class="btn-secundario" onclick="encerrarTour()" style="padding: 8px 15px; margin: 0; font-size: 0.8rem;">Pular Tour</button>
+                <button class="btn-vibrante-sm" onclick="proximoTourStep()" id="tour-btn-proximo" style="padding: 8px 15px; margin: 0; font-size: 0.8rem;">Próximo ❯</button>
+            </div>
+        </div>
+    </div>
 
     <div id="modal-alerta" class="modal-overlay escondido">
         <div class="modal-content glass-effect">
             <h3 id="titulo-alerta"><i class="fa-solid fa-bell texto-destaque"></i> Aviso</h3>
             <p id="mensagem-alerta" class="texto-pequeno mt-15 mb-20" style="font-size: 1rem;">Sua mensagem aqui.</p>
-            <div class="botoes-modal">
-                <button class="btn-vibrante-sm w-100" onclick="fecharModalAlerta()">OK</button>
-            </div>
+            <div class="botoes-modal"><button class="btn-vibrante-sm w-100" onclick="fecharModalAlerta()">OK</button></div>
         </div>
     </div>
 
@@ -51,9 +66,7 @@
             <h3>Cantar em Dupla 🎤🎤</h3>
             <p class="texto-pequeno mt-10">Quem vai cantar com você?</p>
             <div id="lista-parceiros-modal" class="perfis-grid mt-15 mb-20"></div>
-            <div class="botoes-modal">
-                <button class="btn-secundario" onclick="fecharModalDueto()">Cancelar</button>
-            </div>
+            <div class="botoes-modal"><button class="btn-secundario" onclick="fecharModalDueto()">Cancelar</button></div>
         </div>
     </div>
 
@@ -76,11 +89,6 @@
             <div class="logo-premium"><i class="fa-solid fa-microphone-lines"></i></div>
             <h1 class="titulo-principal mb-10">KARAOKÊ <span class="destaque">VIP</span></h1>
             <p class="texto-cinza mb-20">Entre em uma sala para ter acesso ao catálogo de músicas.</p>
-            
-            <button id="btn-instalar-app" class="btn-secundario escondido" style="display: block; max-width: 250px; margin: 0 auto 25px auto; color: var(--azul-neon); border-color: var(--azul-neon);">
-                <i class="fa-solid fa-mobile-screen-button"></i> Instalar Aplicativo
-            </button>
-
             <div class="glass-effect p-20 mb-20 text-left">
                 <h3><i class="fa-solid fa-plus texto-destaque"></i> Criar Nova Sala</h3>
                 <p class="texto-pequeno mb-15">Invente um nome bem legal e proteja sua festa!</p>
@@ -92,7 +100,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="glass-effect p-20 text-left">
                 <h3><i class="fa-solid fa-door-open icone-azul"></i> Salas Abertas</h3>
                 <p class="texto-pequeno mb-15">Clique em uma sala para entrar:</p>
@@ -135,24 +142,15 @@
 
             <div class="cards-grid">
                 <div class="card-info glass-effect" onclick="mudarTela('tela-playlist', document.querySelectorAll('.nav-item')[1])">
-                    <div class="dados-card-mini">
-                        <i class="fa-solid fa-compact-disc icone-azul"></i>
-                        <h3 id="dash-qtd-musicas">0</h3>
-                    </div>
+                    <div class="dados-card-mini"><i class="fa-solid fa-compact-disc icone-azul"></i><h3 id="dash-qtd-musicas">0</h3></div>
                     <p class="texto-pequeno">Músicas</p>
                 </div>
                 <div class="card-info glass-effect" onclick="mudarTela('tela-perfil', document.querySelectorAll('.nav-item')[4])">
-                    <div class="dados-card-mini">
-                        <i class="fa-solid fa-users icone-rosa"></i>
-                        <h3 id="dash-qtd-cantores">0</h3>
-                    </div>
+                    <div class="dados-card-mini"><i class="fa-solid fa-users icone-rosa"></i><h3 id="dash-qtd-cantores">0</h3></div>
                     <p class="texto-pequeno">Cantores</p>
                 </div>
                 <div class="card-info glass-effect">
-                    <div class="dados-card-mini">
-                        <i class="fa-solid fa-tower-broadcast icone-azul"></i>
-                        <h3 id="dash-qtd-salas">0</h3>
-                    </div>
+                    <div class="dados-card-mini"><i class="fa-solid fa-tower-broadcast icone-azul"></i><h3 id="dash-qtd-salas">0</h3></div>
                     <p class="texto-pequeno">Salas Online</p>
                 </div>
             </div>
@@ -182,7 +180,6 @@
                     <button id="btn-upload-foto" class="btn-secundario" style="padding: 5px 10px; font-size: 0.8rem; margin: 0;"><i class="fa-solid fa-camera"></i> Enviar Foto</button>
                 </p>
                 <input type="file" id="input-foto-perfil" accept="image/*" class="escondido">
-                
                 <div id="seletor-avatares" class="avatares-grid mb-15" style="justify-content: center;"></div>
 
                 <p class="instrucao-perfil">2. Digite seu Nome:</p>
@@ -258,19 +255,9 @@
                 </div>
                 <h3 id="voto-nome-cantor" class="texto-destaque">Cantor</h3>
                 <p id="voto-musica" class="texto-cinza mb-20">Música</p>
-
                 <h3>Atribuir Nota:</h3>
                 <div class="votos-grid">
-                    <button class="btn-voto" onclick="votar(1)">1</button>
-                    <button class="btn-voto" onclick="votar(2)">2</button>
-                    <button class="btn-voto" onclick="votar(3)">3</button>
-                    <button class="btn-voto" onclick="votar(4)">4</button>
-                    <button class="btn-voto" onclick="votar(5)">5</button>
-                    <button class="btn-voto" onclick="votar(6)">6</button>
-                    <button class="btn-voto" onclick="votar(7)">7</button>
-                    <button class="btn-voto" onclick="votar(8)">8</button>
-                    <button class="btn-voto" onclick="votar(9)">9</button>
-                    <button class="btn-voto btn-nota-10" onclick="votar(10)"><i class="fa-solid fa-star"></i> 10</button>
+                    <button class="btn-voto" onclick="votar(1)">1</button><button class="btn-voto" onclick="votar(2)">2</button><button class="btn-voto" onclick="votar(3)">3</button><button class="btn-voto" onclick="votar(4)">4</button><button class="btn-voto" onclick="votar(5)">5</button><button class="btn-voto" onclick="votar(6)">6</button><button class="btn-voto" onclick="votar(7)">7</button><button class="btn-voto" onclick="votar(8)">8</button><button class="btn-voto" onclick="votar(9)">9</button><button class="btn-voto btn-nota-10" onclick="votar(10)"><i class="fa-solid fa-star"></i> 10</button>
                 </div>
                 <div id="resultado-voto" class="resultado-voto">Aguardando seu voto...</div>
             </div>
@@ -286,20 +273,14 @@
             
             <div class="player-wrapper">
                 <video id="player-video" playsinline controls controlsList="nodownload"></video>
-                
                 <div id="tela-transicao-palco" class="transicao-palco glass-effect escondido">
                     <h2 class="texto-azul blink-anim">PREPARE-SE!</h2>
                     <div id="transicao-fotos" class="avatares-dupla-palco mt-15 mb-10" style="justify-content: center;"></div>
                     <h3 id="transicao-nome" class="texto-destaque" style="font-size: 1.8rem; text-align: center; padding: 0 10px;">Cantor</h3>
                     <p id="transicao-musica" class="texto-claro mb-20 text-center">Música</p>
-                    <div class="contador-circular">
-                        <span id="transicao-contador">20</span>
-                    </div>
+                    <div class="contador-circular"><span id="transicao-contador">20</span></div>
                 </div>
-
-                <div id="capa-mini-player" class="capa-mini escondido" onclick="maximizarPalco()">
-                    <i class="fa-solid fa-expand"></i>
-                </div>
+                <div id="capa-mini-player" class="capa-mini escondido" onclick="maximizarPalco()"><i class="fa-solid fa-expand"></i></div>
             </div>
 
             <div class="conteudo-palco-expandido">
@@ -317,15 +298,12 @@
 
                 <div class="status-transmissao glass-effect text-center p-20 mt-15">
                     <h3 class="texto-azul"><i class="fa-solid fa-tower-broadcast pulse-anim"></i> Histórico de Votos</h3>
-                    
                     <div id="feed-votos-palco" style="max-height: 140px; overflow-y: auto; text-align: left; margin: 15px 0; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 8px; font-size: 13px;">
                         <p class="texto-cinza text-center" style="margin: 0; font-style: italic;">Aguardando votos dos jurados...</p>
                     </div>
-
                     <div class="equalizer" style="transform: scale(0.6); height: 20px;">
                         <span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span><span class="bar"></span>
                     </div>
-
                     <div id="alerta-nota-palco" class="alerta-nota-palco escondido mt-20"></div>
                 </div>
             </div>
@@ -335,18 +313,15 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 
-    <script src="js/data.js?v=2"></script>
-    <script src="js/app.js?v=2"></script>
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
     <script src="js/upload.js"></script>
 
     <script>
         let novoServiceWorker;
-
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').then(registration => {
-                    console.log('PWA: Service Worker registrado com sucesso!');
-
                     registration.addEventListener('updatefound', () => {
                         novoServiceWorker = registration.installing;
                         novoServiceWorker.addEventListener('statechange', () => {
@@ -355,10 +330,7 @@
                             }
                         });
                     });
-                }).catch(error => {
-                    console.log('PWA: Falha ao registrar o Service Worker:', error);
                 });
-
                 let recarregando;
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
                     if (recarregando) return;
@@ -367,21 +339,15 @@
                 });
             });
         }
-
         function mostrarAvisoAtualizacao() {
             document.getElementById('titulo-alerta').innerHTML = `<i class="fa-solid fa-arrows-rotate texto-destaque"></i> Nova Versão!`;
             document.getElementById('mensagem-alerta').innerText = "Temos uma nova atualização do Karaokê VIP disponível. Clique abaixo para atualizar agora!";
-            
             const botoesDiv = document.querySelector('.botoes-modal');
             botoesDiv.innerHTML = `<button class="btn-vibrante w-100" onclick="aplicarAtualizacaoApp()">Atualizar Agora</button>`;
-            
             document.getElementById('modal-alerta').classList.remove('escondido');
         }
-
         function aplicarAtualizacaoApp() {
-            if (novoServiceWorker) {
-                novoServiceWorker.postMessage('SKIP_WAITING');
-            }
+            if (novoServiceWorker) { novoServiceWorker.postMessage('SKIP_WAITING'); }
         }
     </script>
 </body>
