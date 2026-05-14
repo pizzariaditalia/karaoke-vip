@@ -50,9 +50,8 @@ const playerPrevia = new Audio();
 let previewTimer = null;
 let musicaPreviaAtualId = null;
 
-const sementesAvatares = ['Felix', 'Aneka', 'Loki', 'Salem', 'Mimi', 'Oliver', 'Cleo', 'Buster', 'Tinkerbell', 'Bandit', 'Max', 'Bella', 'Charlie', 'Lucy', 'Leo', 'Luna', 'Milo', 'Nala', 'Simba', 'Daisy', 'Garfield', 'Chloe', 'Jack', 'Mia', 'Rocky', 'Lily', 'Oscar', 'Zoe', 'Buddy', 'Stella'];
-const listaURLsAvatares = sementesAvatares.map(seed => `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=b6e3f4`);
-let avatarSelecionadoCriacao = listaURLsAvatares[0];
+// Agora a variável de foto começa vazia (obriga o usuário a enviar)
+let avatarSelecionadoCriacao = null; 
 
 const bottomBar = document.getElementById('bottom-bar');
 const navItems = document.querySelectorAll('.nav-item');
@@ -202,7 +201,6 @@ function entrarNoSistema() {
             if(perfilEncontrado) perfilAtual = perfilEncontrado; 
         }
 
-        // --- LÓGICA DA PLATÉIA E DO FEED DE CHAT ---
         if (dados.palco && dados.palco.cantor) {
             
             if (dados.palco.votos) {
@@ -248,14 +246,13 @@ function entrarNoSistema() {
                 }
             }
 
+            // AVISO E CONFETES PARA NOTA 10 (Áudio removido para não atrapalhar o cantor)
             if (dados.palco.ultimoVoto && dados.palco.ultimoVoto.timestamp > ultimoVotoVisto) {
                 let voto = dados.palco.ultimoVoto;
                 ultimoVotoVisto = voto.timestamp;
                 
                 if(voto.nota === 10) {
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#ff2a7a', '#00e5ff', '#ffd700'] });
-                    somAplauso.currentTime = 0;
-                    somAplauso.play().catch(() => {});
                 }
                 
                 const divAlertaPalco = document.getElementById('alerta-nota-palco');
@@ -415,19 +412,19 @@ function pararPrevia() {
 function renderizarSeletorAvatares() {
     const container = document.getElementById('seletor-avatares');
     container.innerHTML = '';
-    listaURLsAvatares.forEach(url => {
-        const img = document.createElement('img');
-        img.src = url;
-        img.classList.add('avatar-opcao');
-        if(url === avatarSelecionadoCriacao) img.classList.add('selecionado');
-        img.onclick = () => { avatarSelecionadoCriacao = url; renderizarSeletorAvatares(); };
-        container.appendChild(img);
-    });
+    // A lista pronta de avatares foi removida para forçar a pessoa a enviar a própria foto.
 }
 
 function criarPerfil() {
     const inputNome = document.getElementById('input-novo-perfil');
     const nome = inputNome.value.trim();
+    
+    // Validação que força o usuário a enviar uma foto real
+    if (!avatarSelecionadoCriacao) {
+        mostrarAlerta("É obrigatório enviar uma foto sua para criar o perfil oficial!", "Foto Necessária", "fa-camera");
+        return;
+    }
+
     if (nome !== "") {
         const novoPerfil = { id: Date.now(), nome: nome, foto: avatarSelecionadoCriacao, pontos: 0, isGuest: false };
         perfisFamilia.push(novoPerfil);
@@ -436,7 +433,11 @@ function criarPerfil() {
         localStorage.setItem('karaoke_perfil_atual_id', novoPerfil.id);
         salvarDados(); 
         
+        // Limpa os campos para o próximo cadastro
         inputNome.value = "";
+        avatarSelecionadoCriacao = null;
+        document.getElementById('seletor-avatares').innerHTML = '';
+        
         mostrarAlerta(`Cantor Oficial ${nome} registrado e conectado!`, "Sucesso", "fa-circle-check");
     } else { 
         mostrarAlerta("Por favor, digite um nome válido!", "Atenção", "fa-triangle-exclamation"); 
@@ -447,7 +448,8 @@ function entrarComoConvidado() {
     const inputConvidado = document.getElementById('input-convidado');
     const nome = inputConvidado.value.trim();
     if (nome !== "") {
-        const perfilConvidado = { id: 'convidado_' + Date.now(), nome: `${nome} (Convidado)`, foto: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(nome + 'conv')}&backgroundColor=e2e2e2`, pontos: 0, isGuest: true };
+        // Agora todos os convidados ganham um avatar padrão idêntico (Visitante genérico)
+        const perfilConvidado = { id: 'convidado_' + Date.now(), nome: `${nome} (Convidado)`, foto: `https://api.dicebear.com/7.x/avataaars/svg?seed=Visitante&backgroundColor=e2e2e2`, pontos: 0, isGuest: true };
         perfilAtual = perfilConvidado;
         
         localStorage.removeItem('karaoke_perfil_atual_id');
@@ -503,8 +505,7 @@ function atualizarDashboard() {
 
     const bannerAoVivo = document.getElementById('banner-ao-vivo');
     
-    // ATUALIZADO: Mostra sempre o banner "Ao Vivo Agora" se tiver música rolando.
-    if (cantorAoVivo && musicaAoVivo) {
+    if (cantorAoVivo && musicaAoVivo && (telaPalcoOverlay.classList.contains('minimizado') || telaPalcoOverlay.classList.contains('escondido'))) {
         bannerAoVivo.classList.remove('escondido');
         document.getElementById('ao-vivo-foto').src = cantorAoVivo.foto;
         
@@ -985,6 +986,7 @@ function votar(nota) {
 }
 
 playerVideo.addEventListener('ended', () => {
+    // O som épico da plateia continua tocando brilhantemente apenas aqui no final da música!
     somAplauso.currentTime = 0;
     somAplauso.play().catch(() => {});
 
