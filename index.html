@@ -37,9 +37,13 @@
     </nav>
 
     <div id="tour-overlay" class="escondido"><div id="tour-balao"><h3 id="tour-titulo" style="color: var(--rosa-neon); margin-bottom: 8px; font-size: 1.2rem;">Título</h3><p id="tour-texto" class="texto-claro" style="font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">Texto</p><div style="display: flex; justify-content: space-between;"><button class="btn-secundario" onclick="encerrarTour()" style="padding: 8px 15px; margin: 0; font-size: 0.8rem;">Pular Tour</button><button class="btn-vibrante-sm" onclick="proximoTourStep()" id="tour-btn-proximo" style="padding: 8px 15px; margin: 0; font-size: 0.8rem;">Próximo ❯</button></div></div></div>
+    
     <div id="modal-qr" class="modal-overlay escondido"><div class="modal-content glass-effect text-center"><h3>Entrada VIP</h3><p class="texto-pequeno mt-10">Peça para seus amigos apontarem a câmera para entrar na sala direto!</p><div id="qrcode-container" style="background: white; padding: 15px; border-radius: 10px; display: inline-block; margin: 15px 0;"></div><div class="botoes-modal"><button class="btn-secundario w-100" onclick="fecharModalQR()">Fechar</button></div></div></div>
+    
     <div id="modal-alerta" class="modal-overlay escondido"><div class="modal-content glass-effect"><h3 id="titulo-alerta"><i class="fa-solid fa-bell texto-destaque"></i> Aviso</h3><p id="mensagem-alerta" class="texto-pequeno mt-15 mb-20" style="font-size: 1rem;">Sua mensagem aqui.</p><div class="botoes-modal"><button class="btn-vibrante-sm w-100" onclick="fecharModalAlerta()">OK</button></div></div></div>
+    
     <div id="modal-dueto" class="modal-overlay escondido"><div class="modal-content glass-effect"><h3>Cantar em Dupla 🎤🎤</h3><p class="texto-pequeno mt-10">Quem vai cantar com você?</p><div id="lista-parceiros-modal" class="perfis-grid mt-15 mb-20"></div><div class="botoes-modal"><button class="btn-secundario" onclick="fecharModalDueto()">Cancelar</button></div></div></div>
+    
     <div id="modal-senha" class="modal-overlay escondido"><div class="modal-content glass-effect"><h3><i class="fa-solid fa-lock" style="color: var(--rosa-neon);"></i> Sala Privada</h3><p class="texto-pequeno mt-10">Esta sala exige uma senha para entrar.</p><div class="criar-perfil-box mt-15 mb-20"><input type="password" id="input-senha-acesso" placeholder="Digite a senha..."></div><div class="botoes-modal"><button class="btn-secundario" onclick="fecharModalSenha()">Cancelar</button><button class="btn-vibrante-sm" onclick="verificarSenha()">Entrar</button></div></div></div>
 
     <section id="tela-salas" class="tela ativa fade-in">
@@ -125,12 +129,7 @@
 
     <section id="tela-playlist" class="tela fade-in"><div class="container-tela"><h2>Catálogo</h2><div class="busca-caixa glass-effect"><i class="fa-solid fa-search"></i><input type="text" id="input-busca" placeholder="Buscar música ou artista..."></div><div id="container-categorias" class="categorias-lista"></div><div class="secao-lista"><div id="lista-musicas" class="grid-musicas"></div><div id="paginacao-container" class="paginacao"></div></div></div></section>
     
-    <section id="tela-fila" class="tela fade-in">
-        <div class="container-tela">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;"><h2 style="margin:0;">Na Fila</h2><span id="badge-dj" class="badge-sala escondido" style="background: var(--rosa-neon);"><i class="fa-solid fa-headphones"></i> DJ</span></div>
-            <div class="glass-effect p-20"><div id="lista-fila" class="itens-fila-grandes"></div><button class="btn-vibrante w-100 mt-20" onclick="mudarTela('tela-playlist', document.getElementById('nav-catalogo'))">Escolher Música</button></div>
-        </div>
-    </section>
+    <section id="tela-fila" class="tela fade-in"><div class="container-tela"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;"><h2 style="margin:0;">Na Fila</h2><span id="badge-dj" class="badge-sala escondido" style="background: var(--rosa-neon);"><i class="fa-solid fa-headphones"></i> DJ</span></div><div class="glass-effect p-20"><div id="lista-fila" class="itens-fila-grandes"></div><button class="btn-vibrante w-100 mt-20" onclick="mudarTela('tela-playlist', document.getElementById('nav-catalogo'))">Escolher Música</button></div></div></section>
 
     <section id="tela-ranking" class="tela fade-in"><div class="container-tela"><h2>Rank Oficial</h2><div class="glass-effect p-20"><div id="lista-ranking-completa" class="itens-ranking"></div></div></div></section>
     
@@ -153,7 +152,6 @@
             <div id="container-reacoes" style="position: absolute; bottom: 80px; right: 10px; width: 60px; height: 350px; pointer-events: none; z-index: 9999;"></div>
 
             <div class="conteudo-palco-expandido">
-                
                 <div id="controles-estudio" class="glass-effect mb-15" style="display: flex; justify-content: space-around; padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
                     <div style="text-align: center;">
                         <span style="color: var(--rosa-neon); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;"><i class="fa-solid fa-music"></i> Tom</span>
@@ -218,9 +216,12 @@
         }
         function mostrarAvisoAtualizacao() {
             document.getElementById('titulo-alerta').innerHTML = `<i class="fa-solid fa-arrows-rotate texto-destaque"></i> Versão Nova!`;
-            document.getElementById('mensagem-alerta').innerText = "Adicionamos o painel de estúdio (Tom e Velocidade)! Atualizar agora?";
-            const botoesDiv = document.querySelector('.botoes-modal');
+            document.getElementById('mensagem-alerta').innerText = "Temos uma nova atualização para os ajustes de áudio! Atualize agora para carregar as funções.";
+            
+            // CORRIGIDO: Agora ele pega o botão do modal certo!
+            const botoesDiv = document.querySelector('#modal-alerta .botoes-modal');
             botoesDiv.innerHTML = `<button class="btn-vibrante w-100" onclick="aplicarAtualizacaoApp()">Atualizar Agora</button>`;
+            
             document.getElementById('modal-alerta').classList.remove('escondido');
         }
         function aplicarAtualizacaoApp() { if (novoServiceWorker) { novoServiceWorker.postMessage('SKIP_WAITING'); } }
