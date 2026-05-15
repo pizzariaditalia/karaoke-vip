@@ -184,4 +184,3 @@ function resetarEstudio() {
     if (dTom) dTom.innerText = '0';
     if (dVel) dVel.innerText = '1.0x';
 }
-
