@@ -107,40 +107,40 @@ async function iniciarAudioEstudio() {
     if (!videoEl) return false;
 
     try {
-        // Obrigatório usar 'await' nos navegadores modernos para o áudio ligar
+        // Liga o motor mestre do Tone.js
         await Tone.start();
         
+        // Cria a máquina de efeito de Tom
         if (!tonePitchShift) {
             tonePitchShift = new Tone.PitchShift().toDestination();
         }
         
+        // Conecta o Vídeo na máquina de Tom UMA ÚNICA VEZ (sem tentar desconectar o que não existe)
         if (!mediaSourceNode) {
-            // Força o crossorigin novamente via JS para blindar
-            videoEl.crossOrigin = "anonymous";
             mediaSourceNode = Tone.context.createMediaElementSource(videoEl);
+            mediaSourceNode.connect(tonePitchShift);
         }
-        
-        mediaSourceNode.disconnect();
-        mediaSourceNode.connect(tonePitchShift);
         
         audioEstudioInicializado = true;
         console.log("Estúdio VIP ativado! Motor conectado.");
         return true;
     } catch (e) {
         console.error("Erro ao iniciar o estúdio:", e);
-        // AQUI ESTÁ A MÁGICA: Ele vai jogar o erro técnico real na sua tela
-        mostrarAlerta("Erro técnico do navegador: " + e.message, "Diagnóstico de Áudio", "fa-bug");
+        mostrarAlerta("Erro técnico: " + e.message, "Diagnóstico de Áudio", "fa-bug");
         return false;
     }
 }
 
 async function ajustarTom(valor) {
+    // Se o estúdio ainda não ligou, tenta ligar agora
     if (!audioEstudioInicializado) {
         const sucesso = await iniciarAudioEstudio();
-        if (!sucesso) return; // Se falhou a inicialização, aborta a mudança de tom
+        if (!sucesso) return; // Se der erro, para por aqui
     }
     
     tomAtual += valor;
+    
+    // Limites para a voz não virar um monstro ininteligível (-12 a +12 semitons)
     if (tomAtual > 12) tomAtual = 12;
     if (tomAtual < -12) tomAtual = -12;
     
