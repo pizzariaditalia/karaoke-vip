@@ -20,11 +20,6 @@
         #tour-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.85); z-index: 9998; transition: opacity 0.3s; }
         #tour-balao { position: absolute; width: 90%; max-width: 320px; background: #1e293b; padding: 20px; border-radius: 12px; z-index: 10000; box-shadow: 0 10px 25px rgba(0,0,0,0.8); border: 2px solid var(--rosa-neon); left: 50%; transform: translateX(-50%); transition: all 0.3s ease; }
         .tour-highlight { position: relative !important; z-index: 9999 !important; box-shadow: 0 0 20px var(--rosa-neon) !important; border-radius: 10px; background-color: rgba(30, 41, 59, 0.9) !important; pointer-events: none; }
-        
-        /* Ajuste extra para a tela de transição não cortar no celular */
-        .transicao-palco { background: rgba(0,0,0,0.85) !important; }
-        .foto-transicao { width: 70px !important; height: 70px !important; border-width: 2px !important; }
-        .contador-circular { width: 50px !important; height: 50px !important; font-size: 1.2rem !important; }
     </style>
 </head>
 <body>
@@ -233,16 +228,10 @@
                 <video id="player-video" playsinline controls controlsList="nodownload"></video>
                 <div id="capa-mini-player" class="capa-mini escondido" onclick="maximizarPalco()"><i class="fa-solid fa-expand"></i></div>
                 
-                <div id="tela-transicao-palco" class="transicao-palco glass-effect escondido" style="display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 900; padding: 5px; box-sizing: border-box; overflow: hidden; background: rgba(0,0,0,0.8);">
-                    <h2 class="texto-azul blink-anim" style="margin: 0; font-size: 1.3rem;">PREPARE-SE!</h2>
+                <div id="tela-transicao-palco" class="transicao-palco glass-effect escondido" style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 900; padding: 20px; box-sizing: border-box; overflow: hidden; background: rgba(0,0,0,0.85);">
+                    <h2 class="texto-azul blink-anim" style="margin: 0 0 20px 0; font-size: 1.8rem;">PREPARE-SE!</h2>
                     
-                    <div id="transicao-fotos" class="avatares-dupla-palco" style="justify-content: center; margin: 5px 0;"></div>
-                    
-                    <h3 id="transicao-nome" class="texto-destaque" style="font-size: 1.2rem; text-align: center; margin: 0; max-width: 90%; word-break: break-word;">Cantor</h3>
-                    
-                    <p id="transicao-musica" class="texto-claro text-center" style="margin: 0; font-size: 0.85rem; max-width: 85%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Música</p>
-                    
-                    <div class="contador-circular" style="margin: 0; width: 55px; height: 55px; font-size: 1.3rem; border-width: 3px;">
+                    <div class="contador-circular" style="margin: 0; width: 80px; height: 80px; font-size: 2.2rem; border-width: 4px;">
                         <span id="transicao-contador">20</span>
                     </div>
                 </div>
@@ -267,10 +256,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
     
-    <script src="js/data.js?v=21"></script>
-    <script src="js/premium.js?v=21"></script>
-    <script src="js/app.js?v=21"></script>
-    <script src="js/upload.js?v=21"></script>
+    <script src="js/data.js?v=22"></script>
+    <script src="js/premium.js?v=22"></script>
+    <script src="js/app.js?v=22"></script>
+    <script src="js/upload.js?v=22"></script>
 
     <script>
         let novoServiceWorker;
