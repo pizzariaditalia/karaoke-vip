@@ -53,9 +53,6 @@ const telaPalcoOverlay = document.getElementById('tela-palco');
 const playerVideo = document.getElementById('player-video');
 const somAplauso = document.getElementById('som-aplauso');
 
-// ============================================================================
-// ALERTAS E GESTÃO DE SALAS
-// ============================================================================
 function mostrarAlerta(mensagem, titulo = "Aviso", icone = "fa-bell") {
     document.getElementById('titulo-alerta').innerHTML = `<i class="fa-solid ${icone} texto-destaque"></i> ${titulo}`;
     document.getElementById('mensagem-alerta').innerText = mensagem;
@@ -125,9 +122,6 @@ function sairDaSala() {
     renderizarLobbySalas(); 
 }
 
-// ============================================================================
-// ENTRADA NO SISTEMA E ESCUTA DA NUVEM
-// ============================================================================
 function entrarNoSistema() {
     renderizarCategorias(); prepararLista(catalogoMusicas);
     
@@ -166,7 +160,6 @@ function entrarNoSistema() {
                      else { foto2.classList.add('escondido'); }
                      document.getElementById('palco-nome-cantor').innerText = `🎤 ${nomeAnuncio}`;
                      
-                     // Removido o Cache Buster para evitar conflitos com Cloudflare
                      playerVideo.crossOrigin = "anonymous";
                      playerVideo.src = `${urlNuvemR2}/${encodeURIComponent(musicaPalco.arquivo)}`;
                      playerVideo.muted = true; telaPalcoOverlay.classList.add('escondido'); telaPalcoOverlay.classList.remove('minimizado'); playerVideo.style.pointerEvents = 'auto'; 
@@ -209,9 +202,6 @@ function salvarDados() {
     refSalaAtual.child('palco').update({ cantor: cantorAoVivo ? cantorAoVivo.id : null, cantor2: cantor2AoVivo ? cantor2AoVivo.id : null, musica: musicaAoVivo ? musicaAoVivo.id : null });
 }
 
-// ============================================================================
-// ONBOARDING (TOUR GUIADO VIP)
-// ============================================================================
 let passoAtualTour = 0;
 const passosTour = [
     { elemento: null, titulo: "🎉 Bem-vindo ao Karaokê VIP!", texto: "Vamos fazer um tour super rápido para você descobrir como ser a estrela dessa festa?", posicao: "centro" },
@@ -244,9 +234,6 @@ function renderizarPassoTour() {
 function proximoTourStep() { passoAtualTour++; renderizarPassoTour(); }
 function encerrarTour() { document.getElementById('tour-overlay').classList.add('escondido'); document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight')); localStorage.setItem('karaoke_tour_visto', 'sim'); }
 
-// ============================================================================
-// NAVEGAÇÃO E PERFIS
-// ============================================================================
 function mudarTela(idTelaAlvo, elementoNav = null) {
     if (!salaAtual && idTelaAlvo !== 'tela-salas') return; 
     pararPrevia(); telas.forEach(tela => tela.classList.remove('ativa')); document.getElementById(idTelaAlvo).classList.add('ativa');
@@ -312,9 +299,6 @@ function renderizarPerfis() {
 
 function atualizarPerfilGlobal() { if(perfilAtual) { document.getElementById('dash-foto-perfil').src = perfilAtual.foto; } }
 
-// ============================================================================
-// MÚSICAS FAVORITAS E LISTAGENS
-// ============================================================================
 function renderizarFavoritos() {
     const container = document.getElementById('lista-favoritos-perfil');
     if(!container) return;
@@ -448,11 +432,6 @@ function renderizarControlesPaginacao(totalPaginas) {
     paginacaoContainer.innerHTML = `<button class="btn-pagina" onclick="mudarPagina(${paginaAtual - 1})" ${paginaAtual === 1 ? 'disabled' : ''}><i class="fa-solid fa-chevron-left"></i></button><span class="info-pagina">Página ${paginaAtual} de ${totalPaginas}</span><button class="btn-pagina" onclick="mudarPagina(${paginaAtual + 1})" ${paginaAtual === totalPaginas ? 'disabled' : ''}><i class="fa-solid fa-chevron-right"></i></button>`;
 }
 
-// ============================================================================
-// FILA, DUETO E DJ MODE
-// ============================================================================
-let idMusicaDuetoTemporaria = null;
-
 function abrirModalDueto(idMusica) {
     if(!perfilAtual || perfilAtual.isGuest) { mostrarAlerta("Identifique-se como Oficial na aba 'Perfil' primeiro!", "Atenção", "fa-user"); mudarTela('tela-perfil', document.getElementById('nav-perfil')); return; }
     idMusicaDuetoTemporaria = idMusica; const modal = document.getElementById('modal-dueto'); document.getElementById('lista-parceiros-modal').innerHTML = '';
@@ -508,9 +487,6 @@ function puxarDaFilaParaPalco(instanciaId) {
     if(itemFila) { irParaPalco(itemFila.id, itemFila.cantor2); removerDaFila(instanciaId); }
 }
 
-// ============================================================================
-// CONTROLE DO PALCO E VOTAÇÃO
-// ============================================================================
 function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     if(!perfilAtual) { mostrarAlerta("Identifique-se na aba Perfil antes de cantar!", "Atenção", "fa-user"); mudarTela('tela-perfil', document.getElementById('nav-perfil')); return; }
     pararPrevia(); document.getElementById('tela-transicao-palco').classList.add('escondido'); clearInterval(intervaloContador); clearTimeout(timerTransicao); window.speechSynthesis.cancel(); somAplauso.onended = null;       
@@ -602,7 +578,6 @@ function votar(nota) {
 
 playerVideo.addEventListener('ended', () => {
     if (typeof resetarEstudio === 'function') resetarEstudio();
-    
     somAplauso.currentTime = 0; somAplauso.play().catch(() => {});
 
     if (filaDeReproducao.length > 0) {
@@ -636,9 +611,6 @@ playerVideo.addEventListener('ended', () => {
     }
 });
 
-// ============================================================================
-// INICIALIZAÇÃO DO APLICATIVO
-// ============================================================================
 document.addEventListener('DOMContentLoaded', () => {
     const salaSalva = localStorage.getItem('karaoke_sala_ativa');
     if (salaSalva) {
