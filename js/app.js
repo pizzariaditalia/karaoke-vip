@@ -166,7 +166,8 @@ function entrarNoSistema() {
                      else { foto2.classList.add('escondido'); }
                      document.getElementById('palco-nome-cantor').innerText = `🎤 ${nomeAnuncio}`;
                      
-                     playerVideo.src = `${urlNuvemR2}/${encodeURIComponent(musicaPalco.arquivo)}`;
+                     // AQUI ENTRA O CACHE BUSTER PARA GARANTIR O ACESSO DO TONE.JS
+                     playerVideo.src = `${urlNuvemR2}/${encodeURIComponent(musicaPalco.arquivo)}?cb=${Date.now()}`;
                      playerVideo.muted = true; telaPalcoOverlay.classList.add('escondido'); telaPalcoOverlay.classList.remove('minimizado'); playerVideo.style.pointerEvents = 'auto'; 
                 }
             }
@@ -265,7 +266,8 @@ function tocarPrevia(idMusica) {
     if (musicaPreviaAtualId === idMusica && !playerPrevia.paused) { pararPrevia(); return; }
     pararPrevia(); const musica = catalogoMusicas.find(m => m.id === idMusica); if(!musica) return;
     const btn = document.getElementById(`btn-previa-${idMusica}`); if(btn) btn.innerHTML = '<i class="fa-solid fa-circle-stop"></i>';
-    playerPrevia.src = `${urlNuvemR2}/${encodeURIComponent(musica.arquivo)}`;
+    // CACHE BUSTER NA PRÉVIA TAMBÉM
+    playerPrevia.src = `${urlNuvemR2}/${encodeURIComponent(musica.arquivo)}?cb=${Date.now()}`;
     playerPrevia.onloadedmetadata = () => { playerPrevia.currentTime = 30; playerPrevia.play().catch(e => console.log("Prévia bloqueada.")); };
     musicaPreviaAtualId = idMusica; previewTimer = setTimeout(() => { pararPrevia(); }, 30000);
 }
@@ -530,7 +532,10 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     document.getElementById('palco-foto-cantor').src = perfilAtual.foto; document.getElementById('alerta-nota-palco').classList.add('escondido');
     telaPalcoOverlay.classList.remove('escondido'); telaPalcoOverlay.classList.remove('minimizado');
     playerVideo.style.pointerEvents = 'auto'; playerVideo.setAttribute('controls', 'controls');
-    playerVideo.src = `${urlNuvemR2}/${encodeURIComponent(musica.arquivo)}`; playerVideo.muted = false;
+    
+    // CACHE BUSTER ATIVADO PARA O CLOUDFLARE NÃO BLOQUEAR A ENGENHARIA DE ÁUDIO
+    playerVideo.src = `${urlNuvemR2}/${encodeURIComponent(musica.arquivo)}?cb=${Date.now()}`; 
+    playerVideo.muted = false;
 
     if (pularContagem) { playerVideo.play().catch(e => console.log("Autoplay bloqueado.")); } 
     else {
