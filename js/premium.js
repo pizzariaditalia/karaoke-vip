@@ -98,7 +98,6 @@ let tomAtual = 0;
 let velocidadeAtual = 1.0;
 let audioEstudioInicializado = false;
 let tonePitchShift = null;
-let mediaSourceNode = null; 
 
 async function iniciarAudioEstudio() {
     if (audioEstudioInicializado) return true;
@@ -107,40 +106,42 @@ async function iniciarAudioEstudio() {
     if (!videoEl) return false;
 
     try {
-        // Liga o motor mestre do Tone.js
+        // Blinda o CORS nativamente antes de qualquer coisa
+        videoEl.crossOrigin = "anonymous";
+        
+        // Liga o motor principal
         await Tone.start();
         
-        // Cria a máquina de efeito de Tom
         if (!tonePitchShift) {
             tonePitchShift = new Tone.PitchShift().toDestination();
         }
         
-        // Conecta o Vídeo na máquina de Tom UMA ÚNICA VEZ (sem tentar desconectar o que não existe)
-        if (!mediaSourceNode) {
-            mediaSourceNode = Tone.context.createMediaElementSource(videoEl);
-            mediaSourceNode.connect(tonePitchShift);
+        // O TRUQUE DE MESTRE: Salvar o nó de áudio na janela global do navegador 
+        // para o bug do Chrome não "esquecer" a chave (given key)
+        if (!window.globalMediaSourceNode) {
+            const nativeCtx = Tone.context.rawContext; // Pega o contexto raiz do navegador
+            window.globalMediaSourceNode = nativeCtx.createMediaElementSource(videoEl);
+            Tone.connect(window.globalMediaSourceNode, tonePitchShift);
         }
         
         audioEstudioInicializado = true;
-        console.log("Estúdio VIP ativado! Motor conectado.");
+        console.log("Estúdio VIP ativado! Motor conectado com sucesso.");
         return true;
     } catch (e) {
-        console.error("Erro ao iniciar o estúdio:", e);
-        mostrarAlerta("Erro técnico: " + e.message, "Diagnóstico de Áudio", "fa-bug");
+        console.error("Erro interno do Chrome:", e);
+        mostrarAlerta("Infelizmente o sistema de segurança do seu navegador bloqueou a alteração de Tom. Mas a Velocidade continua liberada!", "Aviso de Navegador", "fa-triangle-exclamation");
         return false;
     }
 }
 
 async function ajustarTom(valor) {
-    // Se o estúdio ainda não ligou, tenta ligar agora
     if (!audioEstudioInicializado) {
         const sucesso = await iniciarAudioEstudio();
-        if (!sucesso) return; // Se der erro, para por aqui
+        if (!sucesso) return; 
     }
     
     tomAtual += valor;
     
-    // Limites para a voz não virar um monstro ininteligível (-12 a +12 semitons)
     if (tomAtual > 12) tomAtual = 12;
     if (tomAtual < -12) tomAtual = -12;
     
@@ -183,3 +184,4 @@ function resetarEstudio() {
     if (dTom) dTom.innerText = '0';
     if (dVel) dVel.innerText = '1.0x';
 }
+
