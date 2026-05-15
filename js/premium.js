@@ -1,5 +1,5 @@
 // ============================================================================
-// 💎 FUNÇÕES PREMIUM (QR CODE, REAÇÕES E FAVORITOS)
+// 💎 FUNÇÕES PREMIUM (QR CODE, REAÇÕES, FAVORITOS E ESTÚDIO VIP)
 // ============================================================================
 
 function enviarReacao(emoji) {
@@ -75,7 +75,6 @@ function verificarConviteURL() {
 }
 window.addEventListener('load', verificarConviteURL);
 
-// ATUALIZADO: Agora ele atualiza a aba "Favoritos"
 function favoritarMusica(idMusica) {
     let favoritas = JSON.parse(localStorage.getItem('karaoke_favoritas') || '[]');
     if (favoritas.includes(idMusica)) {
@@ -90,4 +89,92 @@ function favoritarMusica(idMusica) {
     } else if (document.getElementById('tela-favoritos').classList.contains('ativa')) {
         if (typeof renderizarFavoritos === "function") renderizarFavoritos();
     }
+}
+
+// ============================================================================
+// 🎛️ CONTROLE DE ESTÚDIO (TOM E VELOCIDADE)
+// ============================================================================
+let tomAtual = 0;
+let velocidadeAtual = 1.0;
+let audioEstudioInicializado = false;
+let tonePitchShift = null;
+
+function iniciarAudioEstudio() {
+    if (audioEstudioInicializado) return;
+    
+    const videoEl = document.getElementById('player-video');
+    if (!videoEl) return;
+
+    try {
+        // Inicializa o motor de áudio (Pede permissão ao navegador)
+        Tone.start();
+        
+        // Cria o alterador de Tom
+        tonePitchShift = new Tone.PitchShift().toDestination();
+        
+        // Captura o áudio do vídeo e joga no motor do Tone.js
+        const sourceNode = Tone.context.createMediaElementSource(videoEl);
+        sourceNode.connect(tonePitchShift);
+        
+        audioEstudioInicializado = true;
+        console.log("Estúdio VIP ativado! Motor de áudio conectado.");
+    } catch (e) {
+        console.error("Erro ao iniciar o estúdio. Pode ser bloqueio de CORS do R2.", e);
+        mostrarAlerta("Bloqueio de Servidor (CORS) detectado. O Tom não pode ser alterado.", "Erro de Áudio", "fa-triangle-exclamation");
+    }
+}
+
+function ajustarTom(valor) {
+    if (!audioEstudioInicializado) {
+        iniciarAudioEstudio();
+    }
+    
+    tomAtual += valor;
+    
+    // Limite máximo e mínimo de tons para não estourar o áudio (-12 a +12)
+    if (tomAtual > 12) tomAtual = 12;
+    if (tomAtual < -12) tomAtual = -12;
+    
+    if (tonePitchShift) {
+        tonePitchShift.pitch = tomAtual;
+    }
+    
+    // Atualiza o painel visual
+    let textoTom = tomAtual > 0 ? '+' + tomAtual : tomAtual;
+    document.getElementById('display-tom').innerText = textoTom;
+}
+
+function ajustarVelocidade(valor) {
+    velocidadeAtual += valor;
+    
+    // Limites de velocidade (Metade do tempo ou 2x mais rápido)
+    if (velocidadeAtual > 2.0) velocidadeAtual = 2.0;
+    if (velocidadeAtual < 0.5) velocidadeAtual = 0.5;
+    
+    // Arredonda para 1 casa decimal
+    velocidadeAtual = Math.round(velocidadeAtual * 10) / 10;
+    
+    const videoEl = document.getElementById('player-video');
+    if (videoEl) {
+        videoEl.playbackRate = velocidadeAtual;
+    }
+    
+    // Atualiza o painel visual
+    document.getElementById('display-velocidade').innerText = velocidadeAtual.toFixed(1) + 'x';
+}
+
+function resetarEstudio() {
+    tomAtual = 0;
+    velocidadeAtual = 1.0;
+    
+    if (tonePitchShift) tonePitchShift.pitch = 0;
+    
+    const videoEl = document.getElementById('player-video');
+    if (videoEl) videoEl.playbackRate = 1.0;
+    
+    const dTom = document.getElementById('display-tom');
+    const dVel = document.getElementById('display-velocidade');
+    
+    if (dTom) dTom.innerText = '0';
+    if (dVel) dVel.innerText = '1.0x';
 }
