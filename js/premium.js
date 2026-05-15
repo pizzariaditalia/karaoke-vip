@@ -98,6 +98,7 @@ let tomAtual = 0;
 let velocidadeAtual = 1.0;
 let audioEstudioInicializado = false;
 let tonePitchShift = null;
+let mediaSourceNode = null; // <- O segredo para não travar na 2ª música
 
 function iniciarAudioEstudio() {
     if (audioEstudioInicializado) return;
@@ -106,21 +107,28 @@ function iniciarAudioEstudio() {
     if (!videoEl) return;
 
     try {
-        // Inicializa o motor de áudio (Pede permissão ao navegador)
+        // Inicializa o motor de áudio
         Tone.start();
         
         // Cria o alterador de Tom
-        tonePitchShift = new Tone.PitchShift().toDestination();
+        if (!tonePitchShift) {
+            tonePitchShift = new Tone.PitchShift().toDestination();
+        }
         
-        // Captura o áudio do vídeo e joga no motor do Tone.js
-        const sourceNode = Tone.context.createMediaElementSource(videoEl);
-        sourceNode.connect(tonePitchShift);
+        // Captura o áudio do vídeo apenas UMA vez para não dar erro
+        if (!mediaSourceNode) {
+            mediaSourceNode = Tone.context.createMediaElementSource(videoEl);
+        }
+        
+        // Limpa conexões velhas e liga na nova
+        mediaSourceNode.disconnect();
+        mediaSourceNode.connect(tonePitchShift);
         
         audioEstudioInicializado = true;
         console.log("Estúdio VIP ativado! Motor de áudio conectado.");
     } catch (e) {
         console.error("Erro ao iniciar o estúdio. Pode ser bloqueio de CORS do R2.", e);
-        mostrarAlerta("Bloqueio de Servidor (CORS) detectado. O Tom não pode ser alterado.", "Erro de Áudio", "fa-triangle-exclamation");
+        mostrarAlerta("O bloqueio do servidor ainda está na memória do celular. Limpe o cache ou tente em uma aba anônima!", "Erro de Áudio", "fa-triangle-exclamation");
     }
 }
 
