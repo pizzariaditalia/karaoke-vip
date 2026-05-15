@@ -109,8 +109,9 @@
                 </div>
                 <div style="display: flex; gap: 12px; align-items: center;">
                     <button class="btn-secundario" onclick="mostrarQR()" style="padding: 10px; margin:0;" title="Convidar Amigos"><i class="fa-solid fa-qrcode"></i></button>
-                    <div class="perfil-logado-mini" onclick="mudarTela('tela-perfil', document.getElementById('nav-perfil'))">
-                        <img id="dash-foto-perfil" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Visitante&backgroundColor=b6e3f4" class="foto-perfil-mini" style="min-width: 40px; flex-shrink: 0; width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
+                    
+                    <div class="perfil-logado-mini" onclick="mudarTela('tela-perfil', document.getElementById('nav-perfil'))" style="width: 45px; height: 45px; flex-shrink: 0; border-radius: 50%; overflow: hidden; display: flex; justify-content: center; align-items: center; border: 2px solid var(--azul-neon);">
+                        <img id="dash-foto-perfil" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Visitante&backgroundColor=b6e3f4" style="width: 100%; height: 100%; object-fit: cover !important; display: block;">
                     </div>
                 </div>
             </div>
@@ -254,10 +255,11 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-    <script src="js/data.js?v=12"></script>
-    <script src="js/premium.js?v=12"></script>
-    <script src="js/app.js?v=12"></script>
-    <script src="js/upload.js"></script>
+    
+    <script src="js/data.js?v=15"></script>
+    <script src="js/premium.js?v=15"></script>
+    <script src="js/app.js?v=15"></script>
+    <script src="js/upload.js?v=15"></script>
 
     <script>
         let novoServiceWorker;
