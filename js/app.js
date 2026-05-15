@@ -195,9 +195,7 @@ function entrarNoSistema() {
     document.getElementById('badge-nome-sala').innerHTML = `<i class="fa-solid fa-door-open"></i> Sala: <strong>${salaAtual}</strong> <i class="fa-solid fa-right-from-bracket" style="margin-left: 10px; cursor: pointer; color: var(--rosa-neon);" onclick="sairDaSala()" title="Sair"></i>`;
     document.getElementById('bottom-bar').classList.remove('escondido');
     
-    // Agora usando a ID do elemento
     mudarTela('tela-dashboard', document.getElementById('nav-inicio')); 
-    
     setTimeout(() => { if (typeof iniciarTour === "function") iniciarTour(); }, 1000);
 }
 
@@ -251,7 +249,6 @@ function mudarTela(idTelaAlvo, elementoNav = null) {
     if (!salaAtual && idTelaAlvo !== 'tela-salas') return; 
     pararPrevia(); telas.forEach(tela => tela.classList.remove('ativa')); document.getElementById(idTelaAlvo).classList.add('ativa');
     if(elementoNav) {
-        // Blindagem: Procura todos os botões de navegação e desativa, depois liga só o que clicou
         document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('ativo'));
         elementoNav.classList.add('ativo');
     }
@@ -329,8 +326,6 @@ function renderizarFavoritos() {
     musicasFav.forEach(musica => {
         const card = document.createElement('div');
         card.classList.add('card-musica');
-        
-        // AQUI ESTÁ O SEU BOTÃO "CANTAR" DE VOLTA
         card.innerHTML = `
             <div class="info-musica"><div class="titulo-musica">${musica.titulo}</div><div class="artista-musica">${musica.artista}</div></div>
             <div class="botoes-card">
@@ -356,7 +351,6 @@ function renderizarMusicas(musicas) {
         let iconHeart = favoritas.includes(musica.id) ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
         let colorHeart = favoritas.includes(musica.id) ? 'color: var(--rosa-neon);' : '';
 
-        // AQUI ESTÁ O SEU BOTÃO "CANTAR" DE VOLTA
         card.innerHTML = `
             <div class="info-musica"><div class="titulo-musica">${musica.titulo}</div><div class="artista-musica">${musica.artista}</div></div>
             <div class="botoes-card">
@@ -526,10 +520,10 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
 
     document.getElementById('titulo-atual').innerText = musica.titulo; document.getElementById('artista-atual').innerText = musica.artista;
     const foto2 = document.getElementById('palco-foto-cantor-2');
-    let nomeAnuncio = perfilAtual.nome; let htmlFotos = `<img src="${perfilAtual.foto}" class="foto-transicao">`;
+    let nomeAnuncio = perfilAtual.nome; 
 
     if(parceiro) {
-        nomeAnuncio += ` & ${parceiro.nome}`; htmlFotos += `<img src="${parceiro.foto}" class="foto-transicao foto-sobreposta-palco">`;
+        nomeAnuncio += ` & ${parceiro.nome}`; 
         document.getElementById('palco-nome-cantor').innerText = `🎤 ${perfilAtual.nome} & ${parceiro.nome}`; foto2.src = parceiro.foto; foto2.classList.remove('escondido');
     } else { document.getElementById('palco-nome-cantor').innerText = `🎤 ${perfilAtual.nome}`; foto2.classList.add('escondido'); }
     
@@ -541,7 +535,6 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     if (pularContagem) { playerVideo.play().catch(e => console.log("Autoplay bloqueado.")); } 
     else {
         const divTransicao = document.getElementById('tela-transicao-palco');
-        document.getElementById('transicao-nome').innerText = nomeAnuncio; document.getElementById('transicao-musica').innerText = musica.titulo; document.getElementById('transicao-fotos').innerHTML = htmlFotos;
         divTransicao.classList.remove('escondido'); let contagem = 5; document.getElementById('transicao-contador').innerText = contagem;
         intervaloContador = setInterval(() => { contagem--; document.getElementById('transicao-contador').innerText = contagem; if(contagem <= 0) clearInterval(intervaloContador); }, 1000);
         timerTransicao = setTimeout(() => { divTransicao.classList.add('escondido'); playerVideo.play().catch(e => console.log("Autoplay bloqueado.")); }, 5000);
@@ -615,10 +608,7 @@ playerVideo.addEventListener('ended', () => {
         let nomeAnuncio = proximo.cantor.nome; if(proximo.cantor2) { nomeAnuncio += ` e ${proximo.cantor2.nome}`; }
         
         const divTransicao = document.getElementById('tela-transicao-palco');
-        document.getElementById('transicao-nome').innerText = nomeAnuncio; document.getElementById('transicao-musica').innerText = proximo.titulo;
-        let htmlFotos = `<img src="${proximo.cantor.foto}" class="foto-transicao">`; if (proximo.cantor2) { htmlFotos += `<img src="${proximo.cantor2.foto}" class="foto-transicao foto-sobreposta-palco">`; }
-        document.getElementById('transicao-fotos').innerHTML = htmlFotos; divTransicao.classList.remove('escondido');
-        let contagem = 20; document.getElementById('transicao-contador').innerText = contagem;
+        divTransicao.classList.remove('escondido'); let contagem = 20; document.getElementById('transicao-contador').innerText = contagem;
         intervaloContador = setInterval(() => { contagem--; document.getElementById('transicao-contador').innerText = contagem; if(contagem <= 0) clearInterval(intervaloContador); }, 1000);
 
         somAplauso.onended = () => {
