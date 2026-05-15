@@ -566,6 +566,10 @@ function encerrarPalco(forcarFechamento = false) {
     playerVideo.pause(); playerVideo.src = ""; cantorAoVivo = null; cantor2AoVivo = null; musicaAoVivo = null;
     document.getElementById('tela-transicao-palco').classList.add('escondido'); telaPalcoOverlay.classList.add('escondido'); telaPalcoOverlay.classList.remove('minimizado');
     refSalaAtual.child('palco').set({ cantor: null, cantor2: null, musica: null });
+    
+    // Zera os efeitos de estúdio ao encerrar o palco
+    if (typeof resetarEstudio === 'function') resetarEstudio();
+    
     atualizarDashboard();
 }
 
@@ -593,6 +597,9 @@ function votar(nota) {
 }
 
 playerVideo.addEventListener('ended', () => {
+    // Zera os efeitos de estúdio sempre que uma música acaba
+    if (typeof resetarEstudio === 'function') resetarEstudio();
+    
     somAplauso.currentTime = 0; somAplauso.play().catch(() => {});
 
     if (filaDeReproducao.length > 0) {
