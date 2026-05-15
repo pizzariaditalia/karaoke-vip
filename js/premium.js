@@ -98,48 +98,49 @@ let tomAtual = 0;
 let velocidadeAtual = 1.0;
 let audioEstudioInicializado = false;
 let tonePitchShift = null;
-let mediaSourceNode = null; // <- O segredo para não travar na 2ª música
+let mediaSourceNode = null; 
 
-function iniciarAudioEstudio() {
-    if (audioEstudioInicializado) return;
+async function iniciarAudioEstudio() {
+    if (audioEstudioInicializado) return true;
     
     const videoEl = document.getElementById('player-video');
-    if (!videoEl) return;
+    if (!videoEl) return false;
 
     try {
-        // Inicializa o motor de áudio
-        Tone.start();
+        // Obrigatório usar 'await' nos navegadores modernos para o áudio ligar
+        await Tone.start();
         
-        // Cria o alterador de Tom
         if (!tonePitchShift) {
             tonePitchShift = new Tone.PitchShift().toDestination();
         }
         
-        // Captura o áudio do vídeo apenas UMA vez para não dar erro
         if (!mediaSourceNode) {
+            // Força o crossorigin novamente via JS para blindar
+            videoEl.crossOrigin = "anonymous";
             mediaSourceNode = Tone.context.createMediaElementSource(videoEl);
         }
         
-        // Limpa conexões velhas e liga na nova
         mediaSourceNode.disconnect();
         mediaSourceNode.connect(tonePitchShift);
         
         audioEstudioInicializado = true;
-        console.log("Estúdio VIP ativado! Motor de áudio conectado.");
+        console.log("Estúdio VIP ativado! Motor conectado.");
+        return true;
     } catch (e) {
-        console.error("Erro ao iniciar o estúdio. Pode ser bloqueio de CORS do R2.", e);
-        mostrarAlerta("O bloqueio do servidor ainda está na memória do celular. Limpe o cache ou tente em uma aba anônima!", "Erro de Áudio", "fa-triangle-exclamation");
+        console.error("Erro ao iniciar o estúdio:", e);
+        // AQUI ESTÁ A MÁGICA: Ele vai jogar o erro técnico real na sua tela
+        mostrarAlerta("Erro técnico do navegador: " + e.message, "Diagnóstico de Áudio", "fa-bug");
+        return false;
     }
 }
 
-function ajustarTom(valor) {
+async function ajustarTom(valor) {
     if (!audioEstudioInicializado) {
-        iniciarAudioEstudio();
+        const sucesso = await iniciarAudioEstudio();
+        if (!sucesso) return; // Se falhou a inicialização, aborta a mudança de tom
     }
     
     tomAtual += valor;
-    
-    // Limite máximo e mínimo de tons para não estourar o áudio (-12 a +12)
     if (tomAtual > 12) tomAtual = 12;
     if (tomAtual < -12) tomAtual = -12;
     
@@ -147,7 +148,6 @@ function ajustarTom(valor) {
         tonePitchShift.pitch = tomAtual;
     }
     
-    // Atualiza o painel visual
     let textoTom = tomAtual > 0 ? '+' + tomAtual : tomAtual;
     document.getElementById('display-tom').innerText = textoTom;
 }
@@ -155,11 +155,9 @@ function ajustarTom(valor) {
 function ajustarVelocidade(valor) {
     velocidadeAtual += valor;
     
-    // Limites de velocidade (Metade do tempo ou 2x mais rápido)
     if (velocidadeAtual > 2.0) velocidadeAtual = 2.0;
     if (velocidadeAtual < 0.5) velocidadeAtual = 0.5;
     
-    // Arredonda para 1 casa decimal
     velocidadeAtual = Math.round(velocidadeAtual * 10) / 10;
     
     const videoEl = document.getElementById('player-video');
@@ -167,7 +165,6 @@ function ajustarVelocidade(valor) {
         videoEl.playbackRate = velocidadeAtual;
     }
     
-    // Atualiza o painel visual
     document.getElementById('display-velocidade').innerText = velocidadeAtual.toFixed(1) + 'x';
 }
 
