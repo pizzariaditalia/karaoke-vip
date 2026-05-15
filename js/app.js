@@ -625,3 +625,17 @@ playerVideo.addEventListener('ended', () => {
         timerTransicao = setTimeout(() => { divAlerta.classList.add('escondido'); encerrarPalco(); }, 5000);
     }
 });
+
+// ============================================================================
+// INICIALIZAÇÃO DO APLICATIVO
+// ============================================================================
+document.addEventListener('DOMContentLoaded', () => {
+    const salaSalva = localStorage.getItem('karaoke_sala_ativa');
+    if (salaSalva) {
+        salaAtual = salaSalva;
+        entrarNoSistema();
+    } else {
+        document.getElementById('bottom-bar').classList.add('escondido');
+        mudarTela('tela-salas');
+    }
+});
