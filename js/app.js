@@ -24,6 +24,7 @@ let salasCriadas = [];
 let perfisFamilia = [];
 let filaDeReproducao = [];
 let historicoTocadas = {}; 
+let musicasOcultas = []; // Lista VIP de músicas apagadas
 
 let categoriaAtual = "Todas";
 let perfilAtual = null; 
@@ -70,13 +71,10 @@ const DEFINICAO_MEDALHAS = {
 
 function verificarConquistas(perfilObj) {
     if (!perfilObj || perfilObj.isGuest) return;
-    
-    // Cria o rastreador caso seja um usuário antigo que não tinha ainda
     if (!perfilObj.stats) perfilObj.stats = { cantadas: 0, duetos: 0, notas10: 0, votos: 0, reacoes: 0, medalhas: [] };
 
     let novasMedalhas = [];
 
-    // Checagem das Regras
     if (!perfilObj.stats.medalhas.includes('quebra_gelo') && perfilObj.stats.cantadas >= 1) novasMedalhas.push('quebra_gelo');
     if (!perfilObj.stats.medalhas.includes('inimigo_fim') && perfilObj.stats.cantadas >= 10) novasMedalhas.push('inimigo_fim');
     if (!perfilObj.stats.medalhas.includes('dupla') && perfilObj.stats.duetos >= 3) novasMedalhas.push('dupla');
@@ -90,14 +88,10 @@ function verificarConquistas(perfilObj) {
     if (!perfilObj.stats.medalhas.includes('astro') && perfilObj.pontos >= 100) novasMedalhas.push('astro');
     if (!perfilObj.stats.medalhas.includes('lenda') && perfilObj.pontos >= 250) novasMedalhas.push('lenda');
 
-    // Desbloqueia e Alerta
     if (novasMedalhas.length > 0) {
         novasMedalhas.forEach(m => {
             perfilObj.stats.medalhas.push(m);
-            // Mostra o alerta na tela apenas se a medalha for do dono do celular
-            if (perfilAtual && String(perfilObj.id) === String(perfilAtual.id)) {
-                mostrarAlertaConquista(DEFINICAO_MEDALHAS[m]);
-            }
+            if (perfilAtual && String(perfilObj.id) === String(perfilAtual.id)) { mostrarAlertaConquista(DEFINICAO_MEDALHAS[m]); }
         });
         salvarDados();
         if(document.getElementById('tela-ranking').classList.contains('ativa')) renderizarRanking();
@@ -106,9 +100,7 @@ function verificarConquistas(perfilObj) {
 }
 
 function mostrarAlertaConquista(medalha) {
-    document.getElementById('icone-conquista').innerText = medalha.icone;
-    document.getElementById('nome-conquista').innerText = medalha.nome;
-    document.getElementById('desc-conquista').innerText = medalha.desc;
+    document.getElementById('icone-conquista').innerText = medalha.icone; document.getElementById('nome-conquista').innerText = medalha.nome; document.getElementById('desc-conquista').innerText = medalha.desc;
     document.getElementById('modal-conquista').classList.remove('escondido');
     confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 }, zIndex: 10000 });
 }
@@ -117,21 +109,14 @@ function fecharModalConquista() { document.getElementById('modal-conquista').cla
 function renderizarPainelConquistas() {
     const painel = document.getElementById('painel-conquistas');
     if (!painel) return;
-    
-    if (!perfilAtual || perfilAtual.isGuest) {
-        painel.innerHTML = '<p class="texto-cinza w-100 text-center">Visitantes não ganham conquistas. Crie seu Perfil Oficial!</p>';
-        return;
-    }
+    if (!perfilAtual || perfilAtual.isGuest) { painel.innerHTML = '<p class="texto-cinza w-100 text-center">Visitantes não ganham conquistas. Crie seu Perfil Oficial!</p>'; return; }
 
     painel.innerHTML = '';
     const minhasMedalhas = perfilAtual.stats && perfilAtual.stats.medalhas ? perfilAtual.stats.medalhas : [];
 
     Object.keys(DEFINICAO_MEDALHAS).forEach(chave => {
-        const med = DEFINICAO_MEDALHAS[chave];
-        const possui = minhasMedalhas.includes(chave);
-        
-        const item = document.createElement('div');
-        item.className = `item-conquista ${possui ? 'desbloqueada' : ''}`;
+        const med = DEFINICAO_MEDALHAS[chave]; const possui = minhasMedalhas.includes(chave);
+        const item = document.createElement('div'); item.className = `item-conquista ${possui ? 'desbloqueada' : ''}`;
         item.innerHTML = `<div class="icone">${med.icone}</div><div class="nome">${med.nome}</div>`;
         painel.appendChild(item);
     });
@@ -139,11 +124,105 @@ function renderizarPainelConquistas() {
 
 function obterEmojisMedalhas(perfilObj) {
     if (!perfilObj || !perfilObj.stats || !perfilObj.stats.medalhas || perfilObj.stats.medalhas.length === 0) return '';
-    let emojis = '';
-    perfilObj.stats.medalhas.forEach(m => {
-        if(DEFINICAO_MEDALHAS[m]) emojis += DEFINICAO_MEDALHAS[m].icone;
-    });
+    let emojis = ''; perfilObj.stats.medalhas.forEach(m => { if(DEFINICAO_MEDALHAS[m]) emojis += DEFINICAO_MEDALHAS[m].icone; });
     return `<div class="mini-medalhas">${emojis}</div>`;
+}
+
+// ============================================================================
+// 🎛️ PAINEL DO DJ MESTRE (CONTROLE TOTAL)
+// ============================================================================
+
+function abrirPainelDJ() { renderizarPainelDJ(); document.getElementById('modal-dj').classList.remove('escondido'); }
+function fecharPainelDJ() { document.getElementById('modal-dj').classList.add('escondido'); }
+
+function renderizarPainelDJ() {
+    const listaCantores = document.getElementById('dj-lista-cantores');
+    listaCantores.innerHTML = '';
+    
+    if(perfisFamilia.length === 0) { listaCantores.innerHTML = '<p class="texto-cinza">Nenhum cantor na sala.</p>'; }
+    
+    perfisFamilia.forEach(perfil => {
+        listaCantores.innerHTML += `
+            <div style="display:flex; justify-content: space-between; align-items: center; background: var(--input-bg); padding: 12px; border-radius: 12px; border: 1px solid var(--bg-glass-border);">
+                <span style="font-weight: bold; font-size: 0.95rem; color: var(--text-main);">${perfil.nome} <span style="color: var(--accent-purple);">(${perfil.pontos} pts)</span></span>
+                <div style="display:flex; gap: 8px;">
+                    <button class="btn-secundario" style="padding: 5px 12px; font-size: 0.8rem;" onclick="djAlterarPontos(${perfil.id}, -5)">-5 pts</button>
+                    <button class="btn-secundario" style="padding: 5px 12px; font-size: 0.8rem; background: rgba(255,71,87,0.1); color: #ff4757; border: none;" onclick="djExcluirCantor(${perfil.id})"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function djAlterarPontos(idCantor, valor) {
+    let index = perfisFamilia.findIndex(p => String(p.id) === String(idCantor));
+    if(index !== -1) {
+        perfisFamilia[index].pontos += valor;
+        if(perfisFamilia[index].pontos < 0) perfisFamilia[index].pontos = 0;
+        salvarDados(); renderizarPainelDJ(); mostrarAlerta("Pontos ajustados!", "DJ Mestre", "fa-check");
+    }
+}
+
+function djExcluirCantor(idCantor) {
+    if(confirm("Tem certeza que deseja banir este cantor? Ele perderá todos os pontos e medalhas.")) {
+        perfisFamilia = perfisFamilia.filter(p => String(p.id) !== String(idCantor));
+        if(perfilAtual && String(perfilAtual.id) === String(idCantor)) {
+            perfilAtual = { id: 'convidado_base', nome: "Visitante", foto: `https://api.dicebear.com/7.x/avataaars/svg?seed=Visitante&backgroundColor=e2e2e2`, pontos: 0, isGuest: true };
+            localStorage.removeItem('karaoke_perfil_atual_id');
+        }
+        salvarDados(); renderizarPainelDJ();
+    }
+}
+
+function djBuscarMusica() {
+    const termo = document.getElementById('input-dj-busca-musica').value.toLowerCase();
+    const lista = document.getElementById('dj-lista-busca-musica');
+    if(termo.length < 2) { lista.innerHTML = ''; return; }
+    
+    const achadas = catalogoMusicas.filter(m => !musicasOcultas.includes(m.id) && (m.titulo.toLowerCase().includes(termo) || m.artista.toLowerCase().includes(termo)));
+    lista.innerHTML = '';
+    achadas.slice(0, 5).forEach(m => {
+        lista.innerHTML += `
+            <div style="display:flex; justify-content: space-between; align-items: center; background: var(--input-bg); padding: 12px; border-radius: 12px; border: 1px solid var(--bg-glass-border); margin-bottom: 8px;">
+                <span style="font-size: 0.85rem; font-weight: bold; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70%;">${m.titulo}</span>
+                <button class="btn-secundario" style="padding: 6px 12px; font-size: 0.75rem; color: #ff4757; border: none; background: rgba(255,71,87,0.1);" onclick="djOcultarMusica(${m.id})">Ocultar</button>
+            </div>
+        `;
+    });
+}
+
+function djOcultarMusica(idMusica) {
+    musicasOcultas.push(idMusica);
+    refSalaAtual.child('musicas_ocultas').set(musicasOcultas);
+    document.getElementById('input-dj-busca-musica').value = '';
+    djBuscarMusica(); filtrarMusicas();
+    mostrarAlerta("Música removida do catálogo desta sala!", "DJ Mestre", "fa-eye-slash");
+}
+
+function djEnviarMensagem() {
+    const input = document.getElementById('input-msg-dj');
+    if(input.value.trim() !== "") {
+        refSalaAtual.child('palco/mensagemDJ').set({ texto: input.value.trim(), timestamp: Date.now() });
+        input.value = '';
+        mostrarAlerta("Mensagem explodiu na tela do palco!", "DJ Mestre", "fa-bullhorn");
+    }
+}
+
+let ultimoAlertaDJVisto = 0;
+function mostrarAlertaDJPalco(texto) {
+    const div = document.getElementById('dj-alerta-palco');
+    if(div) {
+        div.innerText = texto; div.classList.remove('escondido');
+        setTimeout(() => { div.classList.add('escondido'); }, 8000); 
+    }
+}
+
+function djExcluirSalaAtual() {
+    if(confirm("ATENÇÃO: Isso vai encerrar a festa para TODOS e apagar a sala permanentemente. Deseja continuar?")) {
+        salasCriadas = salasCriadas.filter(s => s.nome !== salaAtual);
+        salvarListaSalasGlobais(); refSalaAtual.remove(); sairDaSala(); fecharPainelDJ();
+        mostrarAlerta("Sala encerrada e deletada com sucesso.", "Fim da Festa", "fa-power-off");
+    }
 }
 
 // ============================================================================
@@ -209,20 +288,27 @@ function efetivarEntradaSala(nome) { salaAtual = nome; localStorage.setItem('kar
 
 function sairDaSala() {
     if (refSalaAtual) { refSalaAtual.off(); refSalaAtual = null; }
-    salaAtual = null; perfilAtual = null; isDJ = false;
+    salaAtual = null; perfilAtual = null; isDJ = false; musicasOcultas = [];
     localStorage.removeItem('karaoke_sala_ativa'); localStorage.removeItem('karaoke_perfil_atual_id'); 
     document.getElementById('bottom-bar').classList.add('escondido');
     telas.forEach(tela => tela.classList.remove('ativa'));
     document.getElementById('tela-salas').classList.add('ativa');
     document.getElementById('badge-dj').classList.add('escondido');
+    document.getElementById('btn-painel-dj').classList.add('escondido');
     renderizarLobbySalas(); 
 }
 
 function entrarNoSistema() {
-    renderizarCategorias(); prepararLista(catalogoMusicas);
     
-    if (localStorage.getItem('karaoke_dj_' + salaAtual) === 'sim') { isDJ = true; document.getElementById('badge-dj').classList.remove('escondido'); } 
-    else { isDJ = false; document.getElementById('badge-dj').classList.add('escondido'); }
+    if (localStorage.getItem('karaoke_dj_' + salaAtual) === 'sim') { 
+        isDJ = true; 
+        document.getElementById('badge-dj').classList.remove('escondido'); 
+        document.getElementById('btn-painel-dj').classList.remove('escondido');
+    } else { 
+        isDJ = false; 
+        document.getElementById('badge-dj').classList.add('escondido'); 
+        document.getElementById('btn-painel-dj').classList.add('escondido');
+    }
     
     refSalaAtual = db.ref('dados_salas/' + salaAtual);
     if (typeof escutarReacoesPalco === "function") { escutarReacoesPalco(refSalaAtual.child('palco')); }
@@ -233,11 +319,21 @@ function entrarNoSistema() {
         let pRaw = dados.perfis || []; perfisFamilia = Array.isArray(pRaw) ? pRaw : Object.values(pRaw);
         let fRaw = dados.fila || []; filaDeReproducao = Array.isArray(fRaw) ? fRaw : Object.values(fRaw);
         historicoTocadas = dados.historico || {};
+        
+        let ocultasRaw = dados.musicas_ocultas || []; musicasOcultas = Array.isArray(ocultasRaw) ? ocultasRaw : Object.values(ocultasRaw);
+
+        renderizarCategorias(); prepararLista(catalogoMusicas);
 
         const idAtualSalvo = localStorage.getItem('karaoke_perfil_atual_id');
         if (idAtualSalvo) { let perfilEncontrado = perfisFamilia.find(p => String(p.id) === String(idAtualSalvo)); if(perfilEncontrado) perfilAtual = perfilEncontrado; }
 
         if (dados.palco && dados.palco.cantor) {
+            
+            if (dados.palco.mensagemDJ) {
+                let msgObj = dados.palco.mensagemDJ;
+                if (msgObj.timestamp > ultimoAlertaDJVisto) { ultimoAlertaDJVisto = msgObj.timestamp; mostrarAlertaDJPalco(msgObj.texto); }
+            }
+
             if (dados.palco.votos) { votosPalcoTemporario = dados.palco.votos; renderizarFeedVotos(votosPalcoTemporario); } 
             else { votosPalcoTemporario = {}; const feed = document.getElementById('feed-votos-palco'); if(feed) feed.innerHTML = '<p class="texto-cinza text-center" style="margin: 0; font-style: italic;">Aguardando votos dos jurados...</p>'; }
 
@@ -254,7 +350,7 @@ function entrarNoSistema() {
                      let nomeAnuncio = perfilCantor.nome; const foto2 = document.getElementById('palco-foto-cantor-2');
                      if(perfilCantor2) { nomeAnuncio += ` & ${perfilCantor2.nome}`; foto2.src = perfilCantor2.foto; foto2.classList.remove('escondido'); } 
                      else { foto2.classList.add('escondido'); }
-                     document.getElementById('palco-nome-cantor').innerText = `🎤 ${nomeAnuncio}`;
+                     document.getElementById('palco-nome-cantor').innerHTML = `<i class="fa-solid fa-microphone"></i> ${nomeAnuncio}`;
                      
                      playerVideo.crossOrigin = "anonymous";
                      playerVideo.src = `${urlNuvemR2}/${encodeURIComponent(musicaPalco.arquivo)}`;
@@ -284,7 +380,7 @@ function entrarNoSistema() {
     });
 
     if (!perfilAtual) { perfilAtual = { id: 'convidado_base', nome: "Visitante", foto: `https://api.dicebear.com/7.x/avataaars/svg?seed=Visitante&backgroundColor=e2e2e2`, pontos: 0, isGuest: true }; }
-    document.getElementById('badge-nome-sala').innerHTML = `<i class="fa-solid fa-door-open"></i> Sala: <strong>${salaAtual}</strong> <i class="fa-solid fa-right-from-bracket" style="margin-left: 10px; cursor: pointer; color: var(--rosa-neon);" onclick="sairDaSala()" title="Sair"></i>`;
+    document.getElementById('badge-nome-sala').innerHTML = `<i class="fa-solid fa-door-open"></i> Sala: <strong>${salaAtual}</strong> <i class="fa-solid fa-right-from-bracket" style="margin-left: 5px; cursor: pointer; color: var(--accent-blue);" onclick="sairDaSala()" title="Sair"></i>`;
     document.getElementById('bottom-bar').classList.remove('escondido');
     
     mudarTela('tela-dashboard', document.getElementById('nav-inicio')); 
@@ -406,7 +502,8 @@ function renderizarFavoritos() {
     if(favoritas.length === 0) { container.innerHTML = '<p class="texto-cinza text-center">Nenhuma música favoritada ainda. Vá no Catálogo e clique no coração (🤍) para salvar seu repertório!</p>'; return; }
     
     container.innerHTML = '';
-    let musicasFav = catalogoMusicas.filter(m => favoritas.includes(m.id));
+    // Apenas músicas que não foram ocultadas pelo DJ
+    let musicasFav = catalogoMusicas.filter(m => favoritas.includes(m.id) && !musicasOcultas.includes(m.id));
     
     musicasFav.forEach(musica => {
         const card = document.createElement('div');
@@ -414,7 +511,7 @@ function renderizarFavoritos() {
         card.innerHTML = `
             <div class="info-musica"><div class="titulo-musica">${musica.titulo}</div><div class="artista-musica">${musica.artista}</div></div>
             <div class="botoes-card">
-                <button class="btn-acao btn-fav" onclick="if(typeof favoritarMusica === 'function') favoritarMusica(${musica.id})" style="color: var(--rosa-neon);"><i class="fa-solid fa-heart"></i></button>
+                <button class="btn-acao btn-fav" onclick="if(typeof favoritarMusica === 'function') favoritarMusica(${musica.id})" style="color: var(--accent-purple);"><i class="fa-solid fa-heart"></i></button>
                 <button class="btn-acao btn-fila" onclick="adicionarFila(${musica.id})" title="Add Solo"><i class="fa-solid fa-plus"></i></button>
                 <button class="btn-acao btn-dueto" onclick="abrirModalDueto(${musica.id})" title="Add Dueto"><i class="fa-solid fa-user-group"></i></button>
                 <button class="btn-acao btn-cantar" onclick="irParaPalco(${musica.id}, null)">Cantar</button>
@@ -434,7 +531,7 @@ function renderizarMusicas(musicas) {
     musicas.forEach(musica => {
         const card = document.createElement('div'); card.classList.add('card-musica');
         let iconHeart = favoritas.includes(musica.id) ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
-        let colorHeart = favoritas.includes(musica.id) ? 'color: var(--rosa-neon);' : '';
+        let colorHeart = favoritas.includes(musica.id) ? 'color: var(--accent-purple);' : '';
 
         card.innerHTML = `
             <div class="info-musica"><div class="titulo-musica">${musica.titulo}</div><div class="artista-musica">${musica.artista}</div></div>
@@ -451,7 +548,7 @@ function renderizarMusicas(musicas) {
 }
 
 function atualizarDashboard() {
-    document.getElementById('dash-qtd-musicas').innerText = catalogoMusicas.length;
+    document.getElementById('dash-qtd-musicas').innerText = catalogoMusicas.length - musicasOcultas.length;
     document.getElementById('dash-qtd-cantores').innerText = perfisFamilia.length;
     document.getElementById('dash-qtd-salas').innerText = salasCriadas.length;
 
@@ -470,9 +567,9 @@ function atualizarDashboard() {
     else {
         containerTopCantores.innerHTML = '';
         cantoresComPonto.slice(0, 5).forEach((perfil, index) => { 
-            let cor = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#cd7f32' : 'var(--texto-cinza)';
+            let cor = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#cd7f32' : 'var(--text-muted)';
             let emojisMedalhas = obterEmojisMedalhas(perfil);
-            containerTopCantores.innerHTML += `<div class="item-rank"><div class="rank-info"><span class="rank-pos" style="color:${cor}">${index + 1}º</span><img src="${perfil.foto}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;"><div><span>${perfil.nome}</span>${emojisMedalhas}</div></div><span class="rank-pontos">${perfil.pontos} pts</span></div>`;
+            containerTopCantores.innerHTML += `<div class="item-rank"><div class="rank-info"><span class="rank-pos" style="color:${cor}">${index + 1}º</span><img src="${perfil.foto}"><div><strong>${perfil.nome}</strong>${emojisMedalhas}</div></div><span class="rank-pontos">${perfil.pontos} pts</span></div>`;
         });
     }
 
@@ -483,7 +580,7 @@ function atualizarDashboard() {
         containerTopHits.innerHTML = '';
         hitsOrdenados.forEach(([idStr, qtd], index) => {
             const musica = catalogoMusicas.find(m => String(m.id) === String(idStr));
-            if(musica) { containerTopHits.innerHTML += `<div class="item-rank-musica"><div class="info-hit"><span class="titulo-hit">${index + 1}. ${musica.titulo}</span><span class="artista-hit">${musica.artista}</span></div><span class="qtd-hit"><i class="fa-solid fa-fire"></i> ${qtd}x</span></div>`; }
+            if(musica && !musicasOcultas.includes(musica.id)) { containerTopHits.innerHTML += `<div class="item-rank-musica"><div class="info-hit"><span class="titulo-hit">${index + 1}. ${musica.titulo}</span><span class="artista-hit">${musica.artista}</span></div><span class="qtd-hit"><i class="fa-solid fa-fire"></i> ${qtd}x</span></div>`; }
         });
     }
 }
@@ -494,15 +591,17 @@ function renderizarRanking() {
     if (cantoresComPonto.length === 0) { containerRanking.innerHTML = '<div class="empty-state"><i class="fa-solid fa-medal fa-3x"></i><p>A competição desta sala ainda não começou!</p></div>'; return; }
     containerRanking.innerHTML = '';
     cantoresComPonto.forEach((perfil, index) => {
-        let corPodio = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#cd7f32' : 'var(--texto-cinza)';
+        let corPodio = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#cd7f32' : 'var(--text-muted)';
         let emojisMedalhas = obterEmojisMedalhas(perfil);
-        containerRanking.innerHTML += `<div class="item-rank" style="margin-bottom: 10px;"><div class="rank-info"><span class="rank-pos" style="color: ${corPodio};">${index + 1}º</span><img src="${perfil.foto}" style="width: 45px; height: 45px; border-radius: 50%; object-fit:cover;"><div><strong>${perfil.nome}</strong>${emojisMedalhas}</div></div><span class="rank-pontos">${perfil.pontos} <i class="fa-solid fa-star"></i></span></div>`;
+        containerRanking.innerHTML += `<div class="item-rank" style="margin-bottom: 10px;"><div class="rank-info"><span class="rank-pos" style="color: ${corPodio};">${index + 1}º</span><img src="${perfil.foto}"><div><strong>${perfil.nome}</strong>${emojisMedalhas}</div></div><span class="rank-pontos">${perfil.pontos} <i class="fa-solid fa-star"></i></span></div>`;
     });
 }
 
 function renderizarCategorias() {
     const containerCategorias = document.getElementById('container-categorias');
-    const categorias = ["Todas", ...new Set(catalogoMusicas.map(m => m.categoria))]; containerCategorias.innerHTML = '';
+    // Filtra o catálogo base primeiro
+    const musicasLivre = catalogoMusicas.filter(m => !musicasOcultas.includes(m.id));
+    const categorias = ["Todas", ...new Set(musicasLivre.map(m => m.categoria))]; containerCategorias.innerHTML = '';
     categorias.forEach(cat => {
         const btn = document.createElement('button'); btn.classList.add('btn-categoria'); if(cat === categoriaAtual) btn.classList.add('ativo');
         btn.innerText = cat; btn.onclick = () => { categoriaAtual = cat; renderizarCategorias(); filtrarMusicas(); }; containerCategorias.appendChild(btn);
@@ -511,7 +610,11 @@ function renderizarCategorias() {
 
 function filtrarMusicas() {
     const termo = document.getElementById('input-busca').value.toLowerCase();
-    const filtradas = catalogoMusicas.filter(m => (m.titulo.toLowerCase().includes(termo) || m.artista.toLowerCase().includes(termo) || m.codigo?.includes(termo)) && (categoriaAtual === "Todas" || m.categoria === categoriaAtual));
+    const filtradas = catalogoMusicas.filter(m => 
+        !musicasOcultas.includes(m.id) &&
+        (m.titulo.toLowerCase().includes(termo) || m.artista.toLowerCase().includes(termo) || m.codigo?.includes(termo)) && 
+        (categoriaAtual === "Todas" || m.categoria === categoriaAtual)
+    );
     prepararLista(filtradas);
 }
 document.getElementById('input-busca').addEventListener('input', filtrarMusicas);
@@ -568,8 +671,8 @@ function atualizarFilaUI() {
 
     filaDeReproducao.forEach((m, index) => {
         const item = document.createElement('div'); item.classList.add('item-fila-grande');
-        let htmlAvatares = `<img src="${m.cantor.foto}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">`; let nomeCantor = m.cantor.nome;
-        if(m.cantor2) { htmlAvatares += `<img src="${m.cantor2.foto}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;" class="foto-sobreposta">`; nomeCantor += ` & ${m.cantor2.nome}`; }
+        let htmlAvatares = `<img src="${m.cantor.foto}" class="foto-perfil-mini">`; let nomeCantor = m.cantor.nome;
+        if(m.cantor2) { htmlAvatares += `<img src="${m.cantor2.foto}" class="foto-perfil-mini foto-sobreposta">`; nomeCantor += ` & ${m.cantor2.nome}`; }
         
         let botaoRemover = `<button class="btn-remover" onclick="removerDaFila(${m.instanciaId})"><i class="fa-solid fa-trash-can"></i></button>`;
         
@@ -577,7 +680,7 @@ function atualizarFilaUI() {
             <div class="fila-rank">${index + 1}º</div>
             <div class="avatares-dupla">${htmlAvatares}</div>
             <div class="fila-info-textos"><strong class="fila-nome">${nomeCantor}</strong><span class="fila-musica">${m.titulo}</span></div>
-            <div class="fila-acoes"><button class="btn-acao btn-cantar" style="padding: 10px 15px;" onclick="puxarDaFilaParaPalco(${m.instanciaId})"><i class="fa-solid fa-play"></i></button>${botaoRemover}</div>
+            <div class="fila-acoes"><button class="btn-acao btn-cantar" style="padding: 0 15px; border:none;" onclick="puxarDaFilaParaPalco(${m.instanciaId})"><i class="fa-solid fa-play"></i></button>${botaoRemover}</div>
         `;
         listaFila.appendChild(item);
     });
@@ -603,8 +706,8 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
 
     if(parceiro) {
         nomeAnuncio += ` & ${parceiro.nome}`; 
-        document.getElementById('palco-nome-cantor').innerText = `🎤 ${perfilAtual.nome} & ${parceiro.nome}`; foto2.src = parceiro.foto; foto2.classList.remove('escondido');
-    } else { document.getElementById('palco-nome-cantor').innerText = `🎤 ${perfilAtual.nome}`; foto2.classList.add('escondido'); }
+        document.getElementById('palco-nome-cantor').innerHTML = `<i class="fa-solid fa-microphone"></i> ${perfilAtual.nome} & ${parceiro.nome}`; foto2.src = parceiro.foto; foto2.classList.remove('escondido');
+    } else { document.getElementById('palco-nome-cantor').innerHTML = `<i class="fa-solid fa-microphone"></i> ${perfilAtual.nome}`; foto2.classList.add('escondido'); }
     
     document.getElementById('palco-foto-cantor').src = perfilAtual.foto; document.getElementById('alerta-nota-palco').classList.add('escondido');
     telaPalcoOverlay.classList.remove('escondido'); telaPalcoOverlay.classList.remove('minimizado');
@@ -710,7 +813,6 @@ playerVideo.addEventListener('ended', () => {
     if (typeof resetarEstudio === 'function') resetarEstudio();
     somAplauso.currentTime = 0; somAplauso.play().catch(() => {});
 
-    // Contabilizador de Músicas Cantadas para as Conquistas
     if (cantorAoVivo && !cantorAoVivo.isGuest) {
         let c1Index = perfisFamilia.findIndex(p => String(p.id) === String(cantorAoVivo.id));
         if(c1Index !== -1) {
@@ -763,11 +865,6 @@ playerVideo.addEventListener('ended', () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     const salaSalva = localStorage.getItem('karaoke_sala_ativa');
-    if (salaSalva) {
-        salaAtual = salaSalva;
-        entrarNoSistema();
-    } else {
-        document.getElementById('bottom-bar').classList.add('escondido');
-        mudarTela('tela-salas');
-    }
+    if (salaSalva) { salaAtual = salaSalva; entrarNoSistema(); } 
+    else { document.getElementById('bottom-bar').classList.add('escondido'); mudarTela('tela-salas'); }
 });
