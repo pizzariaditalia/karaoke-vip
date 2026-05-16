@@ -24,7 +24,7 @@ let salasCriadas = [];
 let perfisFamilia = [];
 let filaDeReproducao = [];
 let historicoTocadas = {}; 
-let musicasOcultas = []; // Lista VIP de músicas apagadas
+let musicasOcultas = []; // Lista VIP de músicas apagadas pelo DJ
 
 let categoriaAtual = "Todas";
 let perfilAtual = null; 
@@ -100,10 +100,13 @@ function verificarConquistas(perfilObj) {
 }
 
 function mostrarAlertaConquista(medalha) {
-    document.getElementById('icone-conquista').innerText = medalha.icone; document.getElementById('nome-conquista').innerText = medalha.nome; document.getElementById('desc-conquista').innerText = medalha.desc;
+    document.getElementById('icone-conquista').innerText = medalha.icone; 
+    document.getElementById('nome-conquista').innerText = medalha.nome; 
+    document.getElementById('desc-conquista').innerText = medalha.desc;
     document.getElementById('modal-conquista').classList.remove('escondido');
     confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 }, zIndex: 10000 });
 }
+
 function fecharModalConquista() { document.getElementById('modal-conquista').classList.add('escondido'); }
 
 function renderizarPainelConquistas() {
@@ -131,7 +134,6 @@ function obterEmojisMedalhas(perfilObj) {
 // ============================================================================
 // 🎛️ PAINEL DO DJ MESTRE (CONTROLE TOTAL)
 // ============================================================================
-
 function abrirPainelDJ() { renderizarPainelDJ(); document.getElementById('modal-dj').classList.remove('escondido'); }
 function fecharPainelDJ() { document.getElementById('modal-dj').classList.add('escondido'); }
 
@@ -299,7 +301,6 @@ function sairDaSala() {
 }
 
 function entrarNoSistema() {
-    
     if (localStorage.getItem('karaoke_dj_' + salaAtual) === 'sim') { 
         isDJ = true; 
         document.getElementById('badge-dj').classList.remove('escondido'); 
@@ -380,7 +381,18 @@ function entrarNoSistema() {
     });
 
     if (!perfilAtual) { perfilAtual = { id: 'convidado_base', nome: "Visitante", foto: `https://api.dicebear.com/7.x/avataaars/svg?seed=Visitante&backgroundColor=e2e2e2`, pontos: 0, isGuest: true }; }
-    document.getElementById('badge-nome-sala').innerHTML = `<i class="fa-solid fa-door-open"></i> Sala: <strong>${salaAtual}</strong> <i class="fa-solid fa-right-from-bracket" style="margin-left: 5px; cursor: pointer; color: var(--accent-blue);" onclick="sairDaSala()" title="Sair"></i>`;
+    
+    // INJEÇÃO DO BOTÃO SAIR DA SALA DIRETAMENTE NO PERFIL
+    document.getElementById('badge-nome-sala').innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div style="display: flex; flex-direction: column;">
+                <span class="texto-pequeno" style="line-height: 1;">Você está na sala:</span>
+                <strong style="color: var(--accent-blue); font-size: 1.2rem; margin-top: 5px;"><i class="fa-solid fa-door-open"></i> ${salaAtual}</strong>
+            </div>
+            <button onclick="sairDaSala()" style="background: rgba(255,71,87,0.1); color: #ff4757; border: 1px solid rgba(255,71,87,0.3); padding: 10px 15px; border-radius: 12px; cursor: pointer; font-weight: 800; font-family: 'Poppins', sans-serif;"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
+        </div>
+    `;
+    
     document.getElementById('bottom-bar').classList.remove('escondido');
     
     mudarTela('tela-dashboard', document.getElementById('nav-inicio')); 
