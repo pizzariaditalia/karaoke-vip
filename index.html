@@ -9,7 +9,6 @@
     <meta name="theme-color" content="#00b4d8">
     <link rel="apple-touch-icon" href="image/icon.png">
 
-    <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -21,95 +20,260 @@
         /* ==========================================
            🎨 INJETOR DE TEMA: WHITE FROSTED / DARK MATTE
            ========================================== */
-        :root {
-            --bg-body: #f1f5f9; /* Branco Gelo (Fundo) */
-            --bg-glass: rgba(255, 255, 255, 0.75); /* Vidro Branco */
-            --bg-glass-border: rgba(255, 255, 255, 0.5);
-            --text-main: #1e293b; /* Texto Escuro */
-            --text-muted: #64748b; /* Texto Cinza */
-            --accent-blue: #00b4d8; /* Smule Blue Principal */
-            --accent-purple: #a78bfa; /* Soft Purple Secundário */
-            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            --nav-bg: rgba(255, 255, 255, 0.9);
-            --input-bg: rgba(0, 0, 0, 0.03);
+           :root {
+            --bg-body: #f1f5f9; 
+            --bg-glass: rgba(255, 255, 255, 0.85); 
+            --bg-glass-border: rgba(255, 255, 255, 1);
+            --text-main: #0f172a; 
+            --text-muted: #64748b; 
+            --accent-blue: #00b4d8; 
+            --accent-purple: #8b5cf6; 
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            --nav-bg: rgba(255, 255, 255, 0.95);
+            --input-bg: #ffffff; 
         }
 
         [data-theme="dark"] {
-            --bg-body: #1e1e24; /* Cinza Fosco Escuro (Não é preto) */
-            --bg-glass: rgba(43, 44, 52, 0.75); /* Vidro Cinza */
+            --bg-body: #0f172a; 
+            --bg-glass: rgba(30, 41, 59, 0.75); 
             --bg-glass-border: rgba(255, 255, 255, 0.08);
-            --text-main: #f8fafc; /* Texto Claro */
-            --text-muted: #94a3b8; /* Texto Cinza Claro */
-            --accent-blue: #00e5ff; /* Smule Blue Neon */
-            --accent-purple: #c084fc; /* Soft Purple Neon */
-            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            --nav-bg: rgba(30, 30, 36, 0.9);
-            --input-bg: rgba(255, 255, 255, 0.05);
+            --text-main: #f8fafc; 
+            --text-muted: #94a3b8; 
+            --accent-blue: #00e5ff; 
+            --accent-purple: #c084fc; 
+            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --nav-bg: rgba(15, 23, 42, 0.95);
+            --input-bg: rgba(0, 0, 0, 0.4);
         }
 
-        /* Aplicação Forçada das Cores (Substituindo o Rosa/Azul Antigo) */
-        body { background-color: var(--bg-body) !important; color: var(--text-main) !important; transition: background 0.4s ease, color 0.4s ease; }
-        h1, h2, h3, h4, strong { color: var(--text-main) !important; transition: color 0.4s ease; }
-        .texto-cinza, .texto-pequeno, .texto-claro { color: var(--text-muted) !important; }
-        .texto-azul, .icone-azul, .destaque, .texto-destaque { color: var(--accent-blue) !important; }
-        .icone-rosa { color: var(--accent-purple) !important; text-shadow: none !important;}
-        
-        /* Vidro Fosco Geral */
-        .glass-effect, .modal-content, #tour-balao {
-            background: var(--bg-glass) !important;
-            backdrop-filter: blur(15px) !important;
-            -webkit-backdrop-filter: blur(15px) !important;
-            border: 1px solid var(--bg-glass-border) !important;
-            box-shadow: var(--card-shadow) !important;
-            transition: all 0.4s ease;
+        /* ============================================================================
+           ESTILOS GERAIS E BASE
+           ============================================================================ */
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            margin: 0; 
+            padding: 0 0 80px 0; 
+            background-color: var(--bg-body); 
+            color: var(--text-main); 
+            overflow-x: hidden; 
+            transition: background 0.3s ease, color 0.3s ease; 
         }
 
-        /* Botões */
+        h1, h2, h3, h4 { margin: 0; color: var(--text-main); }
+        p { margin: 0; }
+
+        .texto-cinza, .texto-pequeno { color: var(--text-muted); font-size: 0.85rem; }
+        .texto-claro { color: var(--text-main); opacity: 0.9; }
+        .texto-destaque { color: var(--accent-blue); font-weight: 700; }
+        .icone-azul { color: var(--accent-blue); }
+        .icone-rosa { color: var(--accent-purple); }
+
+        .escondido { display: none !important; }
+        .w-100 { width: 100%; }
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .mt-10 { margin-top: 10px; } .mt-15 { margin-top: 15px; } .mt-20 { margin-top: 20px; }
+        .mb-10 { margin-bottom: 10px; } .mb-15 { margin-bottom: 15px; } .mb-20 { margin-bottom: 20px; }
+        .p-20 { padding: 20px; }
+
+        /* ============================================================================
+           VIDRO FOSCO ESTRUTURAL
+           ============================================================================ */
+        .glass-effect, .modal-content {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--bg-glass-border);
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+        }
+
+        /* ============================================================================
+           NAVEGAÇÃO (BOTTOM BAR)
+           ============================================================================ */
+        .bottom-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: var(--nav-bg); 
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-top: 1px solid var(--bg-glass-border);
+            display: flex; justify-content: space-around; padding: 12px 0;
+            z-index: 1000;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+            color: var(--text-muted); cursor: pointer; font-size: 0.75rem; transition: 0.3s;
+        }
+        .nav-item i { font-size: 1.3rem; transition: transform 0.2s; }
+        .nav-item.ativo { color: var(--accent-blue); font-weight: 600; }
+        .nav-item.ativo i { transform: translateY(-3px); }
+
+        /* ============================================================================
+           TELAS E CONTAINERS
+           ============================================================================ */
+        .tela { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
+        .tela.ativa { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .header-tela { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; }
+
+        /* ============================================================================
+           BOTÕES E INPUTS
+           ============================================================================ */
+        button { font-family: 'Poppins', sans-serif; cursor: pointer; outline: none; transition: 0.2s; }
+
         .btn-vibrante, .btn-vibrante-sm, .btn-convidado, .btn-acao.btn-cantar, .btn-pagina {
-            background: var(--accent-blue) !important;
+            background: var(--accent-blue); 
             color: #fff !important;
-            border: none !important;
-            box-shadow: 0 4px 15px rgba(0, 180, 216, 0.3) !important;
+            border: none; border-radius: 10px; font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 180, 216, 0.4);
         }
+        .btn-vibrante { padding: 14px 20px; font-size: 1.05rem; }
+        .btn-vibrante-sm { padding: 10px 15px; font-size: 0.9rem; }
+        .btn-vibrante:active, .btn-vibrante-sm:active { transform: scale(0.96); }
+
         .btn-secundario {
-            background: var(--input-bg) !important;
-            border: 1px solid var(--bg-glass-border) !important;
-            color: var(--text-main) !important;
+            background: var(--input-bg); color: var(--text-main);
+            border: 1px solid var(--bg-glass-border); border-radius: 10px; font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .btn-secundario:active { background: var(--accent-blue); color: #fff; }
+
+        input[type="text"], input[type="password"] {
+            width: 100%; padding: 14px; border-radius: 10px;
+            background: var(--input-bg); border: 1px solid var(--bg-glass-border);
+            color: var(--text-main); font-family: 'Poppins', sans-serif; font-size: 1rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        input[type="text"]:focus, input[type="password"]:focus {
+            outline: none; border-color: var(--accent-blue);
+        }
+        input::placeholder { color: var(--text-muted); }
+
+        /* ============================================================================
+           COMPONENTES (CARDS, LISTAS, RANKING)
+           ============================================================================ */
+        .criar-perfil-box { display: flex; gap: 10px; align-items: stretch; }
+
+        .categorias-lista { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; scroll-behavior: smooth; }
+        .categorias-lista::-webkit-scrollbar { display: none; }
+        .btn-categoria { 
+            background: var(--input-bg); color: var(--text-muted); 
+            border: 1px solid var(--bg-glass-border); border-radius: 20px; 
+            padding: 8px 18px; white-space: nowrap; font-weight: 500; 
+        }
+        .btn-categoria.ativo { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
+
+        .grid-musicas { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+        .card-musica, .item-fila-grande {
+            display: flex; justify-content: space-between; align-items: center; gap: 10px;
+            padding: 15px; border-radius: 14px;
+            background: var(--bg-glass); border: 1px solid var(--bg-glass-border);
+            box-shadow: var(--card-shadow);
+        }
+        .info-musica { flex: 1; min-width: 0; }
+        .titulo-musica { font-weight: 600; color: var(--text-main); font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .artista-musica { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .botoes-card { display: flex; gap: 6px; flex-shrink: 0; }
+        .btn-acao { 
+            background: var(--input-bg); border: 1px solid var(--bg-glass-border); 
+            border-radius: 8px; width: 36px; height: 36px; 
+            display: flex; align-items: center; justify-content: center; color: var(--text-main); 
         }
 
-        /* Inputs e Menu */
-        input[type="text"], input[type="password"] { background: var(--input-bg) !important; border: 1px solid var(--bg-glass-border) !important; color: var(--text-main) !important; }
-        input::placeholder { color: var(--text-muted) !important; }
-        .bottom-bar { background: var(--nav-bg) !important; border-top: 1px solid var(--bg-glass-border) !important; }
-        .nav-item { color: var(--text-muted) !important; }
-        .nav-item.ativo { color: var(--accent-blue) !important; }
+        .perfis-grid { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; }
+        .card-perfil { text-align: center; cursor: pointer; opacity: 0.6; transition: 0.3s; }
+        .card-perfil.ativo { opacity: 1; transform: scale(1.05); }
+        .card-perfil .foto-perfil { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 3px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
+        .card-perfil.ativo .foto-perfil { border-color: var(--accent-blue); box-shadow: 0 0 15px var(--accent-blue); }
+        .nome-perfil { display: block; font-size: 0.85rem; margin-top: 8px; color: var(--text-main); font-weight: 600; white-space: nowrap; }
 
-        /* Componentes de Lista e Cards */
-        .card-musica, .item-fila-grande, .item-rank, .item-rank-musica {
-            background: var(--bg-glass) !important;
-            border: 1px solid var(--bg-glass-border) !important;
+        .itens-fila-grandes { display: flex; flex-direction: column; gap: 15px; }
+        .fila-rank { font-weight: 800; font-size: 1.3rem; color: var(--accent-blue); width: 35px; }
+        .avatares-dupla { display: flex; position: relative; width: 60px; flex-shrink: 0; }
+        .foto-sobreposta { position: absolute; left: 20px; border: 2px solid var(--bg-glass); }
+        .fila-info-textos { flex: 1; min-width: 0; margin-left: 10px; }
+        .fila-nome { display: block; font-size: 0.95rem; color: var(--text-main); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .fila-musica { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .btn-remover { background: rgba(255,0,0,0.1); color: #ff4757; border: none; border-radius: 8px; width: 36px; height: 36px; }
+
+        .lista-top { display: flex; flex-direction: column; gap: 12px; }
+        .item-rank, .item-rank-musica { 
+            display: flex; justify-content: space-between; align-items: center; gap: 10px;
+            padding: 12px 15px; background: var(--bg-glass); border-radius: 12px; border: 1px solid var(--bg-glass-border); 
         }
+        .rank-info { display: flex; align-items: center; gap: 12px; }
+        .rank-pos { font-weight: 800; font-size: 1.2rem; width: 25px; text-align: center; color: var(--text-muted); }
+        .rank-pontos { font-weight: 700; color: var(--accent-purple); }
+        .info-hit { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+        .titulo-hit { font-weight: 600; color: var(--text-main); font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .artista-hit { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Badge Sala */
-        .badge-sala { background: var(--input-bg) !important; border: 1px solid var(--bg-glass-border) !important; color: var(--accent-blue) !important; }
+        .badge-sala { background: var(--input-bg); border: 1px solid var(--bg-glass-border); padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; color: var(--accent-blue); font-weight: 600;}
 
-        /* Conquistas Adaptação */
-        .item-conquista.desbloqueada {
-            background: rgba(167, 139, 250, 0.1) !important;
-            border-color: var(--accent-purple) !important;
-            box-shadow: 0 0 15px rgba(167, 139, 250, 0.2) !important;
-        }
-        .item-conquista .nome { color: var(--text-main) !important; }
+        /* ============================================================================
+           PALCO E OVERLAY
+           ============================================================================ */
+        .tela-palco-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-body); z-index: 9000; display: flex; flex-direction: column; }
+        .tela-palco-overlay.minimizado { height: 120px; top: auto; bottom: 75px; background: transparent; pointer-events: none; }
+        .palco-container { width: 100%; height: 100%; display: flex; flex-direction: column; }
 
-        /* Outros */
-        #tour-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.7); z-index: 9998; }
+        .player-wrapper { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; flex-shrink: 0; }
+        .tela-palco-overlay.minimizado .player-wrapper { width: 180px; position: absolute; right: 20px; bottom: 20px; border-radius: 12px; overflow: hidden; border: 2px solid var(--accent-blue); box-shadow: 0 10px 25px rgba(0,0,0,0.5); pointer-events: auto; }
+        #player-video { width: 100%; height: 100%; object-fit: contain; }
+
+        .acoes-palco-topo { padding: 15px; display: flex; justify-content: space-between; background: var(--bg-glass); border-bottom: 1px solid var(--bg-glass-border); }
+        .btn-acao-palco { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--bg-glass-border); padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;}
+        .btn-acao-palco.btn-fechar { background: rgba(255,0,0,0.1); color: #ff4757; border-color: rgba(255,0,0,0.2);}
+
+        .tela-palco-overlay.minimizado .acoes-palco-topo, .tela-palco-overlay.minimizado .conteudo-palco-expandido { display: none; }
+        .capa-mini { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem; cursor: pointer; }
+        .tela-palco-overlay.minimizado .capa-mini { display: flex !important; }
+
+        .conteudo-palco-expandido { padding: 20px; flex-grow: 1; overflow-y: auto; background: var(--bg-body); }
+        .info-cantando { display: flex; align-items: center; gap: 15px; padding: 15px; border-radius: 14px; }
+        .avatares-dupla-palco { display: flex; position: relative; }
+        .foto-cantor-palco { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); }
+        .foto-sobreposta-palco { position: absolute; left: 30px; border-color: var(--accent-purple); }
+        .textos-palco { flex: 1; min-width: 0; }
+        .nome-cantor-palco { font-weight: 600; font-size: 0.9rem; color: var(--text-main); }
+        #titulo-atual { font-size: 1.2rem; font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* ============================================================================
+           MODAIS E VOTAÇÃO
+           ============================================================================ */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .botoes-modal { display: flex; gap: 10px; margin-top: 25px; justify-content: center; }
+
+        .votos-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 20px; }
+        .btn-voto { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--bg-glass-border); padding: 15px 0; border-radius: 12px; font-size: 1.3rem; font-weight: 800; box-shadow: 0 4px 10px rgba(0,0,0,0.05);}
+        .btn-voto:active { transform: scale(0.9); background: var(--accent-blue); color: #fff; border-color: var(--accent-blue);}
+
+        /* ============================================================================
+           ANIMAÇÕES E CONQUISTAS
+           ============================================================================ */
+        .pulse-anim { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
+        .blink-anim { animation: blink 1s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .ponto-vermelho { display: inline-block; width: 10px; height: 10px; background: #ff4757; border-radius: 50%; margin-right: 8px; box-shadow: 0 0 10px #ff4757;}
+
+        .paginacao { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 25px; }
+        .btn-pagina { width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; padding: 0;}
+        .btn-pagina:disabled { opacity: 0.5; cursor: not-allowed; background: var(--input-bg) !important; color: var(--text-muted) !important;}
+        .info-pagina { font-weight: 600; color: var(--text-main); }
+
+        #tour-overlay { background: rgba(0, 0, 0, 0.7) !important; z-index: 9998; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;}
+        #tour-balao { border: 2px solid var(--accent-blue) !important; background: var(--bg-body) !important; }
+
         .conquistas-grid { display: flex; overflow-x: auto; gap: 12px; margin-top: 15px; padding-bottom: 10px; scroll-behavior: smooth; }
         .conquistas-grid::-webkit-scrollbar { height: 6px; }
         .conquistas-grid::-webkit-scrollbar-thumb { background: var(--accent-blue); border-radius: 10px; }
         .conquistas-grid::-webkit-scrollbar-track { background: var(--input-bg); border-radius: 10px; }
-        .item-conquista { flex: 0 0 100px; background: var(--input-bg); border-radius: 10px; padding: 15px 5px; text-align: center; border: 1px solid var(--bg-glass-border); opacity: 0.4; filter: grayscale(100%); transition: all 0.3s; }
+        .item-conquista { flex: 0 0 100px; background: var(--input-bg); border-radius: 10px; padding: 15px 5px; text-align: center; border: 1px solid var(--bg-glass-border); opacity: 0.5; filter: grayscale(100%); transition: all 0.3s; }
+        .item-conquista.desbloqueada { opacity: 1; filter: grayscale(0%); background: rgba(167, 139, 250, 0.1) !important; border-color: var(--accent-purple) !important; box-shadow: 0 0 15px rgba(167, 139, 250, 0.2) !important; }
         .item-conquista .icone { font-size: 2rem; margin-bottom: 8px; }
-        .mini-medalhas { font-size: 14px; margin-top: 5px; filter: drop-shadow(0 0 2px rgba(0,0,0,0.2)); }
+        .item-conquista .nome { font-size: 0.75rem; font-weight: 600; line-height: 1.1; color: var(--text-main); }
+        .mini-medalhas { font-size: 14px; margin-top: 5px; filter: drop-shadow(0 0 2px rgba(0,0,0,0.1)); }
     </style>
 </head>
 <body>
@@ -260,7 +424,7 @@
 
     <section id="tela-ranking" class="tela fade-in"><div class="container-tela"><h2>Rank Oficial</h2><div class="glass-effect p-20"><div id="lista-ranking-completa" class="itens-ranking"></div></div></div></section>
     
-    <section id="tela-votacao" class="tela fade-in"><div class="container-tela text-center"><h2>Votação</h2><div class="glass-effect p-20"><div class="avatares-dupla-palco" style="justify-content: center; margin-bottom: 15px;"><img id="voto-foto-cantor" src="" class="foto-cantor-palco"><img id="voto-foto-cantor-2" src="" class="foto-cantor-palco foto-sobreposta-palco escondido"></div><h3 id="voto-nome-cantor" class="texto-destaque">Cantor</h3><p id="voto-musica" class="texto-cinza mb-20">Música</p><div class="votos-grid"><button class="btn-voto" onclick="votar(1)">1</button><button class="btn-voto" onclick="votar(2)">2</button><button class="btn-voto" onclick="votar(3)">3</button><button class="btn-voto" onclick="votar(4)">4</button><button class="btn-voto" onclick="votar(5)">5</button><button class="btn-voto" onclick="votar(6)">6</button><button class="btn-voto" onclick="votar(7)">7</button><button class="btn-voto" onclick="votar(8)">8</button><button class="btn-voto" onclick="votar(9)">9</button><button class="btn-voto btn-nota-10" style="background: var(--accent-purple) !important;" onclick="votar(10)"><i class="fa-solid fa-star"></i> 10</button></div><div id="resultado-voto" class="resultado-voto mt-15">Aguardando seu voto...</div></div></div></section>
+    <section id="tela-votacao" class="tela fade-in"><div class="container-tela text-center"><h2>Votação</h2><div class="glass-effect p-20"><div class="avatares-dupla-palco" style="justify-content: center; margin-bottom: 15px;"><img id="voto-foto-cantor" src="" class="foto-cantor-palco"><img id="voto-foto-cantor-2" src="" class="foto-cantor-palco foto-sobreposta-palco escondido"></div><h3 id="voto-nome-cantor" class="texto-destaque">Cantor</h3><p id="voto-musica" class="texto-cinza mb-20">Música</p><div class="votos-grid"><button class="btn-voto" onclick="votar(1)">1</button><button class="btn-voto" onclick="votar(2)">2</button><button class="btn-voto" onclick="votar(3)">3</button><button class="btn-voto" onclick="votar(4)">4</button><button class="btn-voto" onclick="votar(5)">5</button><button class="btn-voto" onclick="votar(6)">6</button><button class="btn-voto" onclick="votar(7)">7</button><button class="btn-voto" onclick="votar(8)">8</button><button class="btn-voto" onclick="votar(9)">9</button><button class="btn-voto btn-nota-10" style="background: var(--accent-purple) !important; color: #fff !important;" onclick="votar(10)"><i class="fa-solid fa-star"></i> 10</button></div><div id="resultado-voto" class="resultado-voto mt-15">Aguardando seu voto...</div></div></div></section>
 
     <section id="tela-palco" class="tela-palco-overlay escondido">
         <div class="palco-container fade-in">
@@ -328,7 +492,6 @@
             }
         }
 
-        // Carrega a preferência de cor ao abrir o app
         window.addEventListener('DOMContentLoaded', () => {
             const temaSalvo = localStorage.getItem('karaoke_theme') || 'light';
             document.documentElement.setAttribute('data-theme', temaSalvo);
@@ -343,41 +506,31 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
     
-    <script src="js/data.js?v=60"></script>
-    <script src="js/premium.js?v=60"></script>
-    <script src="js/app.js?v=60"></script>
-    <script src="js/upload.js?v=60"></script>
+    <script src="js/data.js?v=55"></script>
+    <script src="js/premium.js?v=55"></script>
+    <script src="js/app.js?v=55"></script>
+    <script src="js/upload.js?v=55"></script>
 
     <script>
-        let novoServiceWorker;
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').then(registration => {
-                    registration.addEventListener('updatefound', () => {
-                        novoServiceWorker = registration.installing;
-                        novoServiceWorker.addEventListener('statechange', () => { 
-                            if (novoServiceWorker.state === 'installed' && navigator.serviceWorker.controller) { 
-                                mostrarAvisoAtualizacao(); 
-                            } 
-                        });
-                    });
-                });
-                let recarregando = false; 
-                navigator.serviceWorker.addEventListener('controllerchange', () => { 
-                    if (recarregando) return; 
-                    recarregando = true;
-                    window.location.reload(); 
-                });
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                    console.log("Service Worker desativado para testes.");
+                }
             });
         }
-        function mostrarAvisoAtualizacao() {
-            document.getElementById('titulo-alerta').innerHTML = `<i class="fa-solid fa-arrows-rotate texto-destaque"></i> Versão Nova!`;
-            document.getElementById('mensagem-alerta').innerText = "Novo design White Frosted com Modo Noturno! Atualize para ver a mágica.";
-            const botoesDiv = document.querySelector('#modal-alerta .botoes-modal');
-            botoesDiv.innerHTML = `<button class="btn-vibrante w-100" onclick="aplicarAtualizacaoApp()">Atualizar Agora</button>`;
-            document.getElementById('modal-alerta').classList.remove('escondido');
+        
+        if ('caches' in window) {
+            caches.keys().then(function(names) {
+                for (let name of names) {
+                    caches.delete(name);
+                    console.log("Memória secreta apagada: " + name);
+                }
+            });
         }
-        function aplicarAtualizacaoApp() { if (novoServiceWorker) { novoServiceWorker.postMessage('SKIP_WAITING'); } }
+        
+        function mostrarAvisoAtualizacao() { return false; }
     </script>
 </body>
 </html>
