@@ -22,9 +22,13 @@
         #tour-balao { position: absolute; width: 90%; max-width: 320px; background: #1e293b; padding: 20px; border-radius: 12px; z-index: 10000; box-shadow: 0 10px 25px rgba(0,0,0,0.8); border: 2px solid var(--rosa-neon); left: 50%; transform: translateX(-50%); transition: all 0.3s ease; }
         .tour-highlight { position: relative !important; z-index: 9999 !important; box-shadow: 0 0 20px var(--rosa-neon) !important; border-radius: 10px; background-color: rgba(30, 41, 59, 0.9) !important; pointer-events: none; }
         
-        /* CSS DO SISTEMA DE CONQUISTAS */
-        .conquistas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; margin-top: 15px; }
-        .item-conquista { background: rgba(0,0,0,0.5); border-radius: 10px; padding: 15px 5px; text-align: center; border: 1px solid rgba(255,255,255,0.1); opacity: 0.4; filter: grayscale(100%); transition: all 0.3s; }
+        /* CSS DO SISTEMA DE CONQUISTAS (CARROSSEL HORIZONTAL) */
+        .conquistas-grid { display: flex; overflow-x: auto; gap: 12px; margin-top: 15px; padding-bottom: 10px; scroll-behavior: smooth; }
+        .conquistas-grid::-webkit-scrollbar { height: 6px; }
+        .conquistas-grid::-webkit-scrollbar-thumb { background: var(--rosa-neon); border-radius: 10px; }
+        .conquistas-grid::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 10px; }
+        
+        .item-conquista { flex: 0 0 100px; background: rgba(0,0,0,0.5); border-radius: 10px; padding: 15px 5px; text-align: center; border: 1px solid rgba(255,255,255,0.1); opacity: 0.4; filter: grayscale(100%); transition: all 0.3s; }
         .item-conquista.desbloqueada { opacity: 1; filter: grayscale(0%); border-color: gold; background: rgba(255,215,0,0.1); box-shadow: 0 0 15px rgba(255,215,0,0.2); }
         .item-conquista .icone { font-size: 2rem; margin-bottom: 8px; }
         .item-conquista .nome { font-size: 0.75rem; font-weight: 600; line-height: 1.1; color: #fff; }
@@ -128,12 +132,6 @@
         <div class="container-tela">
             <h2>Gestão de Perfil</h2>
             
-            <div class="glass-effect p-20 mb-20" id="box-conquistas-perfil">
-                <h3><i class="fa-solid fa-medal" style="color: gold;"></i> Suas Conquistas</h3>
-                <p class="texto-pequeno">Cante, vote e interaja para desbloquear a Elite VIP.</p>
-                <div id="painel-conquistas" class="conquistas-grid"></div>
-            </div>
-
             <div class="glass-effect p-20 mb-20">
                 <h3><i class="fa-solid fa-star texto-destaque"></i> Cantor Oficial</h3>
                 <p class="texto-pequeno mb-15">Envie sua foto real para participar do Ranking.</p>
@@ -143,8 +141,23 @@
                 <p class="instrucao-perfil">2. Digite seu Nome:</p>
                 <div class="criar-perfil-box"><input type="text" id="input-novo-perfil" placeholder="Nome..."><button onclick="criarPerfil()"><i class="fa-solid fa-check"></i></button></div>
             </div>
-            <div class="glass-effect p-20 mb-20"><h3><i class="fa-solid fa-user-astronaut icone-azul"></i> Convidado Rápido</h3><div class="criar-perfil-box mt-10"><input type="text" id="input-convidado" placeholder="Nome do visitante..."><button class="btn-convidado" onclick="entrarComoConvidado()">Entrar</button></div></div>
-            <div class="glass-effect p-20"><h3>Mudar de Cantor</h3><div id="lista-perfis" class="perfis-grid mt-10"></div></div>
+            
+            <div class="glass-effect p-20 mb-20">
+                <h3><i class="fa-solid fa-user-astronaut icone-azul"></i> Convidado Rápido</h3>
+                <div class="criar-perfil-box mt-10"><input type="text" id="input-convidado" placeholder="Nome do visitante..."><button class="btn-convidado" onclick="entrarComoConvidado()">Entrar</button></div>
+            </div>
+            
+            <div class="glass-effect p-20 mb-20">
+                <h3>Mudar de Cantor</h3>
+                <div id="lista-perfis" class="perfis-grid mt-10"></div>
+            </div>
+
+            <div class="glass-effect p-20" id="box-conquistas-perfil">
+                <h3><i class="fa-solid fa-medal" style="color: gold;"></i> Suas Conquistas</h3>
+                <p class="texto-pequeno">Cante, vote e interaja para desbloquear a Elite VIP.</p>
+                <div id="painel-conquistas" class="conquistas-grid"></div>
+            </div>
+            
         </div>
     </section>
 
@@ -208,10 +221,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
     
-    <script src="js/data.js?v=41"></script>
-    <script src="js/premium.js?v=41"></script>
-    <script src="js/app.js?v=41"></script>
-    <script src="js/upload.js?v=41"></script>
+    <script src="js/data.js?v=45"></script>
+    <script src="js/premium.js?v=45"></script>
+    <script src="js/app.js?v=45"></script>
+    <script src="js/upload.js?v=45"></script>
 
     <script>
         let novoServiceWorker;
@@ -237,7 +250,7 @@
         }
         function mostrarAvisoAtualizacao() {
             document.getElementById('titulo-alerta').innerHTML = `<i class="fa-solid fa-arrows-rotate texto-destaque"></i> Versão Nova!`;
-            document.getElementById('mensagem-alerta').innerText = "Sistema de Conquistas ativado! Atualize agora para começar a ganhar medalhas.";
+            document.getElementById('mensagem-alerta').innerText = "O layout das conquistas foi ajustado para carrossel! Atualize agora.";
             const botoesDiv = document.querySelector('#modal-alerta .botoes-modal');
             botoesDiv.innerHTML = `<button class="btn-vibrante w-100" onclick="aplicarAtualizacaoApp()">Atualizar Agora</button>`;
             document.getElementById('modal-alerta').classList.remove('escondido');
