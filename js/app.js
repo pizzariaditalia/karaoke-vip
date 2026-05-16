@@ -53,6 +53,102 @@ const telaPalcoOverlay = document.getElementById('tela-palco');
 const playerVideo = document.getElementById('player-video');
 const somAplauso = document.getElementById('som-aplauso');
 
+// ============================================================================
+// 🏅 SISTEMA DE CONQUISTAS (GAMIFICAÇÃO)
+// ============================================================================
+const DEFINICAO_MEDALHAS = {
+    'quebra_gelo': { nome: 'Quebra-Gelo', icone: '🎤', desc: 'Subiu no palco e cantou a 1ª música.' },
+    'garimpeiro': { nome: 'Garimpeiro VIP', icone: '🎧', desc: 'Adicionou 10 músicas aos Favoritos.' },
+    'jurado': { nome: 'Jurado Implacável', icone: '🎯', desc: 'Deu nota para os amigos 15 vezes.' },
+    'alma_festa': { nome: 'Alma da Festa', icone: '🎉', desc: 'Enviou 30 reações durante os shows.' },
+    'dupla': { nome: 'Dupla Dinâmica', icone: '👯‍♂️', desc: 'Cantou 3 músicas no modo Dueto.' },
+    'inimigo_fim': { nome: 'Inimigo do Fim', icone: '🔋', desc: 'Cantou 10 vezes na mesma festa.' },
+    'ovacao': { nome: 'Ovação de Pé', icone: '⭐', desc: 'Recebeu nota 10 em três músicas diferentes.' },
+    'astro': { nome: 'Astro da Noite', icone: '🔥', desc: 'Atingiu 100 pontos acumulados no Ranking.' },
+    'lenda': { nome: 'Lenda Viva', icone: '👑', desc: 'Atingiu 250 pontos. Um Deus do Karaokê!' }
+};
+
+function verificarConquistas(perfilObj) {
+    if (!perfilObj || perfilObj.isGuest) return;
+    
+    // Cria o rastreador caso seja um usuário antigo que não tinha ainda
+    if (!perfilObj.stats) perfilObj.stats = { cantadas: 0, duetos: 0, notas10: 0, votos: 0, reacoes: 0, medalhas: [] };
+
+    let novasMedalhas = [];
+
+    // Checagem das Regras
+    if (!perfilObj.stats.medalhas.includes('quebra_gelo') && perfilObj.stats.cantadas >= 1) novasMedalhas.push('quebra_gelo');
+    if (!perfilObj.stats.medalhas.includes('inimigo_fim') && perfilObj.stats.cantadas >= 10) novasMedalhas.push('inimigo_fim');
+    if (!perfilObj.stats.medalhas.includes('dupla') && perfilObj.stats.duetos >= 3) novasMedalhas.push('dupla');
+    if (!perfilObj.stats.medalhas.includes('ovacao') && perfilObj.stats.notas10 >= 3) novasMedalhas.push('ovacao');
+    if (!perfilObj.stats.medalhas.includes('jurado') && perfilObj.stats.votos >= 15) novasMedalhas.push('jurado');
+    if (!perfilObj.stats.medalhas.includes('alma_festa') && perfilObj.stats.reacoes >= 30) novasMedalhas.push('alma_festa');
+    
+    let favs = JSON.parse(localStorage.getItem('karaoke_favoritas') || '[]');
+    if (!perfilObj.stats.medalhas.includes('garimpeiro') && favs.length >= 10) novasMedalhas.push('garimpeiro');
+
+    if (!perfilObj.stats.medalhas.includes('astro') && perfilObj.pontos >= 100) novasMedalhas.push('astro');
+    if (!perfilObj.stats.medalhas.includes('lenda') && perfilObj.pontos >= 250) novasMedalhas.push('lenda');
+
+    // Desbloqueia e Alerta
+    if (novasMedalhas.length > 0) {
+        novasMedalhas.forEach(m => {
+            perfilObj.stats.medalhas.push(m);
+            // Mostra o alerta na tela apenas se a medalha for do dono do celular
+            if (perfilAtual && String(perfilObj.id) === String(perfilAtual.id)) {
+                mostrarAlertaConquista(DEFINICAO_MEDALHAS[m]);
+            }
+        });
+        salvarDados();
+        if(document.getElementById('tela-ranking').classList.contains('ativa')) renderizarRanking();
+        if(document.getElementById('tela-perfil').classList.contains('ativa')) renderizarPainelConquistas();
+    }
+}
+
+function mostrarAlertaConquista(medalha) {
+    document.getElementById('icone-conquista').innerText = medalha.icone;
+    document.getElementById('nome-conquista').innerText = medalha.nome;
+    document.getElementById('desc-conquista').innerText = medalha.desc;
+    document.getElementById('modal-conquista').classList.remove('escondido');
+    confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 }, zIndex: 10000 });
+}
+function fecharModalConquista() { document.getElementById('modal-conquista').classList.add('escondido'); }
+
+function renderizarPainelConquistas() {
+    const painel = document.getElementById('painel-conquistas');
+    if (!painel) return;
+    
+    if (!perfilAtual || perfilAtual.isGuest) {
+        painel.innerHTML = '<p class="texto-cinza w-100 text-center">Visitantes não ganham conquistas. Crie seu Perfil Oficial!</p>';
+        return;
+    }
+
+    painel.innerHTML = '';
+    const minhasMedalhas = perfilAtual.stats && perfilAtual.stats.medalhas ? perfilAtual.stats.medalhas : [];
+
+    Object.keys(DEFINICAO_MEDALHAS).forEach(chave => {
+        const med = DEFINICAO_MEDALHAS[chave];
+        const possui = minhasMedalhas.includes(chave);
+        
+        const item = document.createElement('div');
+        item.className = `item-conquista ${possui ? 'desbloqueada' : ''}`;
+        item.innerHTML = `<div class="icone">${med.icone}</div><div class="nome">${med.nome}</div>`;
+        painel.appendChild(item);
+    });
+}
+
+function obterEmojisMedalhas(perfilObj) {
+    if (!perfilObj || !perfilObj.stats || !perfilObj.stats.medalhas || perfilObj.stats.medalhas.length === 0) return '';
+    let emojis = '';
+    perfilObj.stats.medalhas.forEach(m => {
+        if(DEFINICAO_MEDALHAS[m]) emojis += DEFINICAO_MEDALHAS[m].icone;
+    });
+    return `<div class="mini-medalhas">${emojis}</div>`;
+}
+
+// ============================================================================
+// ALERTAS E GESTÃO DE SALAS
+// ============================================================================
 function mostrarAlerta(mensagem, titulo = "Aviso", icone = "fa-bell") {
     document.getElementById('titulo-alerta').innerHTML = `<i class="fa-solid ${icone} texto-destaque"></i> ${titulo}`;
     document.getElementById('mensagem-alerta').innerText = mensagem;
@@ -184,6 +280,7 @@ function entrarNoSistema() {
         renderizarPerfis(); atualizarPerfilGlobal(); atualizarFilaUI();
         if(document.getElementById('tela-dashboard').classList.contains('ativa')) atualizarDashboard();
         if(document.getElementById('tela-ranking').classList.contains('ativa')) renderizarRanking();
+        if(document.getElementById('tela-perfil').classList.contains('ativa')) renderizarPainelConquistas();
     });
 
     if (!perfilAtual) { perfilAtual = { id: 'convidado_base', nome: "Visitante", foto: `https://api.dicebear.com/7.x/avataaars/svg?seed=Visitante&backgroundColor=e2e2e2`, pontos: 0, isGuest: true }; }
@@ -246,6 +343,7 @@ function mudarTela(idTelaAlvo, elementoNav = null) {
     if(idTelaAlvo === 'tela-ranking') renderizarRanking();
     if(idTelaAlvo === 'tela-fila') atualizarFilaUI();
     if(idTelaAlvo === 'tela-favoritos') { if(typeof renderizarFavoritos === "function") renderizarFavoritos(); }
+    if(idTelaAlvo === 'tela-perfil') renderizarPainelConquistas();
 
     window.scrollTo(0, 0); 
 }
@@ -269,10 +367,11 @@ function criarPerfil() {
     const inputNome = document.getElementById('input-novo-perfil'); const nome = inputNome.value.trim();
     if (!avatarSelecionadoCriacao) { mostrarAlerta("É obrigatório enviar uma foto sua para criar o perfil oficial!", "Foto Necessária", "fa-camera"); return; }
     if (nome !== "") {
-        const novoPerfil = { id: Date.now(), nome: nome, foto: avatarSelecionadoCriacao, pontos: 0, isGuest: false };
+        const novoPerfil = { id: Date.now(), nome: nome, foto: avatarSelecionadoCriacao, pontos: 0, isGuest: false, stats: { cantadas: 0, duetos: 0, notas10: 0, votos: 0, reacoes: 0, medalhas: [] } };
         perfisFamilia.push(novoPerfil); perfilAtual = novoPerfil; localStorage.setItem('karaoke_perfil_atual_id', novoPerfil.id); salvarDados(); 
         inputNome.value = ""; avatarSelecionadoCriacao = null; document.getElementById('seletor-avatares').innerHTML = '';
         mostrarAlerta(`Cantor Oficial ${nome} registrado e conectado!`, "Sucesso", "fa-circle-check");
+        renderizarPainelConquistas();
     } else { mostrarAlerta("Por favor, digite um nome válido!", "Atenção", "fa-triangle-exclamation"); }
 }
 
@@ -292,7 +391,7 @@ function renderizarPerfis() {
         const card = document.createElement('div'); card.classList.add('card-perfil');
         if (perfilAtual && String(perfil.id) === String(perfilAtual.id)) card.classList.add('ativo');
         card.innerHTML = `<img src="${perfil.foto}" class="foto-perfil"><span class="nome-perfil">${perfil.nome}</span>`;
-        card.onclick = () => { perfilAtual = perfil; localStorage.setItem('karaoke_perfil_atual_id', perfil.id); atualizarPerfilGlobal(); renderizarPerfis(); mostrarAlerta(`Bem-vindo de volta! Você agora é: ${perfil.nome}`, "Perfil Selecionado", "fa-user-check"); };
+        card.onclick = () => { perfilAtual = perfil; localStorage.setItem('karaoke_perfil_atual_id', perfil.id); atualizarPerfilGlobal(); renderizarPerfis(); mostrarAlerta(`Bem-vindo de volta! Você agora é: ${perfil.nome}`, "Perfil Selecionado", "fa-user-check"); renderizarPainelConquistas(); };
         listaPerfis.appendChild(card);
     });
 }
@@ -372,7 +471,8 @@ function atualizarDashboard() {
         containerTopCantores.innerHTML = '';
         cantoresComPonto.slice(0, 5).forEach((perfil, index) => { 
             let cor = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#cd7f32' : 'var(--texto-cinza)';
-            containerTopCantores.innerHTML += `<div class="item-rank"><div class="rank-info"><span class="rank-pos" style="color:${cor}">${index + 1}º</span><img src="${perfil.foto}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;"><span>${perfil.nome}</span></div><span class="rank-pontos">${perfil.pontos} pts</span></div>`;
+            let emojisMedalhas = obterEmojisMedalhas(perfil);
+            containerTopCantores.innerHTML += `<div class="item-rank"><div class="rank-info"><span class="rank-pos" style="color:${cor}">${index + 1}º</span><img src="${perfil.foto}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;"><div><span>${perfil.nome}</span>${emojisMedalhas}</div></div><span class="rank-pontos">${perfil.pontos} pts</span></div>`;
         });
     }
 
@@ -395,7 +495,8 @@ function renderizarRanking() {
     containerRanking.innerHTML = '';
     cantoresComPonto.forEach((perfil, index) => {
         let corPodio = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#cd7f32' : 'var(--texto-cinza)';
-        containerRanking.innerHTML += `<div class="item-rank" style="margin-bottom: 10px;"><div class="rank-info"><span class="rank-pos" style="color: ${corPodio};">${index + 1}º</span><img src="${perfil.foto}" style="width: 45px; height: 45px; border-radius: 50%; object-fit:cover;"><strong>${perfil.nome}</strong></div><span class="rank-pontos">${perfil.pontos} <i class="fa-solid fa-star"></i></span></div>`;
+        let emojisMedalhas = obterEmojisMedalhas(perfil);
+        containerRanking.innerHTML += `<div class="item-rank" style="margin-bottom: 10px;"><div class="rank-info"><span class="rank-pos" style="color: ${corPodio};">${index + 1}º</span><img src="${perfil.foto}" style="width: 45px; height: 45px; border-radius: 50%; object-fit:cover;"><div><strong>${perfil.nome}</strong>${emojisMedalhas}</div></div><span class="rank-pontos">${perfil.pontos} <i class="fa-solid fa-star"></i></span></div>`;
     });
 }
 
@@ -564,8 +665,37 @@ function abrirCabineVotacao() {
 
 function votar(nota) {
     let pontuou = false;
-    if(cantorAoVivo && !cantorAoVivo.isGuest) { let c1Index = perfisFamilia.findIndex(p => String(p.id) === String(cantorAoVivo.id)); if(c1Index !== -1) { perfisFamilia[c1Index].pontos += nota; refSalaAtual.child(`perfis/${c1Index}/pontos`).set(perfisFamilia[c1Index].pontos); pontuou = true; } }
-    if(cantor2AoVivo && !cantor2AoVivo.isGuest) { let c2Index = perfisFamilia.findIndex(p => String(p.id) === String(cantor2AoVivo.id)); if(c2Index !== -1) { perfisFamilia[c2Index].pontos += nota; refSalaAtual.child(`perfis/${c2Index}/pontos`).set(perfisFamilia[c2Index].pontos); pontuou = true; } }
+    
+    if(cantorAoVivo && !cantorAoVivo.isGuest) { 
+        let c1Index = perfisFamilia.findIndex(p => String(p.id) === String(cantorAoVivo.id)); 
+        if(c1Index !== -1) { 
+            perfisFamilia[c1Index].pontos += nota; 
+            if(nota === 10) { if(!perfisFamilia[c1Index].stats) perfisFamilia[c1Index].stats = { cantadas:0, duetos:0, notas10:0, votos:0, reacoes:0, medalhas:[] }; perfisFamilia[c1Index].stats.notas10++; }
+            refSalaAtual.child(`perfis/${c1Index}/pontos`).set(perfisFamilia[c1Index].pontos); 
+            verificarConquistas(perfisFamilia[c1Index]);
+            pontuou = true; 
+        } 
+    }
+    
+    if(cantor2AoVivo && !cantor2AoVivo.isGuest) { 
+        let c2Index = perfisFamilia.findIndex(p => String(p.id) === String(cantor2AoVivo.id)); 
+        if(c2Index !== -1) { 
+            perfisFamilia[c2Index].pontos += nota; 
+            if(nota === 10) { if(!perfisFamilia[c2Index].stats) perfisFamilia[c2Index].stats = { cantadas:0, duetos:0, notas10:0, votos:0, reacoes:0, medalhas:[] }; perfisFamilia[c2Index].stats.notas10++; }
+            refSalaAtual.child(`perfis/${c2Index}/pontos`).set(perfisFamilia[c2Index].pontos); 
+            verificarConquistas(perfisFamilia[c2Index]);
+            pontuou = true; 
+        } 
+    }
+
+    if (perfilAtual && !perfilAtual.isGuest) {
+        let pIndex = perfisFamilia.findIndex(p => String(p.id) === String(perfilAtual.id));
+        if (pIndex !== -1) {
+            if(!perfisFamilia[pIndex].stats) perfisFamilia[pIndex].stats = { cantadas:0, duetos:0, notas10:0, votos:0, reacoes:0, medalhas:[] };
+            perfisFamilia[pIndex].stats.votos++;
+            verificarConquistas(perfisFamilia[pIndex]);
+        }
+    }
 
     const novoVoto = { nome: perfilAtual.nome, foto: perfilAtual.foto, nota: nota, timestamp: Date.now() };
     refSalaAtual.child('palco/votos').push(novoVoto); refSalaAtual.child('palco/ultimoVoto').set(novoVoto);
@@ -579,6 +709,26 @@ function votar(nota) {
 playerVideo.addEventListener('ended', () => {
     if (typeof resetarEstudio === 'function') resetarEstudio();
     somAplauso.currentTime = 0; somAplauso.play().catch(() => {});
+
+    // Contabilizador de Músicas Cantadas para as Conquistas
+    if (cantorAoVivo && !cantorAoVivo.isGuest) {
+        let c1Index = perfisFamilia.findIndex(p => String(p.id) === String(cantorAoVivo.id));
+        if(c1Index !== -1) {
+            if(!perfisFamilia[c1Index].stats) perfisFamilia[c1Index].stats = { cantadas:0, duetos:0, notas10:0, votos:0, reacoes:0, medalhas:[] };
+            perfisFamilia[c1Index].stats.cantadas++;
+            if (cantor2AoVivo) perfisFamilia[c1Index].stats.duetos++;
+            verificarConquistas(perfisFamilia[c1Index]);
+        }
+    }
+    if (cantor2AoVivo && !cantor2AoVivo.isGuest) {
+        let c2Index = perfisFamilia.findIndex(p => String(p.id) === String(cantor2AoVivo.id));
+        if(c2Index !== -1) {
+            if(!perfisFamilia[c2Index].stats) perfisFamilia[c2Index].stats = { cantadas:0, duetos:0, notas10:0, votos:0, reacoes:0, medalhas:[] };
+            perfisFamilia[c2Index].stats.cantadas++;
+            perfisFamilia[c2Index].stats.duetos++;
+            verificarConquistas(perfisFamilia[c2Index]);
+        }
+    }
 
     if (filaDeReproducao.length > 0) {
         if (telaPalcoOverlay.classList.contains('minimizado')) { maximizarPalco(); }
