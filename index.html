@@ -21,6 +21,14 @@
         #tour-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.85); z-index: 9998; transition: opacity 0.3s; }
         #tour-balao { position: absolute; width: 90%; max-width: 320px; background: #1e293b; padding: 20px; border-radius: 12px; z-index: 10000; box-shadow: 0 10px 25px rgba(0,0,0,0.8); border: 2px solid var(--rosa-neon); left: 50%; transform: translateX(-50%); transition: all 0.3s ease; }
         .tour-highlight { position: relative !important; z-index: 9999 !important; box-shadow: 0 0 20px var(--rosa-neon) !important; border-radius: 10px; background-color: rgba(30, 41, 59, 0.9) !important; pointer-events: none; }
+        
+        /* CSS DO SISTEMA DE CONQUISTAS */
+        .conquistas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; margin-top: 15px; }
+        .item-conquista { background: rgba(0,0,0,0.5); border-radius: 10px; padding: 15px 5px; text-align: center; border: 1px solid rgba(255,255,255,0.1); opacity: 0.4; filter: grayscale(100%); transition: all 0.3s; }
+        .item-conquista.desbloqueada { opacity: 1; filter: grayscale(0%); border-color: gold; background: rgba(255,215,0,0.1); box-shadow: 0 0 15px rgba(255,215,0,0.2); }
+        .item-conquista .icone { font-size: 2rem; margin-bottom: 8px; }
+        .item-conquista .nome { font-size: 0.75rem; font-weight: 600; line-height: 1.1; color: #fff; }
+        .mini-medalhas { font-size: 14px; margin-top: 5px; filter: drop-shadow(0 0 2px rgba(0,0,0,0.8)); }
     </style>
 </head>
 <body>
@@ -37,14 +45,20 @@
     </nav>
 
     <div id="tour-overlay" class="escondido"><div id="tour-balao"><h3 id="tour-titulo" style="color: var(--rosa-neon); margin-bottom: 8px; font-size: 1.2rem;">Título</h3><p id="tour-texto" class="texto-claro" style="font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">Texto</p><div style="display: flex; justify-content: space-between;"><button class="btn-secundario" onclick="encerrarTour()" style="padding: 8px 15px; margin: 0; font-size: 0.8rem;">Pular Tour</button><button class="btn-vibrante-sm" onclick="proximoTourStep()" id="tour-btn-proximo" style="padding: 8px 15px; margin: 0; font-size: 0.8rem;">Próximo ❯</button></div></div></div>
-    
     <div id="modal-qr" class="modal-overlay escondido"><div class="modal-content glass-effect text-center"><h3>Entrada VIP</h3><p class="texto-pequeno mt-10">Peça para seus amigos apontarem a câmera para entrar na sala direto!</p><div id="qrcode-container" style="background: white; padding: 15px; border-radius: 10px; display: inline-block; margin: 15px 0;"></div><div class="botoes-modal"><button class="btn-secundario w-100" onclick="fecharModalQR()">Fechar</button></div></div></div>
-    
     <div id="modal-alerta" class="modal-overlay escondido"><div class="modal-content glass-effect"><h3 id="titulo-alerta"><i class="fa-solid fa-bell texto-destaque"></i> Aviso</h3><p id="mensagem-alerta" class="texto-pequeno mt-15 mb-20" style="font-size: 1rem;">Sua mensagem aqui.</p><div class="botoes-modal"><button class="btn-vibrante-sm w-100" onclick="fecharModalAlerta()">OK</button></div></div></div>
-    
     <div id="modal-dueto" class="modal-overlay escondido"><div class="modal-content glass-effect"><h3>Cantar em Dupla 🎤🎤</h3><p class="texto-pequeno mt-10">Quem vai cantar com você?</p><div id="lista-parceiros-modal" class="perfis-grid mt-15 mb-20"></div><div class="botoes-modal"><button class="btn-secundario" onclick="fecharModalDueto()">Cancelar</button></div></div></div>
-    
     <div id="modal-senha" class="modal-overlay escondido"><div class="modal-content glass-effect"><h3><i class="fa-solid fa-lock" style="color: var(--rosa-neon);"></i> Sala Privada</h3><p class="texto-pequeno mt-10">Esta sala exige uma senha para entrar.</p><div class="criar-perfil-box mt-15 mb-20"><input type="password" id="input-senha-acesso" placeholder="Digite a senha..."></div><div class="botoes-modal"><button class="btn-secundario" onclick="fecharModalSenha()">Cancelar</button><button class="btn-vibrante-sm" onclick="verificarSenha()">Entrar</button></div></div></div>
+
+    <div id="modal-conquista" class="modal-overlay escondido">
+        <div class="modal-content glass-effect text-center" style="border: 2px solid gold; box-shadow: 0 0 40px rgba(255,215,0,0.5); background: linear-gradient(145deg, #1e293b, #000);">
+            <h3 class="blink-anim" style="color: gold; text-transform: uppercase; letter-spacing: 2px; font-size: 1.5rem; margin-bottom: 10px;">NOVA CONQUISTA!</h3>
+            <div id="icone-conquista" style="font-size: 5rem; margin: 15px 0; text-shadow: 0 0 25px rgba(255,215,0,0.8);">🏆</div>
+            <h2 id="nome-conquista" style="color: white; margin-bottom: 8px; font-size: 1.8rem;">Nome</h2>
+            <p id="desc-conquista" class="texto-claro mb-20" style="font-style: italic;">Descrição</p>
+            <div class="botoes-modal"><button class="btn-vibrante w-100" style="background: linear-gradient(45deg, #ffd700, #ff8c00); color: #000; font-weight: 800;" onclick="fecharModalConquista()">Sensacional!</button></div>
+        </div>
+    </div>
 
     <section id="tela-salas" class="tela ativa fade-in">
         <div class="hero-container text-center mt-20">
@@ -113,6 +127,13 @@
     <section id="tela-perfil" class="tela fade-in">
         <div class="container-tela">
             <h2>Gestão de Perfil</h2>
+            
+            <div class="glass-effect p-20 mb-20" id="box-conquistas-perfil">
+                <h3><i class="fa-solid fa-medal" style="color: gold;"></i> Suas Conquistas</h3>
+                <p class="texto-pequeno">Cante, vote e interaja para desbloquear a Elite VIP.</p>
+                <div id="painel-conquistas" class="conquistas-grid"></div>
+            </div>
+
             <div class="glass-effect p-20 mb-20">
                 <h3><i class="fa-solid fa-star texto-destaque"></i> Cantor Oficial</h3>
                 <p class="texto-pequeno mb-15">Envie sua foto real para participar do Ranking.</p>
@@ -187,10 +208,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
     
-    <script src="js/data.js?v=40"></script>
-    <script src="js/premium.js?v=40"></script>
-    <script src="js/app.js?v=40"></script>
-    <script src="js/upload.js?v=40"></script>
+    <script src="js/data.js?v=41"></script>
+    <script src="js/premium.js?v=41"></script>
+    <script src="js/app.js?v=41"></script>
+    <script src="js/upload.js?v=41"></script>
 
     <script>
         let novoServiceWorker;
@@ -216,12 +237,9 @@
         }
         function mostrarAvisoAtualizacao() {
             document.getElementById('titulo-alerta').innerHTML = `<i class="fa-solid fa-arrows-rotate texto-destaque"></i> Versão Nova!`;
-            document.getElementById('mensagem-alerta').innerText = "Temos uma nova atualização para os ajustes de áudio! Atualize agora para carregar as funções.";
-            
-            // CORRIGIDO: Agora ele pega o botão do modal certo!
+            document.getElementById('mensagem-alerta').innerText = "Sistema de Conquistas ativado! Atualize agora para começar a ganhar medalhas.";
             const botoesDiv = document.querySelector('#modal-alerta .botoes-modal');
             botoesDiv.innerHTML = `<button class="btn-vibrante w-100" onclick="aplicarAtualizacaoApp()">Atualizar Agora</button>`;
-            
             document.getElementById('modal-alerta').classList.remove('escondido');
         }
         function aplicarAtualizacaoApp() { if (novoServiceWorker) { novoServiceWorker.postMessage('SKIP_WAITING'); } }
