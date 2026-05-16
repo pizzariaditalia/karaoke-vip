@@ -17,9 +17,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
     <style>
-        /* ==========================================
-           🎨 VARIÁVEIS DE TEMA E CORES
-           ========================================== */
         :root {
             --bg-body: #e2e8f0; 
             --bg-glass: rgba(255, 255, 255, 0.95); 
@@ -46,282 +43,77 @@
             --input-bg: rgba(0, 0, 0, 0.3);
         }
 
-        /* ==========================================
-           ESTRUTURA BASE E TIPOGRAFIA
-           ========================================== */
-        body { 
-            font-family: 'Poppins', sans-serif; 
-            margin: 0; padding: 0 0 80px 0; 
-            background-color: var(--bg-body); 
-            color: var(--text-main); 
-            overflow-x: hidden; 
-            transition: background 0.3s ease, color 0.3s ease; 
-        }
-
-        h1, h2, h3, h4 { margin: 0; color: var(--text-main); }
-        p { margin: 0; }
-        .escondido { display: none !important; }
-        .w-100 { width: 100%; }
-        .text-center { text-align: center; }
-        .text-left { text-align: left; }
+        body { font-family: 'Poppins', sans-serif; margin: 0; padding: 0 0 80px 0; background-color: var(--bg-body); color: var(--text-main); overflow-x: hidden; transition: background 0.3s ease, color 0.3s ease; }
+        h1, h2, h3, h4 { margin: 0; color: var(--text-main); } p { margin: 0; }
+        .escondido { display: none !important; } .w-100 { width: 100%; } .text-center { text-align: center; } .text-left { text-align: left; }
         .mt-10 { margin-top: 10px; } .mt-15 { margin-top: 15px; } .mt-20 { margin-top: 20px; }
-        .mb-10 { margin-bottom: 10px; } .mb-15 { margin-bottom: 15px; } .mb-20 { margin-bottom: 20px; }
-        .p-20 { padding: 20px; }
+        .mb-10 { margin-bottom: 10px; } .mb-15 { margin-bottom: 15px; } .mb-20 { margin-bottom: 20px; } .p-20 { padding: 20px; }
+        .texto-cinza, .texto-pequeno { color: var(--text-muted); font-size: 0.85rem; } .texto-claro { color: var(--text-main); opacity: 0.9; }
+        .texto-destaque { color: var(--accent-blue); font-weight: 700; } .icone-azul { color: var(--accent-blue); } .icone-rosa { color: var(--accent-purple); }
 
-        .texto-cinza, .texto-pequeno { color: var(--text-muted); font-size: 0.85rem; }
-        .texto-claro { color: var(--text-main); opacity: 0.9; }
-        .texto-destaque { color: var(--accent-blue); font-weight: 700; }
-        .icone-azul { color: var(--accent-blue); }
-        .icone-rosa { color: var(--accent-purple); }
+        .glass-effect, .modal-content { background: var(--bg-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--bg-glass-border); border-radius: 16px; box-shadow: var(--card-shadow); }
 
-        /* ==========================================
-           GLASSMORPHISM (EFEITO VIDRO)
-           ========================================== */
-        .glass-effect, .modal-content {
-            background: var(--bg-glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--bg-glass-border);
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
-        }
-
-        /* ==========================================
-           NAVEGAÇÃO INFERIOR
-           ========================================== */
-        .bottom-bar {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: var(--nav-bg); 
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border-top: 1px solid var(--bg-glass-border);
-            display: flex; justify-content: space-around; padding: 12px 0;
-            z-index: 1000;
-        }
-        .nav-item {
-            display: flex; flex-direction: column; align-items: center; gap: 6px;
-            color: var(--text-muted); cursor: pointer; font-size: 0.75rem; transition: 0.3s;
-        }
+        .bottom-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--nav-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--bg-glass-border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--text-muted); cursor: pointer; font-size: 0.75rem; transition: 0.3s; }
         .nav-item i { font-size: 1.3rem; transition: transform 0.2s; }
-        .nav-item.ativo { color: var(--accent-blue); font-weight: 700; }
-        .nav-item.ativo i { transform: translateY(-3px); }
+        .nav-item.ativo { color: var(--accent-blue); font-weight: 700; } .nav-item.ativo i { transform: translateY(-3px); }
 
-        /* ==========================================
-           BOTÕES E INPUTS
-           ========================================== */
         button { font-family: 'Poppins', sans-serif; cursor: pointer; outline: none; transition: 0.2s; }
-
-        .btn-vibrante, .btn-vibrante-sm, .btn-convidado, .btn-pagina {
-            background: var(--accent-blue); color: #fff !important;
-            border: none; border-radius: 10px; font-weight: 600;
-            box-shadow: 0 4px 15px rgba(0, 180, 216, 0.4);
-            white-space: nowrap;
-        }
-        .btn-vibrante { padding: 14px 20px; font-size: 1.05rem; }
-        .btn-vibrante-sm { padding: 10px 15px; font-size: 0.9rem; }
+        .btn-vibrante, .btn-vibrante-sm, .btn-convidado, .btn-pagina { background: var(--accent-blue); color: #fff !important; border: none; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 15px rgba(0, 180, 216, 0.4); white-space: nowrap; }
+        .btn-vibrante { padding: 14px 20px; font-size: 1.05rem; } .btn-vibrante-sm { padding: 10px 15px; font-size: 0.9rem; }
         .btn-vibrante:active, .btn-vibrante-sm:active { transform: scale(0.96); }
-
-        .btn-secundario {
-            background: var(--input-bg); color: var(--text-main);
-            border: 1px solid var(--bg-glass-border); border-radius: 10px; font-weight: 600;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
+        .btn-secundario { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--bg-glass-border); border-radius: 10px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .btn-secundario:active { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
 
-        input[type="text"], input[type="password"] {
-            width: 100%; padding: 14px; border-radius: 10px;
-            background: var(--input-bg); border: 1px solid var(--bg-glass-border);
-            color: var(--text-main); font-family: 'Poppins', sans-serif; font-size: 1rem;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-            box-sizing: border-box;
-        }
-        input[type="text"]:focus, input[type="password"]:focus { outline: none; border-color: var(--accent-blue); }
-        input::placeholder { color: var(--text-muted); }
+        input[type="text"], input[type="password"] { width: 100%; padding: 14px; border-radius: 10px; background: var(--input-bg); border: 1px solid var(--bg-glass-border); color: var(--text-main); font-family: 'Poppins', sans-serif; font-size: 1rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); box-sizing: border-box; }
+        input[type="text"]:focus, input[type="password"]:focus { outline: none; border-color: var(--accent-blue); } input::placeholder { color: var(--text-muted); }
 
-        /* ==========================================
-           LAYOUTS DE TELA
-           ========================================== */
-        .tela { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
-        .tela.ativa { display: block; }
+        .tela { display: none; padding: 20px; animation: fadeIn 0.3s ease; } .tela.ativa { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .header-tela { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; }
 
-        /* ==========================================
-           COMPONENTES E CARDS
-           ========================================== */
-        .criar-perfil-box { display: flex; gap: 10px; align-items: stretch; }
-        .instrucao-perfil { font-size: 0.9rem; font-weight: 600; color: var(--text-main); white-space: nowrap; }
-
-        .categorias-lista { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; scroll-behavior: smooth; }
-        .categorias-lista::-webkit-scrollbar { display: none; }
+        .criar-perfil-box { display: flex; gap: 10px; align-items: stretch; } .instrucao-perfil { font-size: 0.9rem; font-weight: 600; color: var(--text-main); white-space: nowrap; }
+        .categorias-lista { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; scroll-behavior: smooth; } .categorias-lista::-webkit-scrollbar { display: none; }
         .btn-categoria { background: var(--input-bg); color: var(--text-muted); border: 1px solid var(--bg-glass-border); border-radius: 20px; padding: 8px 18px; white-space: nowrap; font-weight: 500; }
         .btn-categoria.ativo { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
 
-        /* ==========================================
-           GRID DE MÚSICAS (NOVO LAYOUT EMPILHADO)
-           ========================================== */
         .grid-musicas { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; }
+        .card-musica { display: flex; flex-direction: column; align-items: flex-start; gap: 15px; padding: 18px 15px; border-radius: 14px; background: var(--bg-glass); border: 1px solid var(--bg-glass-border); box-shadow: var(--card-shadow); }
+        .info-musica { width: 100%; } .titulo-musica { font-weight: 700; color: var(--text-main); font-size: 1.05rem; line-height: 1.3; margin-bottom: 4px; display: block; white-space: normal; } .artista-musica { font-size: 0.9rem; color: var(--text-muted); display: block; white-space: normal; }
+        .botoes-card { display: flex; gap: 8px; width: 100%; align-items: center; } .btn-acao { background: var(--input-bg); border: 1px solid var(--bg-glass-border); border-radius: 10px; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; color: var(--text-main); flex-shrink: 0; transition: 0.2s; font-size: 1.1rem;}
+        .btn-acao.btn-cantar { margin-left: auto; width: auto; padding: 0 20px; background: var(--accent-blue); color: #fff !important; font-weight: 700; border: none; box-shadow: 0 4px 10px rgba(0, 180, 216, 0.3); font-size: 1rem;} .btn-acao.btn-cantar:active { transform: scale(0.95); }
+
+        .perfis-grid { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; } .card-perfil { text-align: center; cursor: pointer; opacity: 0.6; transition: 0.3s; } .card-perfil.ativo { opacity: 1; transform: scale(1.05); } .card-perfil .foto-perfil { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 3px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.1); } .card-perfil.ativo .foto-perfil { border-color: var(--accent-blue); box-shadow: 0 0 15px var(--accent-blue); } .nome-perfil { display: block; font-size: 0.85rem; margin-top: 8px; color: var(--text-main); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;}
+        .perfil-logado-mini { width: 45px; height: 45px; flex-shrink: 0; border-radius: 50%; overflow: hidden; display: flex; justify-content: center; align-items: center; border: 2px solid var(--accent-blue); background: #fff;} .perfil-logado-mini img { width: 100%; height: 100%; object-fit: cover !important; }
+
+        .itens-fila-grandes { display: flex; flex-direction: column; gap: 15px; } .item-fila-grande { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 15px; border-radius: 14px; background: var(--bg-glass); border: 1px solid var(--bg-glass-border); box-shadow: var(--card-shadow); } .fila-rank { font-weight: 800; font-size: 1.3rem; color: var(--accent-blue); width: 35px; flex-shrink: 0; text-align: center;} .avatares-dupla { display: flex; position: relative; width: 60px; height: 40px; flex-shrink: 0; align-items: center; } .foto-perfil-mini { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--bg-glass); box-shadow: 0 2px 5px rgba(0,0,0,0.1);} .foto-sobreposta { position: absolute; left: 20px; z-index: 2;}
+        .fila-info-textos { flex: 1 1 auto; min-width: 0; margin-left: 10px; padding-right: 5px;} .fila-nome { display: block; font-size: 0.95rem; color: var(--text-main); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .fila-musica { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 0.85rem; color: var(--text-muted); line-height: 1.2; } .fila-acoes { flex: 0 0 auto; display: flex; gap: 8px; align-items: center;} .btn-remover { background: rgba(255,0,0,0.1); color: #ff4757; border: none; border-radius: 8px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;}
+
+        .banner-ao-vivo { background: var(--bg-glass); border: 2px solid var(--accent-blue); border-radius: 16px; padding: 15px; margin-bottom: 20px; box-shadow: 0 0 20px rgba(0,180,216,0.2); } .ao-vivo-header { font-size: 0.8rem; font-weight: 800; color: #ff4757; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; } .ao-vivo-conteudo { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; } .ao-vivo-conteudo .avatares-dupla { width: 60px; height: 60px; } .ao-vivo-conteudo .foto-perfil-mini { width: 60px; height: 60px; border: 3px solid var(--accent-blue);} .ao-vivo-conteudo .foto-sobreposta { left: 30px; border-color: var(--accent-purple); } .ao-vivo-textos { flex: 1; min-width: 0; } .ao-vivo-textos strong { font-size: 1.1rem; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--accent-blue);} .ao-vivo-textos span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-muted);} .botoes-banner-live { display: flex; gap: 10px; } .botoes-banner-live button { flex: 1; padding: 12px; font-size: 1rem; border-radius: 10px; }
+
+        .lista-top { display: flex; flex-direction: column; gap: 12px; } .item-rank, .item-rank-musica { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 15px; background: var(--bg-glass); border-radius: 12px; border: 1px solid var(--bg-glass-border); box-shadow: var(--card-shadow); } .rank-info { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; } .rank-pos { font-weight: 800; font-size: 1.2rem; width: 25px; flex-shrink: 0; text-align: center; color: var(--text-muted); } .rank-info img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid var(--bg-glass-border);} .rank-info div { flex: 1; min-width: 0; } .rank-info strong { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main); font-size: 0.95rem; } .rank-pontos { font-weight: 800; color: var(--accent-purple); flex-shrink: 0; font-size: 1.1rem; } .info-hit { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; } .titulo-hit { font-weight: 600; color: var(--text-main); font-size: 0.95rem; display: block; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .artista-hit { font-size: 0.8rem; color: var(--text-muted); display: block; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .qtd-hit { font-weight: 700; color: var(--text-muted); flex-shrink: 0; background: var(--input-bg); padding: 5px 10px; border-radius: 20px;}
+
+        .badge-sala { background: var(--input-bg); border: 1px solid var(--bg-glass-border); padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; color: var(--accent-blue); font-weight: 600; display: inline-flex; align-items: center; gap: 5px; max-width: 100%; box-sizing: border-box; } .badge-sala strong { display: inline-block; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
+
+        .conquistas-grid { display: flex; overflow-x: auto; gap: 12px; margin-top: 15px; padding-bottom: 10px; scroll-behavior: smooth; } .conquistas-grid::-webkit-scrollbar { height: 6px; } .conquistas-grid::-webkit-scrollbar-thumb { background: var(--accent-blue); border-radius: 10px; } .conquistas-grid::-webkit-scrollbar-track { background: var(--input-bg); border-radius: 10px; } .item-conquista { flex: 0 0 100px; background: var(--input-bg); border-radius: 10px; padding: 15px 5px; text-align: center; border: 1px solid var(--bg-glass-border); opacity: 0.5; filter: grayscale(100%); transition: all 0.3s; } .item-conquista.desbloqueada { opacity: 1; filter: grayscale(0%); background: rgba(167, 139, 250, 0.1); border-color: var(--accent-purple); box-shadow: 0 0 15px rgba(167, 139, 250, 0.2); } .item-conquista .icone { font-size: 2.2rem; margin-bottom: 8px; } .item-conquista .nome { font-size: 0.75rem; font-weight: 600; line-height: 1.2; color: var(--text-main); } .mini-medalhas { font-size: 16px; margin-top: 5px; }
+
+        .tela-palco-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-body); z-index: 9000; display: flex; flex-direction: column; } .tela-palco-overlay.minimizado { height: 120px; top: auto; bottom: 75px; background: transparent; pointer-events: none; } .palco-container { width: 100%; height: 100%; display: flex; flex-direction: column; } .player-wrapper { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; flex-shrink: 0; } .tela-palco-overlay.minimizado .player-wrapper { width: 180px; position: absolute; right: 20px; bottom: 20px; border-radius: 12px; overflow: hidden; border: 2px solid var(--accent-blue); box-shadow: 0 10px 25px rgba(0,0,0,0.5); pointer-events: auto; } #player-video { width: 100%; height: 100%; object-fit: contain; } .acoes-palco-topo { padding: 15px; display: flex; justify-content: space-between; background: var(--bg-glass); border-bottom: 1px solid var(--bg-glass-border); } .btn-acao-palco { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--bg-glass-border); padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.05);} .btn-acao-palco.btn-fechar { background: rgba(255,0,0,0.1); color: #ff4757; border-color: rgba(255,0,0,0.2);} .tela-palco-overlay.minimizado .acoes-palco-topo, .tela-palco-overlay.minimizado .conteudo-palco-expandido { display: none; } .capa-mini { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem; cursor: pointer; } .tela-palco-overlay.minimizado .capa-mini { display: flex !important; } .conteudo-palco-expandido { padding: 20px; flex-grow: 1; overflow-y: auto; background: var(--bg-body); } .info-cantando { display: flex; align-items: center; gap: 15px; padding: 15px; border-radius: 14px; background: var(--bg-glass); border: 1px solid var(--bg-glass-border); box-shadow: var(--card-shadow);} .avatares-dupla-palco { display: flex; position: relative; width: 60px; height: 60px; flex-shrink: 0; } .foto-cantor-palco { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); } .foto-sobreposta-palco { position: absolute; left: 30px; border-color: var(--accent-purple); z-index: 2;} .textos-palco { flex: 1; min-width: 0; } .nome-cantor-palco { font-weight: 600; font-size: 0.9rem; color: var(--text-main); margin-bottom: 5px; display: flex; align-items: center; gap: 5px;} #titulo-atual { font-size: 1.2rem; font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;}
         
-        .card-musica {
-            display: flex; flex-direction: column; align-items: flex-start; gap: 15px;
-            padding: 18px 15px; border-radius: 14px;
-            background: var(--bg-glass); border: 1px solid var(--bg-glass-border);
-            box-shadow: var(--card-shadow);
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); } .botoes-modal { display: flex; gap: 10px; margin-top: 25px; justify-content: center; } .votos-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 20px; } .btn-voto { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--bg-glass-border); padding: 15px 0; border-radius: 12px; font-size: 1.3rem; font-weight: 800; box-shadow: 0 4px 10px rgba(0,0,0,0.05);} .btn-voto:active { transform: scale(0.9); background: var(--accent-blue); color: #fff; border-color: var(--accent-blue);}
+
+        .pulse-anim { animation: pulse 1.5s infinite; } @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } } .blink-anim { animation: blink 1s infinite; } @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } } .ponto-vermelho { display: inline-block; width: 10px; height: 10px; background: #ff4757; border-radius: 50%; margin-right: 8px; box-shadow: 0 0 10px #ff4757;}
+        .paginacao { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 25px; } .btn-pagina { width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; padding: 0;} .btn-pagina:disabled { opacity: 0.5; cursor: not-allowed; background: var(--input-bg) !important; color: var(--text-muted) !important;} .info-pagina { font-weight: 600; color: var(--text-main); }
+        #tour-overlay { background: rgba(0, 0, 0, 0.7) !important; z-index: 9998; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;} #tour-balao { border: 2px solid var(--accent-blue) !important; background: var(--bg-body) !important; }
+        
+        /* ALERTA GIGANTE DO DJ NO PALCO */
+        #dj-alerta-palco {
+            position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(45deg, #ff4757, #ff6b81); color: white;
+            padding: 15px 30px; border-radius: 12px; font-size: 1.5rem; font-weight: 800;
+            z-index: 9999; border: 3px solid white; text-transform: uppercase;
+            box-shadow: 0 10px 30px rgba(255, 71, 87, 0.5); white-space: nowrap;
+            animation: pulse 1s infinite;
         }
-        
-        .info-musica { width: 100%; }
-        /* White-space normal permite que nomes muito grandes usem duas linhas se precisarem, sem cortes feios */
-        .titulo-musica { font-weight: 700; color: var(--text-main); font-size: 1.05rem; line-height: 1.3; margin-bottom: 4px; display: block; white-space: normal; }
-        .artista-musica { font-size: 0.9rem; color: var(--text-muted); display: block; white-space: normal; }
-        
-        .botoes-card { display: flex; gap: 8px; width: 100%; align-items: center; }
-        .btn-acao { background: var(--input-bg); border: 1px solid var(--bg-glass-border); border-radius: 10px; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; color: var(--text-main); flex-shrink: 0; transition: 0.2s; font-size: 1.1rem;}
-        
-        /* O botão cantar empurra todos os ícones para a esquerda e se alinha à direita (margin-left: auto) */
-        .btn-acao.btn-cantar { margin-left: auto; width: auto; padding: 0 20px; background: var(--accent-blue); color: #fff !important; font-weight: 700; border: none; box-shadow: 0 4px 10px rgba(0, 180, 216, 0.3); font-size: 1rem;}
-        .btn-acao.btn-cantar:active { transform: scale(0.95); }
-
-        /* Perfis */
-        .perfis-grid { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; }
-        .card-perfil { text-align: center; cursor: pointer; opacity: 0.6; transition: 0.3s; }
-        .card-perfil.ativo { opacity: 1; transform: scale(1.05); }
-        .card-perfil .foto-perfil { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 3px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .card-perfil.ativo .foto-perfil { border-color: var(--accent-blue); box-shadow: 0 0 15px var(--accent-blue); }
-        .nome-perfil { display: block; font-size: 0.85rem; margin-top: 8px; color: var(--text-main); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;}
-        
-        .perfil-logado-mini { width: 45px; height: 45px; flex-shrink: 0; border-radius: 50%; overflow: hidden; display: flex; justify-content: center; align-items: center; border: 2px solid var(--accent-blue); background: #fff;}
-        .perfil-logado-mini img { width: 100%; height: 100%; object-fit: cover !important; }
-
-        /* Fila VIP (Mantida na Horizontal pois tem poucos botões) */
-        .itens-fila-grandes { display: flex; flex-direction: column; gap: 15px; }
-        .item-fila-grande {
-            display: flex; justify-content: space-between; align-items: center; gap: 10px;
-            padding: 15px; border-radius: 14px;
-            background: var(--bg-glass); border: 1px solid var(--bg-glass-border);
-            box-shadow: var(--card-shadow);
-        }
-        .fila-rank { font-weight: 800; font-size: 1.3rem; color: var(--accent-blue); width: 35px; flex-shrink: 0; text-align: center;}
-        .avatares-dupla { display: flex; position: relative; width: 60px; height: 40px; flex-shrink: 0; align-items: center; }
-        .foto-perfil-mini { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--bg-glass); box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
-        .foto-sobreposta { position: absolute; left: 20px; z-index: 2;}
-        
-        .fila-info-textos { flex: 1 1 auto; min-width: 0; margin-left: 10px; padding-right: 5px;}
-        .fila-nome { display: block; font-size: 0.95rem; color: var(--text-main); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .fila-musica { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 0.85rem; color: var(--text-muted); line-height: 1.2; }
-        
-        .fila-acoes { flex: 0 0 auto; display: flex; gap: 8px; align-items: center;}
-        .btn-remover { background: rgba(255,0,0,0.1); color: #ff4757; border: none; border-radius: 8px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;}
-
-        /* Banner Ao Vivo */
-        .banner-ao-vivo { background: var(--bg-glass); border: 2px solid var(--accent-blue); border-radius: 16px; padding: 15px; margin-bottom: 20px; box-shadow: 0 0 20px rgba(0,180,216,0.2); }
-        .ao-vivo-header { font-size: 0.8rem; font-weight: 800; color: #ff4757; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; }
-        .ao-vivo-conteudo { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-        .ao-vivo-conteudo .avatares-dupla { width: 60px; height: 60px; }
-        .ao-vivo-conteudo .foto-perfil-mini { width: 60px; height: 60px; border: 3px solid var(--accent-blue);}
-        .ao-vivo-conteudo .foto-sobreposta { left: 30px; border-color: var(--accent-purple); }
-        .ao-vivo-textos { flex: 1; min-width: 0; }
-        .ao-vivo-textos strong { font-size: 1.1rem; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--accent-blue);}
-        .ao-vivo-textos span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-muted);}
-        .botoes-banner-live { display: flex; gap: 10px; }
-        .botoes-banner-live button { flex: 1; padding: 12px; font-size: 1rem; border-radius: 10px; }
-
-        /* Ranking e Top Hits */
-        .lista-top { display: flex; flex-direction: column; gap: 12px; }
-        .item-rank, .item-rank-musica { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 15px; background: var(--bg-glass); border-radius: 12px; border: 1px solid var(--bg-glass-border); box-shadow: var(--card-shadow); }
-        .rank-info { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
-        .rank-pos { font-weight: 800; font-size: 1.2rem; width: 25px; flex-shrink: 0; text-align: center; color: var(--text-muted); }
-        .rank-info img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid var(--bg-glass-border);}
-        .rank-info div { flex: 1; min-width: 0; }
-        .rank-info strong { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main); font-size: 0.95rem; }
-        .rank-pontos { font-weight: 800; color: var(--accent-purple); flex-shrink: 0; font-size: 1.1rem; }
-        
-        .info-hit { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-        .titulo-hit { font-weight: 600; color: var(--text-main); font-size: 0.95rem; display: block; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .artista-hit { font-size: 0.8rem; color: var(--text-muted); display: block; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .qtd-hit { font-weight: 700; color: var(--text-muted); flex-shrink: 0; background: var(--input-bg); padding: 5px 10px; border-radius: 20px;}
-
-        /* Badge da Sala */
-        .badge-sala { 
-            background: var(--input-bg); border: 1px solid var(--bg-glass-border); 
-            padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; 
-            color: var(--accent-blue); font-weight: 600; 
-            display: inline-flex; align-items: center; gap: 5px;
-            max-width: 100%; box-sizing: border-box;
-        }
-        .badge-sala strong {
-            display: inline-block;
-            max-width: 110px; 
-            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-            vertical-align: bottom;
-        }
-
-        /* ============================================================================
-           SISTEMA DE CONQUISTAS (CARROSSEL)
-           ============================================================================ */
-        .conquistas-grid { display: flex; overflow-x: auto; gap: 12px; margin-top: 15px; padding-bottom: 10px; scroll-behavior: smooth; }
-        .conquistas-grid::-webkit-scrollbar { height: 6px; }
-        .conquistas-grid::-webkit-scrollbar-thumb { background: var(--accent-blue); border-radius: 10px; }
-        .conquistas-grid::-webkit-scrollbar-track { background: var(--input-bg); border-radius: 10px; }
-        .item-conquista { flex: 0 0 100px; background: var(--input-bg); border-radius: 10px; padding: 15px 5px; text-align: center; border: 1px solid var(--bg-glass-border); opacity: 0.5; filter: grayscale(100%); transition: all 0.3s; }
-        .item-conquista.desbloqueada { opacity: 1; filter: grayscale(0%); background: rgba(167, 139, 250, 0.1); border-color: var(--accent-purple); box-shadow: 0 0 15px rgba(167, 139, 250, 0.2); }
-        .item-conquista .icone { font-size: 2.2rem; margin-bottom: 8px; }
-        .item-conquista .nome { font-size: 0.75rem; font-weight: 600; line-height: 1.2; color: var(--text-main); }
-        .mini-medalhas { font-size: 16px; margin-top: 5px; }
-
-        /* ============================================================================
-           PALCO E OVERLAY
-           ============================================================================ */
-        .tela-palco-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-body); z-index: 9000; display: flex; flex-direction: column; }
-        .tela-palco-overlay.minimizado { height: 120px; top: auto; bottom: 75px; background: transparent; pointer-events: none; }
-        .palco-container { width: 100%; height: 100%; display: flex; flex-direction: column; }
-
-        .player-wrapper { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; flex-shrink: 0; }
-        .tela-palco-overlay.minimizado .player-wrapper { width: 180px; position: absolute; right: 20px; bottom: 20px; border-radius: 12px; overflow: hidden; border: 2px solid var(--accent-blue); box-shadow: 0 10px 25px rgba(0,0,0,0.5); pointer-events: auto; }
-        #player-video { width: 100%; height: 100%; object-fit: contain; }
-
-        .acoes-palco-topo { padding: 15px; display: flex; justify-content: space-between; background: var(--bg-glass); border-bottom: 1px solid var(--bg-glass-border); }
-        .btn-acao-palco { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--bg-glass-border); padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
-        .btn-acao-palco.btn-fechar { background: rgba(255,0,0,0.1); color: #ff4757; border-color: rgba(255,0,0,0.2);}
-
-        .tela-palco-overlay.minimizado .acoes-palco-topo, .tela-palco-overlay.minimizado .conteudo-palco-expandido { display: none; }
-        .capa-mini { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem; cursor: pointer; }
-        .tela-palco-overlay.minimizado .capa-mini { display: flex !important; }
-
-        .conteudo-palco-expandido { padding: 20px; flex-grow: 1; overflow-y: auto; background: var(--bg-body); }
-        
-        .info-cantando { display: flex; align-items: center; gap: 15px; padding: 15px; border-radius: 14px; background: var(--bg-glass); border: 1px solid var(--bg-glass-border); box-shadow: var(--card-shadow);}
-        .avatares-dupla-palco { display: flex; position: relative; width: 60px; height: 60px; flex-shrink: 0; }
-        .foto-cantor-palco { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); }
-        .foto-sobreposta-palco { position: absolute; left: 30px; border-color: var(--accent-purple); z-index: 2;}
-        .textos-palco { flex: 1; min-width: 0; }
-        .nome-cantor-palco { font-weight: 600; font-size: 0.9rem; color: var(--text-main); margin-bottom: 5px; display: flex; align-items: center; gap: 5px;}
-        #titulo-atual { font-size: 1.2rem; font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;}
-
-        /* ============================================================================
-           MODAIS E VOTAÇÃO
-           ============================================================================ */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-        .botoes-modal { display: flex; gap: 10px; margin-top: 25px; justify-content: center; }
-
-        .votos-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 20px; }
-        .btn-voto { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--bg-glass-border); padding: 15px 0; border-radius: 12px; font-size: 1.3rem; font-weight: 800; box-shadow: 0 4px 10px rgba(0,0,0,0.05);}
-        .btn-voto:active { transform: scale(0.9); background: var(--accent-blue); color: #fff; border-color: var(--accent-blue);}
-
-        /* ============================================================================
-           ANIMAÇÕES EXTRAS
-           ============================================================================ */
-        .pulse-anim { animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
-        .blink-anim { animation: blink 1s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .ponto-vermelho { display: inline-block; width: 10px; height: 10px; background: #ff4757; border-radius: 50%; margin-right: 8px; box-shadow: 0 0 10px #ff4757;}
-
-        .paginacao { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 25px; }
-        .btn-pagina { width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; padding: 0;}
-        .btn-pagina:disabled { opacity: 0.5; cursor: not-allowed; background: var(--input-bg) !important; color: var(--text-muted) !important;}
-        .info-pagina { font-weight: 600; color: var(--text-main); }
-
-        #tour-overlay { background: rgba(0, 0, 0, 0.7) !important; z-index: 9998; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;}
-        #tour-balao { border: 2px solid var(--accent-blue) !important; background: var(--bg-body) !important; }
     </style>
 </head>
 <body>
@@ -353,6 +145,45 @@
         </div>
     </div>
 
+    <div id="modal-dj" class="modal-overlay escondido">
+        <div class="modal-content glass-effect" style="width: 90%; max-width: 500px; max-height: 85vh; overflow-y: auto; padding: 25px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="color: var(--accent-purple); font-size: 1.5rem;"><i class="fa-solid fa-sliders"></i> Painel Mestre</h2>
+                <button class="btn-secundario" onclick="fecharPainelDJ()" style="padding: 8px 12px;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="glass-effect p-20 mb-15" style="background: var(--bg-body);">
+                <h4 style="margin-bottom: 5px;"><i class="fa-solid fa-bullhorn"></i> Recado no Palco</h4>
+                <p class="texto-pequeno">Envie um alerta na tela do cantor.</p>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <input type="text" id="input-msg-dj" placeholder="Ex: A pizza chegou!">
+                    <button class="btn-vibrante" onclick="djEnviarMensagem()"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
+
+            <div class="glass-effect p-20 mb-15" style="background: var(--bg-body);">
+                <h4 style="margin-bottom: 5px;"><i class="fa-solid fa-users"></i> Controle de Cantores</h4>
+                <p class="texto-pequeno">Tire pontos ou bana da festa.</p>
+                <div id="dj-lista-cantores" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;"></div>
+            </div>
+
+            <div class="glass-effect p-20 mb-15" style="background: var(--bg-body);">
+                <h4 style="margin-bottom: 5px;"><i class="fa-solid fa-music"></i> Limpar Catálogo</h4>
+                <p class="texto-pequeno">Oculte músicas que você não quer na festa.</p>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <input type="text" id="input-dj-busca-musica" placeholder="Busque a música..." oninput="djBuscarMusica()">
+                </div>
+                <div id="dj-lista-busca-musica" style="margin-top: 10px; max-height: 150px; overflow-y: auto;"></div>
+            </div>
+
+            <div class="glass-effect p-20" style="border-color: #ff4757; background: rgba(255, 71, 87, 0.05);">
+                <h4 style="color: #ff4757; margin-bottom: 5px;"><i class="fa-solid fa-triangle-exclamation"></i> Zona de Perigo</h4>
+                <p class="texto-pequeno" style="color: #ff4757;">Derrube a festa inteira.</p>
+                <button class="btn-vibrante w-100 mt-10" style="background: #ff4757 !important;" onclick="djExcluirSalaAtual()">Encerrar e Apagar Sala</button>
+            </div>
+        </div>
+    </div>
+
     <section id="tela-salas" class="tela ativa fade-in">
         <div class="hero-container text-center mt-20">
             <div style="font-size: 3rem; margin-bottom: 10px;"><i class="fa-solid fa-microphone-lines texto-destaque"></i></div>
@@ -379,7 +210,12 @@
                     <h2 style="font-size: 1.8rem; font-weight: 800;">Visão Geral</h2>
                     <span id="badge-nome-sala" class="badge-sala mt-10" style="display: inline-flex;"><i class="fa-solid fa-door-open"></i> Sala: <strong>Nenhuma</strong> <i class="fa-solid fa-right-from-bracket" style="margin-left: 5px; cursor: pointer; color: var(--accent-blue);" onclick="sairDaSala()"></i></span>
                 </div>
-                <div style="display: flex; gap: 12px; align-items: center; flex-shrink: 0;">
+                <div style="display: flex; gap: 10px; align-items: center; flex-shrink: 0;">
+                    
+                    <button id="btn-painel-dj" class="btn-secundario escondido" onclick="abrirPainelDJ()" style="width: 45px; height: 45px; padding: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--accent-purple); color: white; border: none; box-shadow: 0 4px 10px rgba(167,139,250,0.4);" title="Painel DJ">
+                        <i class="fa-solid fa-sliders"></i>
+                    </button>
+
                     <button id="theme-toggle" class="btn-secundario" onclick="alternarTema()" style="width: 45px; height: 45px; padding: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center;" title="Mudar Tema">
                         <i class="fa-solid fa-moon"></i>
                     </button>
@@ -577,6 +413,8 @@
                     <h2 class="texto-azul blink-anim" style="margin: 0 0 20px 0; font-size: 2.2rem; color: #00e5ff !important;">PREPARE-SE!</h2>
                     <div class="contador-circular" style="margin: 0; width: 100px; height: 100px; font-size: 3rem; font-weight: 800; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 4px solid #00e5ff; color: #fff;"><span id="transicao-contador">20</span></div>
                 </div>
+                
+                <div id="dj-alerta-palco" class="escondido"></div>
             </div>
 
             <div id="container-reacoes" style="position: absolute; bottom: 80px; right: 10px; width: 60px; height: 350px; pointer-events: none; z-index: 9999;"></div>
@@ -654,31 +492,22 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
     
-    <script src="js/data.js?v=81"></script>
-    <script src="js/premium.js?v=81"></script>
-    <script src="js/app.js?v=81"></script>
-    <script src="js/upload.js?v=81"></script>
+    <script src="js/data.js?v=82"></script>
+    <script src="js/premium.js?v=82"></script>
+    <script src="js/app.js?v=82"></script>
+    <script src="js/upload.js?v=82"></script>
 
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                    registration.unregister();
-                    console.log("Service Worker desativado. Cache offline limpo.");
-                }
+                for(let registration of registrations) { registration.unregister(); }
             });
         }
-        
         if ('caches' in window) {
             caches.keys().then(function(names) {
-                for (let name of names) {
-                    caches.delete(name);
-                    console.log("Memória interna deletada: " + name);
-                }
+                for (let name of names) { caches.delete(name); }
             });
         }
-        
-        function mostrarAvisoAtualizacao() { return false; }
     </script>
 </body>
 </html>
