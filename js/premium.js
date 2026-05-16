@@ -6,6 +6,16 @@ function enviarReacao(emoji) {
     if (!refSalaAtual) return;
     refSalaAtual.child('palco/reacoes').push({ emoji: emoji, timestamp: Date.now() });
     mostrarReacaoVoando(emoji);
+    
+    // Contabiliza a reação para a conquista "Alma da Festa"
+    if (perfilAtual && !perfilAtual.isGuest) {
+        let pIndex = perfisFamilia.findIndex(p => String(p.id) === String(perfilAtual.id));
+        if (pIndex !== -1) {
+            if(!perfisFamilia[pIndex].stats) perfisFamilia[pIndex].stats = { cantadas:0, duetos:0, notas10:0, votos:0, reacoes:0, medalhas:[] };
+            perfisFamilia[pIndex].stats.reacoes++;
+            if(typeof verificarConquistas === 'function') verificarConquistas(perfisFamilia[pIndex]);
+        }
+    }
 }
 
 function mostrarReacaoVoando(emoji) {
@@ -84,6 +94,14 @@ function favoritarMusica(idMusica) {
     }
     localStorage.setItem('karaoke_favoritas', JSON.stringify(favoritas));
     
+    // Contabiliza os favoritos para a conquista "Garimpeiro VIP"
+    if (perfilAtual && !perfilAtual.isGuest) {
+        let pIndex = perfisFamilia.findIndex(p => String(p.id) === String(perfilAtual.id));
+        if (pIndex !== -1 && typeof verificarConquistas === 'function') {
+            verificarConquistas(perfisFamilia[pIndex]);
+        }
+    }
+    
     if (document.getElementById('tela-playlist').classList.contains('ativa')) {
         mudarPagina(paginaAtual);
     } else if (document.getElementById('tela-favoritos').classList.contains('ativa')) {
@@ -106,20 +124,15 @@ async function iniciarAudioEstudio() {
     if (!videoEl) return false;
 
     try {
-        // Blinda o CORS nativamente antes de qualquer coisa
         videoEl.crossOrigin = "anonymous";
-        
-        // Liga o motor principal
         await Tone.start();
         
         if (!tonePitchShift) {
             tonePitchShift = new Tone.PitchShift().toDestination();
         }
         
-        // O TRUQUE DE MESTRE: Salvar o nó de áudio na janela global do navegador 
-        // para o bug do Chrome não "esquecer" a chave (given key)
         if (!window.globalMediaSourceNode) {
-            const nativeCtx = Tone.context.rawContext; // Pega o contexto raiz do navegador
+            const nativeCtx = Tone.context.rawContext; 
             window.globalMediaSourceNode = nativeCtx.createMediaElementSource(videoEl);
             Tone.connect(window.globalMediaSourceNode, tonePitchShift);
         }
