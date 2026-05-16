@@ -8,7 +8,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00b4d8">
     <link rel="apple-touch-icon" href="image/icon.png">
-
+    
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
@@ -21,9 +21,7 @@
            🎨 VARIÁVEIS DE TEMA E CORES
            ========================================== */
         :root {
-            /* Fundo levemente cinza/gelo para destacar o branco */
             --bg-body: #e2e8f0; 
-            /* Vidro branco puro */
             --bg-glass: rgba(255, 255, 255, 0.95); 
             --bg-glass-border: rgba(255, 255, 255, 1);
             --text-main: #0f172a; 
@@ -32,7 +30,7 @@
             --accent-purple: #8b5cf6; 
             --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
             --nav-bg: rgba(255, 255, 255, 0.98);
-            --input-bg: #f8fafc; 
+            --input-bg: #ffffff; 
         }
 
         [data-theme="dark"] {
@@ -112,7 +110,7 @@
            ========================================== */
         button { font-family: 'Poppins', sans-serif; cursor: pointer; outline: none; transition: 0.2s; }
 
-        .btn-vibrante, .btn-vibrante-sm, .btn-convidado, .btn-acao.btn-cantar, .btn-pagina {
+        .btn-vibrante, .btn-vibrante-sm, .btn-convidado, .btn-pagina {
             background: var(--accent-blue); color: #fff !important;
             border: none; border-radius: 10px; font-weight: 600;
             box-shadow: 0 4px 15px rgba(0, 180, 216, 0.4);
@@ -127,7 +125,7 @@
             border: 1px solid var(--bg-glass-border); border-radius: 10px; font-weight: 600;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .btn-secundario:active { background: var(--accent-blue); color: #fff; }
+        .btn-secundario:active { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
 
         input[type="text"], input[type="password"] {
             width: 100%; padding: 14px; border-radius: 10px;
@@ -158,7 +156,7 @@
         .btn-categoria { background: var(--input-bg); color: var(--text-muted); border: 1px solid var(--bg-glass-border); border-radius: 20px; padding: 8px 18px; white-space: nowrap; font-weight: 500; }
         .btn-categoria.ativo { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
 
-        /* Grid de Músicas - Bloqueio contra botões espremidos */
+        /* Grid de Músicas - Correção Definitiva do Botão Cantar */
         .grid-musicas { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
         .card-musica, .item-fila-grande {
             display: flex; justify-content: space-between; align-items: center; gap: 10px;
@@ -166,11 +164,18 @@
             background: var(--bg-glass); border: 1px solid var(--bg-glass-border);
             box-shadow: var(--card-shadow);
         }
-        .info-musica { flex: 1 1 auto; min-width: 0; /* IMPEDIR QUE O TEXTO CRESÇA AO INFINITO */ overflow: hidden; }
-        .titulo-musica { font-weight: 600; color: var(--text-main); font-size: 1rem; display: block; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .artista-musica { font-size: 0.85rem; color: var(--text-muted); display: block; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .botoes-card { display: flex; gap: 8px; flex: 0 0 auto; /* IMPEDIR QUE O BOTÃO ENCOLHA */ }
-        .btn-acao { background: var(--input-bg); border: 1px solid var(--bg-glass-border); border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: var(--text-main); }
+        
+        .info-musica { flex: 1 1 auto; min-width: 0; padding-right: 5px; }
+        /* Permite até 2 linhas no título, depois corta com reticências */
+        .titulo-musica { font-weight: 600; color: var(--text-main); font-size: 1rem; line-height: 1.3; margin-bottom: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .artista-musica { font-size: 0.85rem; color: var(--text-muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .botoes-card { display: flex; gap: 6px; flex: 0 0 auto; align-items: center; }
+        .btn-acao { background: var(--input-bg); border: 1px solid var(--bg-glass-border); border-radius: 8px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; color: var(--text-main); flex-shrink: 0; transition: 0.2s;}
+        
+        /* O Botão Cantar não sofre mais compressão */
+        .btn-acao.btn-cantar { width: auto; padding: 0 16px; background: var(--accent-blue); color: #fff !important; font-weight: 600; border: none; box-shadow: 0 4px 10px rgba(0, 180, 216, 0.3); }
+        .btn-acao.btn-cantar:active { transform: scale(0.95); }
 
         /* Perfis */
         .perfis-grid { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; }
@@ -189,13 +194,15 @@
         .avatares-dupla { display: flex; position: relative; width: 60px; height: 40px; flex-shrink: 0; align-items: center; }
         .foto-perfil-mini { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--bg-glass); box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
         .foto-sobreposta { position: absolute; left: 20px; z-index: 2;}
-        .fila-info-textos { flex: 1 1 auto; min-width: 0; margin-left: 10px; }
+        
+        .fila-info-textos { flex: 1 1 auto; min-width: 0; margin-left: 10px; padding-right: 5px;}
         .fila-nome { display: block; font-size: 0.95rem; color: var(--text-main); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .fila-musica { font-size: 0.85rem; color: var(--text-muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .fila-acoes { flex: 0 0 auto; display: flex; gap: 8px; }
-        .btn-remover { background: rgba(255,0,0,0.1); color: #ff4757; border: none; border-radius: 8px; width: 36px; height: 36px; }
+        .fila-musica { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 0.85rem; color: var(--text-muted); line-height: 1.2; }
+        
+        .fila-acoes { flex: 0 0 auto; display: flex; gap: 8px; align-items: center;}
+        .btn-remover { background: rgba(255,0,0,0.1); color: #ff4757; border: none; border-radius: 8px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;}
 
-        /* Banner Ao Vivo (Corrigido foto gigante) */
+        /* Banner Ao Vivo */
         .banner-ao-vivo { background: var(--bg-glass); border: 2px solid var(--accent-blue); border-radius: 16px; padding: 15px; margin-bottom: 20px; box-shadow: 0 0 20px rgba(0,180,216,0.2); }
         .ao-vivo-header { font-size: 0.8rem; font-weight: 800; color: #ff4757; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; }
         .ao-vivo-conteudo { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
@@ -223,7 +230,20 @@
         .artista-hit { font-size: 0.8rem; color: var(--text-muted); display: block; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .qtd-hit { font-weight: 700; color: var(--text-muted); flex-shrink: 0; background: var(--input-bg); padding: 5px 10px; border-radius: 20px;}
 
-        .badge-sala { background: var(--input-bg); border: 1px solid var(--bg-glass-border); padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; color: var(--accent-blue); font-weight: 600; display: inline-flex; align-items: center; gap: 5px;}
+        /* Badge da Sala Corrigido */
+        .badge-sala { 
+            background: var(--input-bg); border: 1px solid var(--bg-glass-border); 
+            padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; 
+            color: var(--accent-blue); font-weight: 600; 
+            display: inline-flex; align-items: center; gap: 5px;
+            max-width: 100%; box-sizing: border-box;
+        }
+        .badge-sala strong {
+            display: inline-block;
+            max-width: 110px; 
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            vertical-align: bottom;
+        }
 
         /* ============================================================================
            SISTEMA DE CONQUISTAS (CARROSSEL)
@@ -346,11 +366,11 @@
     <section id="tela-dashboard" class="tela fade-in">
         <div class="container-tela">
             <div class="header-tela">
-                <div>
+                <div style="flex: 1; min-width: 0; padding-right: 10px;">
                     <h2 style="font-size: 1.8rem; font-weight: 800;">Visão Geral</h2>
-                    <span id="badge-nome-sala" class="badge-sala mt-10"><i class="fa-solid fa-door-open"></i> Sala: <strong>Nenhuma</strong> <i class="fa-solid fa-right-from-bracket" style="margin-left: 10px; cursor: pointer; color: var(--accent-blue);" onclick="sairDaSala()"></i></span>
+                    <span id="badge-nome-sala" class="badge-sala mt-10" style="display: inline-flex;"><i class="fa-solid fa-door-open"></i> Sala: <strong>Nenhuma</strong> <i class="fa-solid fa-right-from-bracket" style="margin-left: 5px; cursor: pointer; color: var(--accent-blue);" onclick="sairDaSala()"></i></span>
                 </div>
-                <div style="display: flex; gap: 12px; align-items: center;">
+                <div style="display: flex; gap: 12px; align-items: center; flex-shrink: 0;">
                     <button id="theme-toggle" class="btn-secundario" onclick="alternarTema()" style="width: 45px; height: 45px; padding: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center;" title="Mudar Tema">
                         <i class="fa-solid fa-moon"></i>
                     </button>
@@ -625,10 +645,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
     
-    <script src="js/data.js?v=70"></script>
-    <script src="js/premium.js?v=70"></script>
-    <script src="js/app.js?v=70"></script>
-    <script src="js/upload.js?v=70"></script>
+    <script src="js/data.js?v=80"></script>
+    <script src="js/premium.js?v=80"></script>
+    <script src="js/app.js?v=80"></script>
+    <script src="js/upload.js?v=80"></script>
 
     <script>
         if ('serviceWorker' in navigator) {
