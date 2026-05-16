@@ -116,11 +116,24 @@
                 </div>
             </div>
 
-            <div class="cards-grid">
-                <div class="card-info glass-effect" onclick="mudarTela('tela-playlist', document.getElementById('nav-catalogo'))"><div class="dados-card-mini"><i class="fa-solid fa-compact-disc icone-azul"></i><h3 id="dash-qtd-musicas">0</h3></div><p class="texto-pequeno">Músicas</p></div>
-                <div class="card-info glass-effect" onclick="mudarTela('tela-perfil', document.getElementById('nav-perfil'))"><div class="dados-card-mini"><i class="fa-solid fa-users icone-rosa"></i><h3 id="dash-qtd-cantores">0</h3></div><p class="texto-pequeno">Cantores</p></div>
-                <div class="card-info glass-effect"><div class="dados-card-mini"><i class="fa-solid fa-tower-broadcast icone-azul"></i><h3 id="dash-qtd-salas">0</h3></div><p class="texto-pequeno">Salas Online</p></div>
+            <div class="glass-effect mb-20" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 10px; border-radius: 12px;">
+                <div onclick="mudarTela('tela-playlist', document.getElementById('nav-catalogo'))" style="flex: 1; text-align: center; cursor: pointer; border-right: 1px solid rgba(255,255,255,0.1);">
+                    <i class="fa-solid fa-compact-disc icone-azul" style="font-size: 1.2rem; margin-bottom: 5px;"></i>
+                    <h3 id="dash-qtd-musicas" style="margin: 0; font-size: 1.2rem;">0</h3>
+                    <span class="texto-pequeno" style="font-size: 0.7rem; text-transform: uppercase;">Músicas</span>
+                </div>
+                <div onclick="mudarTela('tela-perfil', document.getElementById('nav-perfil'))" style="flex: 1; text-align: center; cursor: pointer; border-right: 1px solid rgba(255,255,255,0.1);">
+                    <i class="fa-solid fa-users icone-rosa" style="font-size: 1.2rem; margin-bottom: 5px;"></i>
+                    <h3 id="dash-qtd-cantores" style="margin: 0; font-size: 1.2rem;">0</h3>
+                    <span class="texto-pequeno" style="font-size: 0.7rem; text-transform: uppercase;">Cantores</span>
+                </div>
+                <div style="flex: 1; text-align: center;">
+                    <i class="fa-solid fa-tower-broadcast icone-azul" style="font-size: 1.2rem; margin-bottom: 5px;"></i>
+                    <h3 id="dash-qtd-salas" style="margin: 0; font-size: 1.2rem;">0</h3>
+                    <span class="texto-pequeno" style="font-size: 0.7rem; text-transform: uppercase;">Salas</span>
+                </div>
             </div>
+
             <div class="card-ranking-resumo glass-effect mb-20"><h3><i class="fa-solid fa-crown" style="color: gold;"></i> Hall da Fama</h3><div id="dash-top-cantores" class="lista-top"></div></div>
             <div class="card-ranking-resumo glass-effect"><h3><i class="fa-solid fa-fire pulse-anim" style="color: #ff5e00;"></i> Top Hits</h3><div id="dash-top-musicas" class="lista-top mt-10"></div></div>
         </div>
@@ -223,8 +236,8 @@
     
     <script src="js/data.js?v=45"></script>
     <script src="js/premium.js?v=45"></script>
-    <script src="js/app.js?v=45"></script>
-    <script src="js/upload.js?v=45"></script>
+    <script src="js/app.45"></script>
+    <script src="js/upload.js?v45"></script>
 
     <script>
         let novoServiceWorker;
@@ -250,7 +263,7 @@
         }
         function mostrarAvisoAtualizacao() {
             document.getElementById('titulo-alerta').innerHTML = `<i class="fa-solid fa-arrows-rotate texto-destaque"></i> Versão Nova!`;
-            document.getElementById('mensagem-alerta').innerText = "O layout das conquistas foi ajustado para carrossel! Atualize agora.";
+            document.getElementById('mensagem-alerta').innerText = "Ajustamos o layout do dashboard para um card unificado! Atualize agora.";
             const botoesDiv = document.querySelector('#modal-alerta .botoes-modal');
             botoesDiv.innerHTML = `<button class="btn-vibrante w-100" onclick="aplicarAtualizacaoApp()">Atualizar Agora</button>`;
             document.getElementById('modal-alerta').classList.remove('escondido');
