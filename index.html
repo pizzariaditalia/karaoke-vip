@@ -487,17 +487,34 @@
     <script src="js/app.js?v=86"></script>
     <script src="js/upload.js?v=86"></script>
 
-    <script>
+        <script>
+        let novoServiceWorker;
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) { registration.unregister(); }
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(registration => {
+                    registration.addEventListener('updatefound', () => {
+                        novoServiceWorker = registration.installing;
+                        novoServiceWorker.addEventListener('statechange', () => { 
+                            if (novoServiceWorker.state === 'installed' && navigator.serviceWorker.controller) { 
+                                mostrarAvisoAtualizacao(); 
+                            } 
+                        });
+                    });
+                });
+                let recarregando = false; 
+                navigator.serviceWorker.addEventListener('controllerchange', () => { 
+                    if (recarregando) return; 
+                    recarregando = true;
+                    window.location.reload(); 
+                });
             });
         }
-        if ('caches' in window) {
-            caches.keys().then(function(names) {
-                for (let name of names) { caches.delete(name); }
-            });
+        function mostrarAvisoAtualizacao() {
+            document.getElementById('titulo-alerta').innerHTML = `<i class="fa-solid fa-arrows-rotate texto-destaque"></i> Nova Versão!`;
+            document.getElementById('mensagem-alerta').innerText = "Temos melhorias prontas! Atualize o app agora.";
+            const botoesDiv = document.querySelector('#modal-alerta .botoes-modal');
+            botoesDiv.innerHTML = `<button class="btn-vibrante w-100" onclick="aplicarAtualizacaoApp()">Atualizar Agora</button>`;
+            document.getElementById('modal-alerta').classList.remove('escondido');
         }
+        function aplicarAtualizacaoApp() { if (novoServiceWorker) { novoServiceWorker.postMessage('SKIP_WAITING'); } }
     </script>
-</body>
-</html>
