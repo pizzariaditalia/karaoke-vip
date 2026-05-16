@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'karaoke-vip-v45'; 
+const CACHE_NAME = 'karaoke-vip-v50'; 
 
 const urlsToCache = [
     './',
