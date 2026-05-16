@@ -18,41 +18,42 @@
 
     <style>
         /* ==========================================
-           🎨 INJETOR DE TEMA: WHITE FROSTED / DARK MATTE
+           🎨 VARIÁVEIS DE TEMA E CORES
            ========================================== */
-           :root {
-            --bg-body: #f1f5f9; 
-            --bg-glass: rgba(255, 255, 255, 0.85); 
+        :root {
+            /* Fundo levemente cinza/gelo para destacar o branco */
+            --bg-body: #e2e8f0; 
+            /* Vidro branco puro */
+            --bg-glass: rgba(255, 255, 255, 0.95); 
             --bg-glass-border: rgba(255, 255, 255, 1);
             --text-main: #0f172a; 
             --text-muted: #64748b; 
             --accent-blue: #00b4d8; 
             --accent-purple: #8b5cf6; 
-            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-            --nav-bg: rgba(255, 255, 255, 0.95);
-            --input-bg: #ffffff; 
+            --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            --nav-bg: rgba(255, 255, 255, 0.98);
+            --input-bg: #f8fafc; 
         }
 
         [data-theme="dark"] {
             --bg-body: #0f172a; 
-            --bg-glass: rgba(30, 41, 59, 0.75); 
-            --bg-glass-border: rgba(255, 255, 255, 0.08);
+            --bg-glass: rgba(30, 41, 59, 0.85); 
+            --bg-glass-border: rgba(255, 255, 255, 0.1);
             --text-main: #f8fafc; 
             --text-muted: #94a3b8; 
             --accent-blue: #00e5ff; 
             --accent-purple: #c084fc; 
-            --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            --nav-bg: rgba(15, 23, 42, 0.95);
-            --input-bg: rgba(0, 0, 0, 0.4);
+            --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            --nav-bg: rgba(15, 23, 42, 0.98);
+            --input-bg: rgba(0, 0, 0, 0.3);
         }
 
-        /* ============================================================================
-           ESTILOS GERAIS E BASE
-           ============================================================================ */
+        /* ==========================================
+           ESTRUTURA BASE E TIPOGRAFIA
+           ========================================== */
         body { 
             font-family: 'Poppins', sans-serif; 
-            margin: 0; 
-            padding: 0 0 80px 0; 
+            margin: 0; padding: 0 0 80px 0; 
             background-color: var(--bg-body); 
             color: var(--text-main); 
             overflow-x: hidden; 
@@ -61,13 +62,6 @@
 
         h1, h2, h3, h4 { margin: 0; color: var(--text-main); }
         p { margin: 0; }
-
-        .texto-cinza, .texto-pequeno { color: var(--text-muted); font-size: 0.85rem; }
-        .texto-claro { color: var(--text-main); opacity: 0.9; }
-        .texto-destaque { color: var(--accent-blue); font-weight: 700; }
-        .icone-azul { color: var(--accent-blue); }
-        .icone-rosa { color: var(--accent-purple); }
-
         .escondido { display: none !important; }
         .w-100 { width: 100%; }
         .text-center { text-align: center; }
@@ -76,9 +70,15 @@
         .mb-10 { margin-bottom: 10px; } .mb-15 { margin-bottom: 15px; } .mb-20 { margin-bottom: 20px; }
         .p-20 { padding: 20px; }
 
-        /* ============================================================================
-           VIDRO FOSCO ESTRUTURAL
-           ============================================================================ */
+        .texto-cinza, .texto-pequeno { color: var(--text-muted); font-size: 0.85rem; }
+        .texto-claro { color: var(--text-main); opacity: 0.9; }
+        .texto-destaque { color: var(--accent-blue); font-weight: 700; }
+        .icone-azul { color: var(--accent-blue); }
+        .icone-rosa { color: var(--accent-purple); }
+
+        /* ==========================================
+           GLASSMORPHISM (EFEITO VIDRO)
+           ========================================== */
         .glass-effect, .modal-content {
             background: var(--bg-glass);
             backdrop-filter: blur(20px);
@@ -88,9 +88,9 @@
             box-shadow: var(--card-shadow);
         }
 
-        /* ============================================================================
-           NAVEGAÇÃO (BOTTOM BAR)
-           ============================================================================ */
+        /* ==========================================
+           NAVEGAÇÃO INFERIOR
+           ========================================== */
         .bottom-bar {
             position: fixed; bottom: 0; left: 0; width: 100%;
             background: var(--nav-bg); 
@@ -104,28 +104,19 @@
             color: var(--text-muted); cursor: pointer; font-size: 0.75rem; transition: 0.3s;
         }
         .nav-item i { font-size: 1.3rem; transition: transform 0.2s; }
-        .nav-item.ativo { color: var(--accent-blue); font-weight: 600; }
+        .nav-item.ativo { color: var(--accent-blue); font-weight: 700; }
         .nav-item.ativo i { transform: translateY(-3px); }
 
-        /* ============================================================================
-           TELAS E CONTAINERS
-           ============================================================================ */
-        .tela { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
-        .tela.ativa { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .header-tela { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; }
-
-        /* ============================================================================
+        /* ==========================================
            BOTÕES E INPUTS
-           ============================================================================ */
+           ========================================== */
         button { font-family: 'Poppins', sans-serif; cursor: pointer; outline: none; transition: 0.2s; }
 
         .btn-vibrante, .btn-vibrante-sm, .btn-convidado, .btn-acao.btn-cantar, .btn-pagina {
-            background: var(--accent-blue); 
-            color: #fff !important;
+            background: var(--accent-blue); color: #fff !important;
             border: none; border-radius: 10px; font-weight: 600;
             box-shadow: 0 4px 15px rgba(0, 180, 216, 0.4);
+            white-space: nowrap;
         }
         .btn-vibrante { padding: 14px 20px; font-size: 1.05rem; }
         .btn-vibrante-sm { padding: 10px 15px; font-size: 0.9rem; }
@@ -143,26 +134,31 @@
             background: var(--input-bg); border: 1px solid var(--bg-glass-border);
             color: var(--text-main); font-family: 'Poppins', sans-serif; font-size: 1rem;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            box-sizing: border-box;
         }
-        input[type="text"]:focus, input[type="password"]:focus {
-            outline: none; border-color: var(--accent-blue);
-        }
+        input[type="text"]:focus, input[type="password"]:focus { outline: none; border-color: var(--accent-blue); }
         input::placeholder { color: var(--text-muted); }
 
-        /* ============================================================================
-           COMPONENTES (CARDS, LISTAS, RANKING)
-           ============================================================================ */
+        /* ==========================================
+           LAYOUTS DE TELA
+           ========================================== */
+        .tela { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
+        .tela.ativa { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .header-tela { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; }
+
+        /* ==========================================
+           COMPONENTES E CARDS (FLEXBOX CORRIGIDO)
+           ========================================== */
         .criar-perfil-box { display: flex; gap: 10px; align-items: stretch; }
+        .instrucao-perfil { font-size: 0.9rem; font-weight: 600; color: var(--text-main); white-space: nowrap; }
 
         .categorias-lista { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; scroll-behavior: smooth; }
         .categorias-lista::-webkit-scrollbar { display: none; }
-        .btn-categoria { 
-            background: var(--input-bg); color: var(--text-muted); 
-            border: 1px solid var(--bg-glass-border); border-radius: 20px; 
-            padding: 8px 18px; white-space: nowrap; font-weight: 500; 
-        }
+        .btn-categoria { background: var(--input-bg); color: var(--text-muted); border: 1px solid var(--bg-glass-border); border-radius: 20px; padding: 8px 18px; white-space: nowrap; font-weight: 500; }
         .btn-categoria.ativo { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
 
+        /* Grid de Músicas - Bloqueio contra botões espremidos */
         .grid-musicas { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
         .card-musica, .item-fila-grande {
             display: flex; justify-content: space-between; align-items: center; gap: 10px;
@@ -170,45 +166,77 @@
             background: var(--bg-glass); border: 1px solid var(--bg-glass-border);
             box-shadow: var(--card-shadow);
         }
-        .info-musica { flex: 1; min-width: 0; }
-        .titulo-musica { font-weight: 600; color: var(--text-main); font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .artista-musica { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .botoes-card { display: flex; gap: 6px; flex-shrink: 0; }
-        .btn-acao { 
-            background: var(--input-bg); border: 1px solid var(--bg-glass-border); 
-            border-radius: 8px; width: 36px; height: 36px; 
-            display: flex; align-items: center; justify-content: center; color: var(--text-main); 
-        }
+        .info-musica { flex: 1 1 auto; min-width: 0; /* IMPEDIR QUE O TEXTO CRESÇA AO INFINITO */ overflow: hidden; }
+        .titulo-musica { font-weight: 600; color: var(--text-main); font-size: 1rem; display: block; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .artista-musica { font-size: 0.85rem; color: var(--text-muted); display: block; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .botoes-card { display: flex; gap: 8px; flex: 0 0 auto; /* IMPEDIR QUE O BOTÃO ENCOLHA */ }
+        .btn-acao { background: var(--input-bg); border: 1px solid var(--bg-glass-border); border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: var(--text-main); }
 
+        /* Perfis */
         .perfis-grid { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; }
         .card-perfil { text-align: center; cursor: pointer; opacity: 0.6; transition: 0.3s; }
         .card-perfil.ativo { opacity: 1; transform: scale(1.05); }
-        .card-perfil .foto-perfil { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 3px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
+        .card-perfil .foto-perfil { width: 65px; height: 65px; border-radius: 50%; object-fit: cover; border: 3px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .card-perfil.ativo .foto-perfil { border-color: var(--accent-blue); box-shadow: 0 0 15px var(--accent-blue); }
-        .nome-perfil { display: block; font-size: 0.85rem; margin-top: 8px; color: var(--text-main); font-weight: 600; white-space: nowrap; }
+        .nome-perfil { display: block; font-size: 0.85rem; margin-top: 8px; color: var(--text-main); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;}
+        
+        .perfil-logado-mini { width: 45px; height: 45px; flex-shrink: 0; border-radius: 50%; overflow: hidden; display: flex; justify-content: center; align-items: center; border: 2px solid var(--accent-blue); background: #fff;}
+        .perfil-logado-mini img { width: 100%; height: 100%; object-fit: cover !important; }
 
+        /* Fila VIP */
         .itens-fila-grandes { display: flex; flex-direction: column; gap: 15px; }
-        .fila-rank { font-weight: 800; font-size: 1.3rem; color: var(--accent-blue); width: 35px; }
-        .avatares-dupla { display: flex; position: relative; width: 60px; flex-shrink: 0; }
-        .foto-sobreposta { position: absolute; left: 20px; border: 2px solid var(--bg-glass); }
-        .fila-info-textos { flex: 1; min-width: 0; margin-left: 10px; }
+        .fila-rank { font-weight: 800; font-size: 1.3rem; color: var(--accent-blue); width: 35px; flex-shrink: 0; text-align: center;}
+        .avatares-dupla { display: flex; position: relative; width: 60px; height: 40px; flex-shrink: 0; align-items: center; }
+        .foto-perfil-mini { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--bg-glass); box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
+        .foto-sobreposta { position: absolute; left: 20px; z-index: 2;}
+        .fila-info-textos { flex: 1 1 auto; min-width: 0; margin-left: 10px; }
         .fila-nome { display: block; font-size: 0.95rem; color: var(--text-main); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .fila-musica { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .fila-musica { font-size: 0.85rem; color: var(--text-muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .fila-acoes { flex: 0 0 auto; display: flex; gap: 8px; }
         .btn-remover { background: rgba(255,0,0,0.1); color: #ff4757; border: none; border-radius: 8px; width: 36px; height: 36px; }
 
-        .lista-top { display: flex; flex-direction: column; gap: 12px; }
-        .item-rank, .item-rank-musica { 
-            display: flex; justify-content: space-between; align-items: center; gap: 10px;
-            padding: 12px 15px; background: var(--bg-glass); border-radius: 12px; border: 1px solid var(--bg-glass-border); 
-        }
-        .rank-info { display: flex; align-items: center; gap: 12px; }
-        .rank-pos { font-weight: 800; font-size: 1.2rem; width: 25px; text-align: center; color: var(--text-muted); }
-        .rank-pontos { font-weight: 700; color: var(--accent-purple); }
-        .info-hit { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-        .titulo-hit { font-weight: 600; color: var(--text-main); font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .artista-hit { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* Banner Ao Vivo (Corrigido foto gigante) */
+        .banner-ao-vivo { background: var(--bg-glass); border: 2px solid var(--accent-blue); border-radius: 16px; padding: 15px; margin-bottom: 20px; box-shadow: 0 0 20px rgba(0,180,216,0.2); }
+        .ao-vivo-header { font-size: 0.8rem; font-weight: 800; color: #ff4757; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; }
+        .ao-vivo-conteudo { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .ao-vivo-conteudo .avatares-dupla { width: 60px; height: 60px; }
+        .ao-vivo-conteudo .foto-perfil-mini { width: 60px; height: 60px; border: 3px solid var(--accent-blue);}
+        .ao-vivo-conteudo .foto-sobreposta { left: 30px; border-color: var(--accent-purple); }
+        .ao-vivo-textos { flex: 1; min-width: 0; }
+        .ao-vivo-textos strong { font-size: 1.1rem; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--accent-blue);}
+        .ao-vivo-textos span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-muted);}
+        .botoes-banner-live { display: flex; gap: 10px; }
+        .botoes-banner-live button { flex: 1; padding: 12px; font-size: 1rem; border-radius: 10px; }
 
-        .badge-sala { background: var(--input-bg); border: 1px solid var(--bg-glass-border); padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; color: var(--accent-blue); font-weight: 600;}
+        /* Ranking e Top Hits */
+        .lista-top { display: flex; flex-direction: column; gap: 12px; }
+        .item-rank, .item-rank-musica { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 15px; background: var(--bg-glass); border-radius: 12px; border: 1px solid var(--bg-glass-border); box-shadow: var(--card-shadow); }
+        .rank-info { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+        .rank-pos { font-weight: 800; font-size: 1.2rem; width: 25px; flex-shrink: 0; text-align: center; color: var(--text-muted); }
+        .rank-info img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid var(--bg-glass-border);}
+        .rank-info div { flex: 1; min-width: 0; }
+        .rank-info strong { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main); font-size: 0.95rem; }
+        .rank-pontos { font-weight: 800; color: var(--accent-purple); flex-shrink: 0; font-size: 1.1rem; }
+        
+        .info-hit { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+        .titulo-hit { font-weight: 600; color: var(--text-main); font-size: 0.95rem; display: block; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .artista-hit { font-size: 0.8rem; color: var(--text-muted); display: block; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .qtd-hit { font-weight: 700; color: var(--text-muted); flex-shrink: 0; background: var(--input-bg); padding: 5px 10px; border-radius: 20px;}
+
+        .badge-sala { background: var(--input-bg); border: 1px solid var(--bg-glass-border); padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; color: var(--accent-blue); font-weight: 600; display: inline-flex; align-items: center; gap: 5px;}
+
+        /* ============================================================================
+           SISTEMA DE CONQUISTAS (CARROSSEL)
+           ============================================================================ */
+        .conquistas-grid { display: flex; overflow-x: auto; gap: 12px; margin-top: 15px; padding-bottom: 10px; scroll-behavior: smooth; }
+        .conquistas-grid::-webkit-scrollbar { height: 6px; }
+        .conquistas-grid::-webkit-scrollbar-thumb { background: var(--accent-blue); border-radius: 10px; }
+        .conquistas-grid::-webkit-scrollbar-track { background: var(--input-bg); border-radius: 10px; }
+        .item-conquista { flex: 0 0 100px; background: var(--input-bg); border-radius: 10px; padding: 15px 5px; text-align: center; border: 1px solid var(--bg-glass-border); opacity: 0.5; filter: grayscale(100%); transition: all 0.3s; }
+        .item-conquista.desbloqueada { opacity: 1; filter: grayscale(0%); background: rgba(167, 139, 250, 0.1); border-color: var(--accent-purple); box-shadow: 0 0 15px rgba(167, 139, 250, 0.2); }
+        .item-conquista .icone { font-size: 2.2rem; margin-bottom: 8px; }
+        .item-conquista .nome { font-size: 0.75rem; font-weight: 600; line-height: 1.2; color: var(--text-main); }
+        .mini-medalhas { font-size: 16px; margin-top: 5px; }
 
         /* ============================================================================
            PALCO E OVERLAY
@@ -222,7 +250,7 @@
         #player-video { width: 100%; height: 100%; object-fit: contain; }
 
         .acoes-palco-topo { padding: 15px; display: flex; justify-content: space-between; background: var(--bg-glass); border-bottom: 1px solid var(--bg-glass-border); }
-        .btn-acao-palco { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--bg-glass-border); padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;}
+        .btn-acao-palco { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--bg-glass-border); padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
         .btn-acao-palco.btn-fechar { background: rgba(255,0,0,0.1); color: #ff4757; border-color: rgba(255,0,0,0.2);}
 
         .tela-palco-overlay.minimizado .acoes-palco-topo, .tela-palco-overlay.minimizado .conteudo-palco-expandido { display: none; }
@@ -230,13 +258,14 @@
         .tela-palco-overlay.minimizado .capa-mini { display: flex !important; }
 
         .conteudo-palco-expandido { padding: 20px; flex-grow: 1; overflow-y: auto; background: var(--bg-body); }
-        .info-cantando { display: flex; align-items: center; gap: 15px; padding: 15px; border-radius: 14px; }
-        .avatares-dupla-palco { display: flex; position: relative; }
+        
+        .info-cantando { display: flex; align-items: center; gap: 15px; padding: 15px; border-radius: 14px; background: var(--bg-glass); border: 1px solid var(--bg-glass-border); box-shadow: var(--card-shadow);}
+        .avatares-dupla-palco { display: flex; position: relative; width: 60px; height: 60px; flex-shrink: 0; }
         .foto-cantor-palco { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); }
-        .foto-sobreposta-palco { position: absolute; left: 30px; border-color: var(--accent-purple); }
+        .foto-sobreposta-palco { position: absolute; left: 30px; border-color: var(--accent-purple); z-index: 2;}
         .textos-palco { flex: 1; min-width: 0; }
-        .nome-cantor-palco { font-weight: 600; font-size: 0.9rem; color: var(--text-main); }
-        #titulo-atual { font-size: 1.2rem; font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .nome-cantor-palco { font-weight: 600; font-size: 0.9rem; color: var(--text-main); margin-bottom: 5px; display: flex; align-items: center; gap: 5px;}
+        #titulo-atual { font-size: 1.2rem; font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;}
 
         /* ============================================================================
            MODAIS E VOTAÇÃO
@@ -249,10 +278,10 @@
         .btn-voto:active { transform: scale(0.9); background: var(--accent-blue); color: #fff; border-color: var(--accent-blue);}
 
         /* ============================================================================
-           ANIMAÇÕES E CONQUISTAS
+           ANIMAÇÕES EXTRAS
            ============================================================================ */
         .pulse-anim { animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
         .blink-anim { animation: blink 1s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .ponto-vermelho { display: inline-block; width: 10px; height: 10px; background: #ff4757; border-radius: 50%; margin-right: 8px; box-shadow: 0 0 10px #ff4757;}
@@ -264,16 +293,6 @@
 
         #tour-overlay { background: rgba(0, 0, 0, 0.7) !important; z-index: 9998; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;}
         #tour-balao { border: 2px solid var(--accent-blue) !important; background: var(--bg-body) !important; }
-
-        .conquistas-grid { display: flex; overflow-x: auto; gap: 12px; margin-top: 15px; padding-bottom: 10px; scroll-behavior: smooth; }
-        .conquistas-grid::-webkit-scrollbar { height: 6px; }
-        .conquistas-grid::-webkit-scrollbar-thumb { background: var(--accent-blue); border-radius: 10px; }
-        .conquistas-grid::-webkit-scrollbar-track { background: var(--input-bg); border-radius: 10px; }
-        .item-conquista { flex: 0 0 100px; background: var(--input-bg); border-radius: 10px; padding: 15px 5px; text-align: center; border: 1px solid var(--bg-glass-border); opacity: 0.5; filter: grayscale(100%); transition: all 0.3s; }
-        .item-conquista.desbloqueada { opacity: 1; filter: grayscale(0%); background: rgba(167, 139, 250, 0.1) !important; border-color: var(--accent-purple) !important; box-shadow: 0 0 15px rgba(167, 139, 250, 0.2) !important; }
-        .item-conquista .icone { font-size: 2rem; margin-bottom: 8px; }
-        .item-conquista .nome { font-size: 0.75rem; font-weight: 600; line-height: 1.1; color: var(--text-main); }
-        .mini-medalhas { font-size: 14px; margin-top: 5px; filter: drop-shadow(0 0 2px rgba(0,0,0,0.1)); }
     </style>
 </head>
 <body>
@@ -290,36 +309,36 @@
     </nav>
 
     <div id="tour-overlay" class="escondido"><div id="tour-balao"><h3 id="tour-titulo" class="texto-destaque" style="margin-bottom: 8px; font-size: 1.2rem;">Título</h3><p id="tour-texto" class="texto-claro" style="font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">Texto</p><div style="display: flex; justify-content: space-between;"><button class="btn-secundario" onclick="encerrarTour()" style="padding: 8px 15px; margin: 0; font-size: 0.8rem;">Pular Tour</button><button class="btn-vibrante-sm" onclick="proximoTourStep()" id="tour-btn-proximo" style="padding: 8px 15px; margin: 0; font-size: 0.8rem;">Próximo ❯</button></div></div></div>
-    <div id="modal-qr" class="modal-overlay escondido"><div class="modal-content glass-effect text-center"><h3>Entrada VIP</h3><p class="texto-pequeno mt-10">Peça para seus amigos apontarem a câmera para entrar na sala direto!</p><div id="qrcode-container" style="background: white; padding: 15px; border-radius: 10px; display: inline-block; margin: 15px 0;"></div><div class="botoes-modal"><button class="btn-secundario w-100" onclick="fecharModalQR()">Fechar</button></div></div></div>
-    <div id="modal-alerta" class="modal-overlay escondido"><div class="modal-content glass-effect"><h3 id="titulo-alerta"><i class="fa-solid fa-bell texto-destaque"></i> Aviso</h3><p id="mensagem-alerta" class="texto-pequeno mt-15 mb-20" style="font-size: 1rem;">Sua mensagem aqui.</p><div class="botoes-modal"><button class="btn-vibrante-sm w-100" onclick="fecharModalAlerta()">OK</button></div></div></div>
-    <div id="modal-dueto" class="modal-overlay escondido"><div class="modal-content glass-effect"><h3>Cantar em Dupla 🎤🎤</h3><p class="texto-pequeno mt-10">Quem vai cantar com você?</p><div id="lista-parceiros-modal" class="perfis-grid mt-15 mb-20"></div><div class="botoes-modal"><button class="btn-secundario" onclick="fecharModalDueto()">Cancelar</button></div></div></div>
-    <div id="modal-senha" class="modal-overlay escondido"><div class="modal-content glass-effect"><h3><i class="fa-solid fa-lock texto-destaque"></i> Sala Privada</h3><p class="texto-pequeno mt-10">Esta sala exige uma senha para entrar.</p><div class="criar-perfil-box mt-15 mb-20"><input type="password" id="input-senha-acesso" placeholder="Digite a senha..."></div><div class="botoes-modal"><button class="btn-secundario" onclick="fecharModalSenha()">Cancelar</button><button class="btn-vibrante-sm" onclick="verificarSenha()">Entrar</button></div></div></div>
+    <div id="modal-qr" class="modal-overlay escondido"><div class="modal-content glass-effect text-center" style="padding: 30px;"><h3>Entrada VIP</h3><p class="texto-pequeno mt-10">Peça para seus amigos apontarem a câmera para entrar na sala direto!</p><div id="qrcode-container" style="background: white; padding: 15px; border-radius: 10px; display: inline-block; margin: 15px 0; border: 2px solid var(--accent-blue);"></div><div class="botoes-modal"><button class="btn-secundario w-100" onclick="fecharModalQR()">Fechar</button></div></div></div>
+    <div id="modal-alerta" class="modal-overlay escondido"><div class="modal-content glass-effect" style="padding: 30px;"><h3 id="titulo-alerta"><i class="fa-solid fa-bell texto-destaque"></i> Aviso</h3><p id="mensagem-alerta" class="texto-pequeno mt-15 mb-20" style="font-size: 1rem;">Sua mensagem aqui.</p><div class="botoes-modal"><button class="btn-vibrante-sm w-100" onclick="fecharModalAlerta()">OK</button></div></div></div>
+    <div id="modal-dueto" class="modal-overlay escondido"><div class="modal-content glass-effect" style="padding: 30px;"><h3>Cantar em Dupla 🎤🎤</h3><p class="texto-pequeno mt-10">Quem vai cantar com você?</p><div id="lista-parceiros-modal" class="perfis-grid mt-15 mb-20"></div><div class="botoes-modal"><button class="btn-secundario w-100" onclick="fecharModalDueto()">Cancelar</button></div></div></div>
+    <div id="modal-senha" class="modal-overlay escondido"><div class="modal-content glass-effect" style="padding: 30px;"><h3><i class="fa-solid fa-lock texto-destaque"></i> Sala Privada</h3><p class="texto-pequeno mt-10">Esta sala exige uma senha para entrar.</p><div class="criar-perfil-box mt-15 mb-20"><input type="password" id="input-senha-acesso" placeholder="Digite a senha..."></div><div class="botoes-modal"><button class="btn-secundario" onclick="fecharModalSenha()">Cancelar</button><button class="btn-vibrante-sm" onclick="verificarSenha()">Entrar</button></div></div></div>
 
     <div id="modal-conquista" class="modal-overlay escondido">
-        <div class="modal-content glass-effect text-center" style="border: 2px solid var(--accent-purple); box-shadow: 0 0 40px rgba(167,139,250,0.5);">
-            <h3 class="blink-anim texto-destaque" style="text-transform: uppercase; letter-spacing: 2px; font-size: 1.5rem; margin-bottom: 10px;">NOVA CONQUISTA!</h3>
-            <div id="icone-conquista" style="font-size: 5rem; margin: 15px 0; text-shadow: 0 0 25px rgba(167,139,250,0.5);">🏆</div>
+        <div class="modal-content glass-effect text-center" style="border: 2px solid var(--accent-purple); box-shadow: 0 0 40px rgba(167,139,250,0.5); padding: 40px 20px;">
+            <h3 class="blink-anim" style="color: var(--accent-purple); text-transform: uppercase; letter-spacing: 2px; font-size: 1.5rem; margin-bottom: 10px;">NOVA CONQUISTA!</h3>
+            <div id="icone-conquista" style="font-size: 6rem; margin: 15px 0; text-shadow: 0 0 25px rgba(167,139,250,0.5);">🏆</div>
             <h2 id="nome-conquista" style="margin-bottom: 8px; font-size: 1.8rem;">Nome</h2>
             <p id="desc-conquista" class="texto-claro mb-20" style="font-style: italic;">Descrição</p>
-            <div class="botoes-modal"><button class="btn-vibrante w-100" style="background: var(--accent-purple) !important; color: #fff; font-weight: 800;" onclick="fecharModalConquista()">Sensacional!</button></div>
+            <div class="botoes-modal"><button class="btn-vibrante w-100" style="background: var(--accent-purple) !important; color: #fff !important; font-weight: 800; font-size: 1.2rem; padding: 15px;" onclick="fecharModalConquista()">Sensacional!</button></div>
         </div>
     </div>
 
     <section id="tela-salas" class="tela ativa fade-in">
         <div class="hero-container text-center mt-20">
-            <div class="logo-premium"><i class="fa-solid fa-microphone-lines texto-destaque"></i></div>
-            <h1 class="titulo-principal mb-10">KARAOKÊ <span class="destaque">VIP</span></h1>
+            <div style="font-size: 3rem; margin-bottom: 10px;"><i class="fa-solid fa-microphone-lines texto-destaque"></i></div>
+            <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 10px;">KARAOKÊ <span class="texto-destaque">VIP</span></h1>
             <p class="texto-cinza mb-20">Entre em uma sala para ter acesso ao catálogo de músicas.</p>
             <div class="glass-effect p-20 mb-20 text-left">
                 <h3><i class="fa-solid fa-plus texto-destaque"></i> Criar Nova Sala</h3>
-                <div class="criar-perfil-box" style="flex-direction: column; gap: 10px; margin-top: 10px;">
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
                     <input type="text" id="input-criar-sala" placeholder="Nome da Sala">
                     <div style="display: flex; gap: 10px;"><input type="password" id="input-senha-sala" placeholder="Senha (Opcional)"><button class="btn-vibrante-sm" onclick="criarSala()">Criar</button></div>
                 </div>
             </div>
             <div class="glass-effect p-20 text-left">
                 <h3><i class="fa-solid fa-door-open icone-azul"></i> Salas Abertas</h3>
-                <div id="lista-salas-abertas" class="categorias-lista mt-10" style="flex-wrap: wrap;"></div>
+                <div id="lista-salas-abertas" class="categorias-lista mt-15" style="flex-wrap: wrap;"></div>
             </div>
         </div>
     </section>
@@ -328,148 +347,248 @@
         <div class="container-tela">
             <div class="header-tela">
                 <div>
-                    <h2>Visão Geral</h2>
-                    <span id="badge-nome-sala" class="badge-sala"><i class="fa-solid fa-door-open"></i> Sala: <strong>Nenhuma</strong> <i class="fa-solid fa-right-from-bracket" style="margin-left: 10px; cursor: pointer; color: var(--accent-blue);" onclick="sairDaSala()"></i></span>
+                    <h2 style="font-size: 1.8rem; font-weight: 800;">Visão Geral</h2>
+                    <span id="badge-nome-sala" class="badge-sala mt-10"><i class="fa-solid fa-door-open"></i> Sala: <strong>Nenhuma</strong> <i class="fa-solid fa-right-from-bracket" style="margin-left: 10px; cursor: pointer; color: var(--accent-blue);" onclick="sairDaSala()"></i></span>
                 </div>
                 <div style="display: flex; gap: 12px; align-items: center;">
-                    <button id="theme-toggle" class="btn-secundario" onclick="alternarTema()" style="padding: 10px; margin:0;" title="Mudar Tema">
+                    <button id="theme-toggle" class="btn-secundario" onclick="alternarTema()" style="width: 45px; height: 45px; padding: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center;" title="Mudar Tema">
                         <i class="fa-solid fa-moon"></i>
                     </button>
-                    <button class="btn-secundario" onclick="mostrarQR()" style="padding: 10px; margin:0;" title="Convidar Amigos"><i class="fa-solid fa-qrcode"></i></button>
-                    <div class="perfil-logado-mini" onclick="mudarTela('tela-perfil', document.getElementById('nav-perfil'))" style="width: 45px; height: 45px; flex-shrink: 0; border-radius: 50%; overflow: hidden; display: flex; justify-content: center; align-items: center; border: 2px solid var(--accent-blue);">
-                        <img id="dash-foto-perfil" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Visitante&backgroundColor=b6e3f4" style="width: 100%; height: 100%; object-fit: cover !important; display: block;">
+                    <button class="btn-secundario" onclick="mostrarQR()" style="width: 45px; height: 45px; padding: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center;" title="Convidar Amigos"><i class="fa-solid fa-qrcode"></i></button>
+                    <div class="perfil-logado-mini" onclick="mudarTela('tela-perfil', document.getElementById('nav-perfil'))">
+                        <img id="dash-foto-perfil" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Visitante&backgroundColor=b6e3f4" alt="Perfil">
                     </div>
                 </div>
             </div>
             
-            <div id="banner-ao-vivo" class="banner-ao-vivo escondido" style="background: var(--bg-glass) !important; border: 1px solid var(--accent-blue);">
+            <div id="banner-ao-vivo" class="banner-ao-vivo escondido">
                 <div class="ao-vivo-header"><span class="ponto-vermelho pulse-anim"></span> AO VIVO AGORA</div>
-                <div class="ao-vivo-conteudo mb-15">
-                    <div class="avatares-dupla"><img id="ao-vivo-foto" src="" class="foto-perfil-mini"><img id="ao-vivo-foto-2" src="" class="foto-perfil-mini foto-sobreposta escondido"></div>
-                    <div class="ao-vivo-textos"><strong id="ao-vivo-nome" class="texto-destaque">Cantor</strong><br><span id="ao-vivo-musica" class="texto-pequeno">Música</span></div>
+                <div class="ao-vivo-conteudo">
+                    <div class="avatares-dupla">
+                        <img id="ao-vivo-foto" src="" class="foto-perfil-mini">
+                        <img id="ao-vivo-foto-2" src="" class="foto-perfil-mini foto-sobreposta escondido">
+                    </div>
+                    <div class="ao-vivo-textos">
+                        <strong id="ao-vivo-nome">Cantor</strong>
+                        <span id="ao-vivo-musica">Música</span>
+                    </div>
                 </div>
-                <div class="botoes-reacoes mb-15" style="display:flex; gap:10px; justify-content:center;">
-                    <button class="btn-secundario" style="padding: 10px 15px; font-size: 1.2rem;" onclick="enviarReacao('❤️')">❤️</button>
-                    <button class="btn-secundario" style="padding: 10px 15px; font-size: 1.2rem;" onclick="enviarReacao('🔥')">🔥</button>
-                    <button class="btn-secundario" style="padding: 10px 15px; font-size: 1.2rem;" onclick="enviarReacao('🍅')">🍅</button>
-                    <button class="btn-secundario" style="padding: 10px 15px; font-size: 1.2rem;" onclick="enviarReacao('🍻')">🍻</button>
+                <div style="display:flex; gap:10px; justify-content:center; margin: 15px 0;">
+                    <button class="btn-secundario" style="padding: 10px 15px; font-size: 1.4rem; border-radius: 12px;" onclick="enviarReacao('❤️')">❤️</button>
+                    <button class="btn-secundario" style="padding: 10px 15px; font-size: 1.4rem; border-radius: 12px;" onclick="enviarReacao('🔥')">🔥</button>
+                    <button class="btn-secundario" style="padding: 10px 15px; font-size: 1.4rem; border-radius: 12px;" onclick="enviarReacao('🍅')">🍅</button>
+                    <button class="btn-secundario" style="padding: 10px 15px; font-size: 1.4rem; border-radius: 12px;" onclick="enviarReacao('🍻')">🍻</button>
                 </div>
                 <div class="botoes-banner-live">
                     <button class="btn-secundario" onclick="maximizarPalco()"><i class="fa-solid fa-tv"></i> Ver Palco</button>
-                    <button class="btn-vibrante-sm" onclick="abrirCabineVotacao()"><i class="fa-solid fa-star"></i> Votar</button>
+                    <button class="btn-vibrante" onclick="abrirCabineVotacao()"><i class="fa-solid fa-star"></i> Votar</button>
                 </div>
             </div>
 
-            <div class="glass-effect mb-20" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 10px; border-radius: 12px;">
+            <div class="glass-effect mb-20" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 5px; border-radius: 16px;">
                 <div onclick="mudarTela('tela-playlist', document.getElementById('nav-catalogo'))" style="flex: 1; text-align: center; cursor: pointer; border-right: 1px solid var(--bg-glass-border);">
-                    <i class="fa-solid fa-compact-disc icone-azul" style="font-size: 1.2rem; margin-bottom: 5px;"></i>
-                    <h3 id="dash-qtd-musicas" style="margin: 0; font-size: 1.2rem;">0</h3>
-                    <span class="texto-pequeno" style="font-size: 0.7rem; text-transform: uppercase;">Músicas</span>
+                    <i class="fa-solid fa-compact-disc icone-azul" style="font-size: 1.5rem; margin-bottom: 5px;"></i>
+                    <h3 id="dash-qtd-musicas" style="margin: 0; font-size: 1.5rem; font-weight: 800;">0</h3>
+                    <span class="texto-pequeno" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;">Músicas</span>
                 </div>
                 <div onclick="mudarTela('tela-perfil', document.getElementById('nav-perfil'))" style="flex: 1; text-align: center; cursor: pointer; border-right: 1px solid var(--bg-glass-border);">
-                    <i class="fa-solid fa-users icone-rosa" style="font-size: 1.2rem; margin-bottom: 5px;"></i>
-                    <h3 id="dash-qtd-cantores" style="margin: 0; font-size: 1.2rem;">0</h3>
-                    <span class="texto-pequeno" style="font-size: 0.7rem; text-transform: uppercase;">Cantores</span>
+                    <i class="fa-solid fa-users icone-rosa" style="font-size: 1.5rem; margin-bottom: 5px;"></i>
+                    <h3 id="dash-qtd-cantores" style="margin: 0; font-size: 1.5rem; font-weight: 800;">0</h3>
+                    <span class="texto-pequeno" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;">Cantores</span>
                 </div>
                 <div style="flex: 1; text-align: center;">
-                    <i class="fa-solid fa-tower-broadcast icone-azul" style="font-size: 1.2rem; margin-bottom: 5px;"></i>
-                    <h3 id="dash-qtd-salas" style="margin: 0; font-size: 1.2rem;">0</h3>
-                    <span class="texto-pequeno" style="font-size: 0.7rem; text-transform: uppercase;">Salas</span>
+                    <i class="fa-solid fa-tower-broadcast icone-azul" style="font-size: 1.5rem; margin-bottom: 5px;"></i>
+                    <h3 id="dash-qtd-salas" style="margin: 0; font-size: 1.5rem; font-weight: 800;">0</h3>
+                    <span class="texto-pequeno" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;">Salas</span>
                 </div>
             </div>
 
-            <div class="card-ranking-resumo glass-effect mb-20"><h3><i class="fa-solid fa-crown" style="color: var(--accent-purple);"></i> Hall da Fama</h3><div id="dash-top-cantores" class="lista-top"></div></div>
-            <div class="card-ranking-resumo glass-effect"><h3><i class="fa-solid fa-fire pulse-anim" style="color: #ff5e00;"></i> Top Hits</h3><div id="dash-top-musicas" class="lista-top mt-10"></div></div>
+            <div class="card-ranking-resumo glass-effect mb-20 p-20">
+                <h3 style="margin-bottom: 15px; font-size: 1.3rem;"><i class="fa-solid fa-crown" style="color: var(--accent-purple);"></i> Hall da Fama</h3>
+                <div id="dash-top-cantores" class="lista-top"></div>
+            </div>
+            
+            <div class="card-ranking-resumo glass-effect p-20">
+                <h3 style="margin-bottom: 15px; font-size: 1.3rem;"><i class="fa-solid fa-fire pulse-anim" style="color: #ff5e00;"></i> Top Hits</h3>
+                <div id="dash-top-musicas" class="lista-top"></div>
+            </div>
         </div>
     </section>
 
-    <section id="tela-favoritos" class="tela fade-in"><div class="container-tela"><h2><i class="fa-solid fa-heart texto-destaque"></i> Meu Repertório</h2><div class="glass-effect p-20"><p class="texto-pequeno mb-10">Músicas favoritadas:</p><div id="lista-favoritos-perfil" class="secao-lista mt-10"></div></div></div></section>
+    <section id="tela-favoritos" class="tela fade-in">
+        <div class="container-tela">
+            <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 20px;"><i class="fa-solid fa-heart texto-destaque"></i> Meu Repertório</h2>
+            <div class="glass-effect p-20">
+                <p class="texto-pequeno mb-15">Suas músicas prediletas prontas para cantar:</p>
+                <div id="lista-favoritos-perfil" class="grid-musicas"></div>
+            </div>
+        </div>
+    </section>
     
     <section id="tela-perfil" class="tela fade-in">
         <div class="container-tela">
-            <h2>Gestão de Perfil</h2>
+            <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 20px;">Gestão de Perfil</h2>
             
             <div class="glass-effect p-20 mb-20">
-                <h3><i class="fa-solid fa-star texto-destaque"></i> Cantor Oficial</h3>
-                <p class="texto-pequeno mb-15">Envie sua foto real para participar do Ranking.</p>
-                <div style="display: flex; justify-content: space-between; align-items: center;"><span class="instrucao-perfil" style="color: var(--text-main);">1. Foto:</span><button id="btn-upload-foto" class="btn-secundario" style="padding: 5px 12px; font-size: 0.8rem;"><i class="fa-solid fa-camera"></i> Enviar</button></div>
-                <input type="file" id="input-foto-perfil" accept="image/*" class="escondido">
-                <div id="seletor-avatares" class="avatares-grid mt-15 mb-15" style="justify-content: center;"></div>
-                <p class="instrucao-perfil" style="color: var(--text-main);">2. Digite seu Nome:</p>
-                <div class="criar-perfil-box"><input type="text" id="input-novo-perfil" placeholder="Nome..."><button onclick="criarPerfil()"><i class="fa-solid fa-check"></i></button></div>
+                <h3 style="font-size: 1.3rem; margin-bottom: 5px;"><i class="fa-solid fa-star texto-destaque"></i> Cantor Oficial</h3>
+                <p class="texto-pequeno mb-20">Crie seu perfil para pontuar no Ranking.</p>
+                
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                    <span class="instrucao-perfil">1. Sua Foto:</span>
+                    <button id="btn-upload-foto" class="btn-secundario" style="padding: 8px 15px; font-size: 0.9rem;"><i class="fa-solid fa-camera"></i> Enviar</button>
+                    <input type="file" id="input-foto-perfil" accept="image/*" class="escondido">
+                </div>
+                
+                <div id="seletor-avatares" class="avatares-grid mb-20" style="justify-content: center; display: flex; gap: 10px;"></div>
+                
+                <span class="instrucao-perfil mb-10" style="display: block;">2. Seu Nome:</span>
+                <div class="criar-perfil-box">
+                    <input type="text" id="input-novo-perfil" placeholder="Como quer ser chamado?">
+                    <button class="btn-vibrante" onclick="criarPerfil()" style="padding: 0 20px;"><i class="fa-solid fa-check"></i></button>
+                </div>
             </div>
             
             <div class="glass-effect p-20 mb-20">
-                <h3><i class="fa-solid fa-user-astronaut icone-azul"></i> Convidado Rápido</h3>
-                <div class="criar-perfil-box mt-10"><input type="text" id="input-convidado" placeholder="Nome do visitante..."><button class="btn-convidado" onclick="entrarComoConvidado()">Entrar</button></div>
+                <h3 style="font-size: 1.3rem; margin-bottom: 15px;"><i class="fa-solid fa-user-astronaut icone-azul"></i> Convidado Rápido</h3>
+                <div class="criar-perfil-box">
+                    <input type="text" id="input-convidado" placeholder="Nome do visitante...">
+                    <button class="btn-vibrante" onclick="entrarComoConvidado()">Entrar</button>
+                </div>
             </div>
             
             <div class="glass-effect p-20 mb-20">
-                <h3>Mudar de Cantor</h3>
-                <div id="lista-perfis" class="perfis-grid mt-10"></div>
+                <h3 style="font-size: 1.3rem; margin-bottom: 15px;">Mudar de Cantor</h3>
+                <div id="lista-perfis" class="perfis-grid"></div>
             </div>
 
             <div class="glass-effect p-20" id="box-conquistas-perfil">
-                <h3><i class="fa-solid fa-medal icone-rosa"></i> Suas Conquistas</h3>
-                <p class="texto-pequeno">Cante, vote e interaja para desbloquear a Elite VIP.</p>
+                <h3 style="font-size: 1.3rem; margin-bottom: 5px;"><i class="fa-solid fa-medal icone-rosa"></i> Suas Conquistas</h3>
+                <p class="texto-pequeno mb-15">Jogue para desbloquear a Elite VIP.</p>
                 <div id="painel-conquistas" class="conquistas-grid"></div>
             </div>
             
         </div>
     </section>
 
-    <section id="tela-playlist" class="tela fade-in"><div class="container-tela"><h2>Catálogo</h2><div class="busca-caixa glass-effect"><i class="fa-solid fa-search"></i><input type="text" id="input-busca" placeholder="Buscar música ou artista..."></div><div id="container-categorias" class="categorias-lista"></div><div class="secao-lista"><div id="lista-musicas" class="grid-musicas"></div><div id="paginacao-container" class="paginacao"></div></div></div></section>
+    <section id="tela-playlist" class="tela fade-in">
+        <div class="container-tela">
+            <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 20px;">Catálogo</h2>
+            <div class="busca-caixa glass-effect" style="display: flex; align-items: center; padding: 5px 15px; border-radius: 12px; margin-bottom: 15px;">
+                <i class="fa-solid fa-search texto-muted" style="margin-right: 10px; font-size: 1.2rem;"></i>
+                <input type="text" id="input-busca" placeholder="Buscar música ou artista..." style="border: none; background: transparent; box-shadow: none; padding: 15px 0;">
+            </div>
+            <div id="container-categorias" class="categorias-lista"></div>
+            <div id="lista-musicas" class="grid-musicas"></div>
+            <div id="paginacao-container" class="paginacao"></div>
+        </div>
+    </section>
     
-    <section id="tela-fila" class="tela fade-in"><div class="container-tela"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;"><h2 style="margin:0;">Na Fila</h2><span id="badge-dj" class="badge-sala escondido" style="background: var(--accent-purple); color: #fff;"><i class="fa-solid fa-headphones"></i> DJ</span></div><div class="glass-effect p-20"><div id="lista-fila" class="itens-fila-grandes"></div><button class="btn-vibrante w-100 mt-20" onclick="mudarTela('tela-playlist', document.getElementById('nav-catalogo'))">Escolher Música</button></div></div></section>
+    <section id="tela-fila" class="tela fade-in">
+        <div class="container-tela">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="font-size: 1.8rem; font-weight: 800; margin:0;">Na Fila</h2>
+                <span id="badge-dj" class="badge-sala escondido" style="background: var(--accent-purple); color: #fff; border: none;"><i class="fa-solid fa-headphones"></i> DJ</span>
+            </div>
+            <div class="glass-effect p-20">
+                <div id="lista-fila" class="itens-fila-grandes"></div>
+                <button class="btn-vibrante w-100 mt-20" style="padding: 15px; font-size: 1.1rem;" onclick="mudarTela('tela-playlist', document.getElementById('nav-catalogo'))">Escolher Música</button>
+            </div>
+        </div>
+    </section>
 
-    <section id="tela-ranking" class="tela fade-in"><div class="container-tela"><h2>Rank Oficial</h2><div class="glass-effect p-20"><div id="lista-ranking-completa" class="itens-ranking"></div></div></div></section>
+    <section id="tela-ranking" class="tela fade-in">
+        <div class="container-tela">
+            <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 20px;">Rank Oficial</h2>
+            <div class="glass-effect p-20">
+                <div id="lista-ranking-completa" class="lista-top"></div>
+            </div>
+        </div>
+    </section>
     
-    <section id="tela-votacao" class="tela fade-in"><div class="container-tela text-center"><h2>Votação</h2><div class="glass-effect p-20"><div class="avatares-dupla-palco" style="justify-content: center; margin-bottom: 15px;"><img id="voto-foto-cantor" src="" class="foto-cantor-palco"><img id="voto-foto-cantor-2" src="" class="foto-cantor-palco foto-sobreposta-palco escondido"></div><h3 id="voto-nome-cantor" class="texto-destaque">Cantor</h3><p id="voto-musica" class="texto-cinza mb-20">Música</p><div class="votos-grid"><button class="btn-voto" onclick="votar(1)">1</button><button class="btn-voto" onclick="votar(2)">2</button><button class="btn-voto" onclick="votar(3)">3</button><button class="btn-voto" onclick="votar(4)">4</button><button class="btn-voto" onclick="votar(5)">5</button><button class="btn-voto" onclick="votar(6)">6</button><button class="btn-voto" onclick="votar(7)">7</button><button class="btn-voto" onclick="votar(8)">8</button><button class="btn-voto" onclick="votar(9)">9</button><button class="btn-voto btn-nota-10" style="background: var(--accent-purple) !important; color: #fff !important;" onclick="votar(10)"><i class="fa-solid fa-star"></i> 10</button></div><div id="resultado-voto" class="resultado-voto mt-15">Aguardando seu voto...</div></div></div></section>
+    <section id="tela-votacao" class="tela fade-in">
+        <div class="container-tela text-center">
+            <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 20px;">Votação</h2>
+            <div class="glass-effect p-20">
+                <div class="avatares-dupla-palco" style="justify-content: center; margin-bottom: 20px; width: 100%;">
+                    <img id="voto-foto-cantor" src="" class="foto-cantor-palco" style="width: 80px; height: 80px;">
+                    <img id="voto-foto-cantor-2" src="" class="foto-cantor-palco foto-sobreposta-palco escondido" style="width: 80px; height: 80px; left: calc(50% + 10px);">
+                </div>
+                <h3 id="voto-nome-cantor" class="texto-destaque" style="font-size: 1.5rem;">Cantor</h3>
+                <p id="voto-musica" class="texto-cinza mb-20" style="font-size: 1rem;">Música</p>
+                
+                <div class="votos-grid">
+                    <button class="btn-voto" onclick="votar(1)">1</button>
+                    <button class="btn-voto" onclick="votar(2)">2</button>
+                    <button class="btn-voto" onclick="votar(3)">3</button>
+                    <button class="btn-voto" onclick="votar(4)">4</button>
+                    <button class="btn-voto" onclick="votar(5)">5</button>
+                    <button class="btn-voto" onclick="votar(6)">6</button>
+                    <button class="btn-voto" onclick="votar(7)">7</button>
+                    <button class="btn-voto" onclick="votar(8)">8</button>
+                    <button class="btn-voto" onclick="votar(9)">9</button>
+                    <button class="btn-voto btn-nota-10" style="background: var(--accent-purple) !important; color: #fff !important; border: none;" onclick="votar(10)"><i class="fa-solid fa-star"></i> 10</button>
+                </div>
+                <div id="resultado-voto" class="mt-20" style="font-weight: 600; color: var(--accent-blue);">Aguardando seu voto...</div>
+            </div>
+        </div>
+    </section>
 
     <section id="tela-palco" class="tela-palco-overlay escondido">
         <div class="palco-container fade-in">
-            <div class="acoes-palco-topo"><button class="btn-acao-palco" onclick="minimizarPalco()"><i class="fa-solid fa-compress"></i> Minimizar</button><button class="btn-acao-palco btn-fechar" onclick="encerrarPalco(true)"><i class="fa-solid fa-xmark"></i> Sair</button></div>
+            <div class="acoes-palco-topo">
+                <button class="btn-acao-palco" onclick="minimizarPalco()"><i class="fa-solid fa-compress"></i> Minimizar</button>
+                <button class="btn-acao-palco btn-fechar" onclick="encerrarPalco(true)"><i class="fa-solid fa-xmark"></i> Sair</button>
+            </div>
             
             <div class="player-wrapper">
                 <video id="player-video" crossorigin="anonymous" playsinline controls controlsList="nodownload"></video>
                 <div id="capa-mini-player" class="capa-mini escondido" onclick="maximizarPalco()"><i class="fa-solid fa-expand"></i></div>
                 
-                <div id="tela-transicao-palco" class="transicao-palco glass-effect escondido" style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 900; padding: 20px; box-sizing: border-box; overflow: hidden; background: rgba(0,0,0,0.85) !important;">
-                    <h2 class="texto-azul blink-anim" style="margin: 0 0 20px 0; font-size: 1.8rem; color: #00b4d8 !important;">PREPARE-SE!</h2>
-                    <div class="contador-circular" style="margin: 0; width: 80px; height: 80px; font-size: 2.2rem; border-width: 4px; color: #fff !important; border-color: #00b4d8 !important;"><span id="transicao-contador">20</span></div>
+                <div id="tela-transicao-palco" class="transicao-palco glass-effect escondido" style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 900; background: rgba(15, 23, 42, 0.95) !important;">
+                    <h2 class="texto-azul blink-anim" style="margin: 0 0 20px 0; font-size: 2.2rem; color: #00e5ff !important;">PREPARE-SE!</h2>
+                    <div class="contador-circular" style="margin: 0; width: 100px; height: 100px; font-size: 3rem; font-weight: 800; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 4px solid #00e5ff; color: #fff;"><span id="transicao-contador">20</span></div>
                 </div>
             </div>
 
             <div id="container-reacoes" style="position: absolute; bottom: 80px; right: 10px; width: 60px; height: 350px; pointer-events: none; z-index: 9999;"></div>
 
             <div class="conteudo-palco-expandido">
-                <div id="controles-estudio" class="glass-effect mb-15" style="display: flex; justify-content: space-around; padding: 15px; border-radius: 12px; border: 1px solid var(--bg-glass-border);">
-                    <div style="text-align: center;">
-                        <span class="icone-rosa" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;"><i class="fa-solid fa-music"></i> Tom</span>
-                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
-                            <button class="btn-secundario" onclick="ajustarTom(-1)" style="padding: 5px 15px; margin: 0; font-size: 1.2rem;">-</button>
-                            <strong id="display-tom" style="font-size: 1.2rem; width: 30px;">0</strong>
-                            <button class="btn-secundario" onclick="ajustarTom(1)" style="padding: 5px 15px; margin: 0; font-size: 1.2rem;">+</button>
+                <div id="controles-estudio" class="glass-effect mb-20" style="display: flex; justify-content: space-around; padding: 20px 10px; border-radius: 16px;">
+                    <div style="text-align: center; flex: 1;">
+                        <span class="icone-rosa" style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;"><i class="fa-solid fa-music"></i> Tom</span>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 10px;">
+                            <button class="btn-secundario" onclick="ajustarTom(-1)" style="width: 40px; height: 40px; border-radius: 10px; font-size: 1.2rem; padding: 0;">-</button>
+                            <strong id="display-tom" style="font-size: 1.5rem; width: 35px; color: var(--text-main);">0</strong>
+                            <button class="btn-secundario" onclick="ajustarTom(1)" style="width: 40px; height: 40px; border-radius: 10px; font-size: 1.2rem; padding: 0;">+</button>
                         </div>
                     </div>
-                    <div style="text-align: center;">
-                        <span class="texto-azul" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;"><i class="fa-solid fa-gauge-high"></i> Velocidade</span>
-                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
-                            <button class="btn-secundario" onclick="ajustarVelocidade(-0.1)" style="padding: 5px 15px; margin: 0; font-size: 1.2rem;">-</button>
-                            <strong id="display-velocidade" style="font-size: 1.2rem; width: 45px;">1.0x</strong>
-                            <button class="btn-secundario" onclick="ajustarVelocidade(0.1)" style="padding: 5px 15px; margin: 0; font-size: 1.2rem;">+</button>
+                    <div style="width: 1px; background: var(--bg-glass-border); margin: 0 10px;"></div>
+                    <div style="text-align: center; flex: 1;">
+                        <span class="texto-azul" style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;"><i class="fa-solid fa-gauge-high"></i> Vel.</span>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 10px;">
+                            <button class="btn-secundario" onclick="ajustarVelocidade(-0.1)" style="width: 40px; height: 40px; border-radius: 10px; font-size: 1.2rem; padding: 0;">-</button>
+                            <strong id="display-velocidade" style="font-size: 1.5rem; width: 55px; color: var(--text-main);">1.0x</strong>
+                            <button class="btn-secundario" onclick="ajustarVelocidade(0.1)" style="width: 40px; height: 40px; border-radius: 10px; font-size: 1.2rem; padding: 0;">+</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="info-cantando glass-effect">
-                    <div class="avatares-dupla-palco"><img id="palco-foto-cantor" src="" class="foto-cantor-palco"><img id="palco-foto-cantor-2" src="" class="foto-cantor-palco foto-sobreposta-palco escondido"></div>
-                    <div class="textos-palco"><p id="palco-nome-cantor" class="nome-cantor-palco" style="color: var(--text-main);">Cantor</p><h2 id="titulo-atual">Música</h2><p id="artista-atual" class="texto-cinza">Artista</p></div>
+                    <div class="avatares-dupla-palco">
+                        <img id="palco-foto-cantor" src="" class="foto-cantor-palco">
+                        <img id="palco-foto-cantor-2" src="" class="foto-cantor-palco foto-sobreposta-palco escondido">
+                    </div>
+                    <div class="textos-palco">
+                        <p id="palco-nome-cantor" class="nome-cantor-palco"><i class="fa-solid fa-microphone"></i> Cantor</p>
+                        <h2 id="titulo-atual">Música</h2>
+                        <p id="artista-atual" class="texto-cinza">Artista</p>
+                    </div>
                 </div>
-                <div class="status-transmissao glass-effect text-center p-20 mt-15">
-                    <h3 class="texto-azul"><i class="fa-solid fa-tower-broadcast pulse-anim"></i> Votos da Plateia</h3>
-                    <div id="feed-votos-palco" style="max-height: 120px; overflow-y: auto; margin: 15px 0; padding: 10px; background: var(--input-bg); border-radius: 8px; font-size: 13px;"></div>
-                    <div id="alerta-nota-palco" class="alerta-nota-palco escondido"></div>
+                
+                <div class="status-transmissao glass-effect text-center p-20 mt-20">
+                    <h3 class="texto-azul" style="font-size: 1.2rem;"><i class="fa-solid fa-tower-broadcast pulse-anim"></i> Votos da Plateia</h3>
+                    <div id="feed-votos-palco" style="max-height: 150px; overflow-y: auto; margin: 15px 0; padding: 15px; background: var(--input-bg); border-radius: 12px; font-size: 0.9rem;"></div>
+                    <div id="alerta-nota-palco" class="alerta-nota-palco escondido" style="font-size: 1.2rem; font-weight: 800; color: var(--accent-purple);"></div>
                 </div>
             </div>
         </div>
@@ -506,17 +625,17 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
     
-    <script src="js/data.js?v=55"></script>
-    <script src="js/premium.js?v=55"></script>
-    <script src="js/app.js?v=55"></script>
-    <script src="js/upload.js?v=55"></script>
+    <script src="js/data.js"></script>
+    <script src="js/premium.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/upload.js"></script>
 
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
                 for(let registration of registrations) {
                     registration.unregister();
-                    console.log("Service Worker desativado para testes.");
+                    console.log("Service Worker desativado. Cache offline limpo.");
                 }
             });
         }
@@ -525,7 +644,7 @@
             caches.keys().then(function(names) {
                 for (let name of names) {
                     caches.delete(name);
-                    console.log("Memória secreta apagada: " + name);
+                    console.log("Memória interna deletada: " + name);
                 }
             });
         }
