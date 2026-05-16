@@ -17,6 +17,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
     <style>
+        /* ==========================================
+           🎨 VARIÁVEIS DE TEMA E CORES
+           ========================================== */
         :root {
             --bg-body: #e2e8f0; 
             --bg-glass: rgba(255, 255, 255, 0.95); 
@@ -43,37 +46,128 @@
             --input-bg: rgba(0, 0, 0, 0.3);
         }
 
-        body { font-family: 'Poppins', sans-serif; margin: 0; padding: 0 0 80px 0; background-color: var(--bg-body); color: var(--text-main); overflow-x: hidden; transition: background 0.3s ease, color 0.3s ease; }
-        h1, h2, h3, h4 { margin: 0; color: var(--text-main); } p { margin: 0; }
-        .escondido { display: none !important; } .w-100 { width: 100%; } .text-center { text-align: center; } .text-left { text-align: left; }
+        /* ==========================================
+           ESTRUTURA BASE E TIPOGRAFIA
+           ========================================== */
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            margin: 0; padding: 0 0 80px 0; 
+            background-color: var(--bg-body); 
+            color: var(--text-main); 
+            overflow-x: hidden; 
+            transition: background 0.3s ease, color 0.3s ease; 
+        }
+
+        h1, h2, h3, h4 { margin: 0; color: var(--text-main); }
+        p { margin: 0; }
+        .escondido { display: none !important; }
+        .w-100 { width: 100%; }
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
         .mt-10 { margin-top: 10px; } .mt-15 { margin-top: 15px; } .mt-20 { margin-top: 20px; }
-        .mb-10 { margin-bottom: 10px; } .mb-15 { margin-bottom: 15px; } .mb-20 { margin-bottom: 20px; } .p-20 { padding: 20px; }
-        .texto-cinza, .texto-pequeno { color: var(--text-muted); font-size: 0.85rem; } .texto-claro { color: var(--text-main); opacity: 0.9; }
-        .texto-destaque { color: var(--accent-blue); font-weight: 700; } .icone-azul { color: var(--accent-blue); } .icone-rosa { color: var(--accent-purple); }
+        .mb-10 { margin-bottom: 10px; } .mb-15 { margin-bottom: 15px; } .mb-20 { margin-bottom: 20px; }
+        .p-20 { padding: 20px; }
 
-        .glass-effect, .modal-content { background: var(--bg-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--bg-glass-border); border-radius: 16px; box-shadow: var(--card-shadow); }
+        .texto-cinza, .texto-pequeno { color: var(--text-muted); font-size: 0.85rem; }
+        .texto-claro { color: var(--text-main); opacity: 0.9; }
+        .texto-destaque { color: var(--accent-blue); font-weight: 700; }
+        .icone-azul { color: var(--accent-blue); }
+        .icone-rosa { color: var(--accent-purple); }
 
-        .bottom-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--nav-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--bg-glass-border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 1000; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--text-muted); cursor: pointer; font-size: 0.75rem; transition: 0.3s; }
+        /* ==========================================
+           GLASSMORPHISM E BALÃO DO TOUR (CORRIGIDO)
+           ========================================== */
+        .glass-effect, .modal-content {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--bg-glass-border);
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+        }
+
+        /* CORREÇÃO DO TOUR: Flutuando no meio da tela com cantos arredondados */
+        #tour-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.7); z-index: 9998; transition: opacity 0.3s; }
+        #tour-balao { 
+            position: absolute; width: 90%; max-width: 320px; padding: 20px; 
+            border-radius: 16px; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.4); 
+            border: 2px solid var(--accent-blue); background: var(--bg-body); 
+            left: 50%; transform: translateX(-50%); transition: all 0.3s ease; 
+        }
+        .tour-highlight { 
+            position: relative !important; z-index: 9999 !important; 
+            box-shadow: 0 0 20px var(--accent-blue) !important; 
+            border-radius: 16px; background-color: var(--bg-glass) !important; 
+            pointer-events: none; 
+        }
+
+        /* ==========================================
+           NAVEGAÇÃO INFERIOR
+           ========================================== */
+        .bottom-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: var(--nav-bg); 
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-top: 1px solid var(--bg-glass-border);
+            display: flex; justify-content: space-around; padding: 12px 0;
+            z-index: 1000;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+            color: var(--text-muted); cursor: pointer; font-size: 0.75rem; transition: 0.3s;
+        }
         .nav-item i { font-size: 1.3rem; transition: transform 0.2s; }
-        .nav-item.ativo { color: var(--accent-blue); font-weight: 700; } .nav-item.ativo i { transform: translateY(-3px); }
+        .nav-item.ativo { color: var(--accent-blue); font-weight: 700; }
+        .nav-item.ativo i { transform: translateY(-3px); }
 
+        /* ==========================================
+           BOTÕES E INPUTS
+           ========================================== */
         button { font-family: 'Poppins', sans-serif; cursor: pointer; outline: none; transition: 0.2s; }
-        .btn-vibrante, .btn-vibrante-sm, .btn-convidado, .btn-pagina { background: var(--accent-blue); color: #fff !important; border: none; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 15px rgba(0, 180, 216, 0.4); white-space: nowrap; }
-        .btn-vibrante { padding: 14px 20px; font-size: 1.05rem; } .btn-vibrante-sm { padding: 10px 15px; font-size: 0.9rem; }
+
+        .btn-vibrante, .btn-vibrante-sm, .btn-convidado, .btn-pagina {
+            background: var(--accent-blue); color: #fff !important;
+            border: none; border-radius: 10px; font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 180, 216, 0.4);
+            white-space: nowrap;
+        }
+        .btn-vibrante { padding: 14px 20px; font-size: 1.05rem; }
+        .btn-vibrante-sm { padding: 10px 15px; font-size: 0.9rem; }
         .btn-vibrante:active, .btn-vibrante-sm:active { transform: scale(0.96); }
-        .btn-secundario { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--bg-glass-border); border-radius: 10px; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+        .btn-secundario {
+            background: var(--input-bg); color: var(--text-main);
+            border: 1px solid var(--bg-glass-border); border-radius: 10px; font-weight: 600;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
         .btn-secundario:active { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
 
-        input[type="text"], input[type="password"] { width: 100%; padding: 14px; border-radius: 10px; background: var(--input-bg); border: 1px solid var(--bg-glass-border); color: var(--text-main); font-family: 'Poppins', sans-serif; font-size: 1rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); box-sizing: border-box; }
-        input[type="text"]:focus, input[type="password"]:focus { outline: none; border-color: var(--accent-blue); } input::placeholder { color: var(--text-muted); }
+        input[type="text"], input[type="password"] {
+            width: 100%; padding: 14px; border-radius: 10px;
+            background: var(--input-bg); border: 1px solid var(--bg-glass-border);
+            color: var(--text-main); font-family: 'Poppins', sans-serif; font-size: 1rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus, input[type="password"]:focus { outline: none; border-color: var(--accent-blue); }
+        input::placeholder { color: var(--text-muted); }
 
-        .tela { display: none; padding: 20px; animation: fadeIn 0.3s ease; } .tela.ativa { display: block; }
+        /* ==========================================
+           LAYOUTS DE TELA
+           ========================================== */
+        .tela { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
+        .tela.ativa { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .header-tela { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; }
 
-        .criar-perfil-box { display: flex; gap: 10px; align-items: stretch; } .instrucao-perfil { font-size: 0.9rem; font-weight: 600; color: var(--text-main); white-space: nowrap; }
-        .categorias-lista { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; scroll-behavior: smooth; } .categorias-lista::-webkit-scrollbar { display: none; }
+        /* ==========================================
+           COMPONENTES E CARDS
+           ========================================== */
+        .criar-perfil-box { display: flex; gap: 10px; align-items: stretch; }
+        .instrucao-perfil { font-size: 0.9rem; font-weight: 600; color: var(--text-main); white-space: nowrap; }
+
+        .categorias-lista { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; scroll-behavior: smooth; }
+        .categorias-lista::-webkit-scrollbar { display: none; }
         .btn-categoria { background: var(--input-bg); color: var(--text-muted); border: 1px solid var(--bg-glass-border); border-radius: 20px; padding: 8px 18px; white-space: nowrap; font-weight: 500; }
         .btn-categoria.ativo { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
 
@@ -103,17 +197,8 @@
 
         .pulse-anim { animation: pulse 1.5s infinite; } @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } } .blink-anim { animation: blink 1s infinite; } @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } } .ponto-vermelho { display: inline-block; width: 10px; height: 10px; background: #ff4757; border-radius: 50%; margin-right: 8px; box-shadow: 0 0 10px #ff4757;}
         .paginacao { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 25px; } .btn-pagina { width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; padding: 0;} .btn-pagina:disabled { opacity: 0.5; cursor: not-allowed; background: var(--input-bg) !important; color: var(--text-muted) !important;} .info-pagina { font-weight: 600; color: var(--text-main); }
-        #tour-overlay { background: rgba(0, 0, 0, 0.7) !important; z-index: 9998; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;} #tour-balao { border: 2px solid var(--accent-blue) !important; background: var(--bg-body) !important; }
         
-        /* ALERTA GIGANTE DO DJ NO PALCO */
-        #dj-alerta-palco {
-            position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
-            background: linear-gradient(45deg, #ff4757, #ff6b81); color: white;
-            padding: 15px 30px; border-radius: 12px; font-size: 1.5rem; font-weight: 800;
-            z-index: 9999; border: 3px solid white; text-transform: uppercase;
-            box-shadow: 0 10px 30px rgba(255, 71, 87, 0.5); white-space: nowrap;
-            animation: pulse 1s infinite;
-        }
+        #dj-alerta-palco { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); background: linear-gradient(45deg, #ff4757, #ff6b81); color: white; padding: 15px 30px; border-radius: 12px; font-size: 1.5rem; font-weight: 800; z-index: 9999; border: 3px solid white; text-transform: uppercase; box-shadow: 0 10px 30px rgba(255, 71, 87, 0.5); white-space: nowrap; animation: pulse 1s infinite; }
     </style>
 </head>
 <body>
@@ -492,10 +577,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
     
-    <script src="js/data.js?v=82"></script>
-    <script src="js/premium.js?v=82"></script>
-    <script src="js/app.js?v=82"></script>
-    <script src="js/upload.js?v=82"></script>
+    <script src="js/data.js?v=85"></script>
+    <script src="js/premium.js?v=85"></script>
+    <script src="js/app.js?v=85"></script>
+    <script src="js/upload.js?v=85"></script>
 
     <script>
         if ('serviceWorker' in navigator) {
