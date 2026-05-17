@@ -413,19 +413,31 @@
                 <div id="controles-estudio" class="glass-effect mb-20" style="display: flex; justify-content: space-around; padding: 20px 10px; border-radius: 16px;">
                     <div style="text-align: center; flex: 1;">
                         <span class="icone-rosa" style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;"><i class="fa-solid fa-music"></i> Tom</span>
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 10px;">
-                            <button class="btn-secundario" onclick="ajustarTom(-1)" style="width: 40px; height: 40px; border-radius: 10px; font-size: 1.2rem; padding: 0;">-</button>
-                            <strong id="display-tom" style="font-size: 1.5rem; width: 35px; color: var(--text-main);">0</strong>
-                            <button class="btn-secundario" onclick="ajustarTom(1)" style="width: 40px; height: 40px; border-radius: 10px; font-size: 1.2rem; padding: 0;">+</button>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px;">
+                            <button class="btn-secundario" onclick="ajustarTom(-1)" style="width: 35px; height: 35px; border-radius: 10px; font-size: 1.2rem; padding: 0;">-</button>
+                            <strong id="display-tom" style="font-size: 1.3rem; width: 30px; color: var(--text-main);">0</strong>
+                            <button class="btn-secundario" onclick="ajustarTom(1)" style="width: 35px; height: 35px; border-radius: 10px; font-size: 1.2rem; padding: 0;">+</button>
                         </div>
                     </div>
-                    <div style="width: 1px; background: var(--bg-glass-border); margin: 0 10px;"></div>
+                    
+                    <div style="width: 1px; background: var(--bg-glass-border); margin: 0 5px;"></div>
+                    
+                    <div style="text-align: center; flex: 1;">
+                        <span class="texto-destaque" style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;"><i class="fa-solid fa-stopwatch"></i> Sincronia</span>
+                        <div style="display: flex; align-items: center; justify-content: center; margin-top: 10px;">
+                            <input type="range" id="slider-delay" min="0" max="1" step="0.05" value="0.3" style="width: 90%;" oninput="ajustarDelayLive(this.value)">
+                        </div>
+                        <div id="display-delay" class="texto-pequeno mt-10" style="font-weight: bold;">Atraso: 300ms</div>
+                    </div>
+
+                    <div style="width: 1px; background: var(--bg-glass-border); margin: 0 5px;"></div>
+                    
                     <div style="text-align: center; flex: 1;">
                         <span class="texto-azul" style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;"><i class="fa-solid fa-gauge-high"></i> Vel.</span>
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 10px;">
-                            <button class="btn-secundario" onclick="ajustarVelocidade(-0.1)" style="width: 40px; height: 40px; border-radius: 10px; font-size: 1.2rem; padding: 0;">-</button>
-                            <strong id="display-velocidade" style="font-size: 1.5rem; width: 55px; color: var(--text-main);">1.0x</strong>
-                            <button class="btn-secundario" onclick="ajustarVelocidade(0.1)" style="width: 40px; height: 40px; border-radius: 10px; font-size: 1.2rem; padding: 0;">+</button>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px;">
+                            <button class="btn-secundario" onclick="ajustarVelocidade(-0.1)" style="width: 35px; height: 35px; border-radius: 10px; font-size: 1.2rem; padding: 0;">-</button>
+                            <strong id="display-velocidade" style="font-size: 1.3rem; width: 45px; color: var(--text-main);">1.0x</strong>
+                            <button class="btn-secundario" onclick="ajustarVelocidade(0.1)" style="width: 35px; height: 35px; border-radius: 10px; font-size: 1.2rem; padding: 0;">+</button>
                         </div>
                     </div>
                 </div>
@@ -482,22 +494,41 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
     
-    <script src="js/data.js?v=95"></script>
-    <script src="js/premium.js?v=95"></script>
-    <script src="js/app.js?v=95"></script>
-    <script src="js/upload.js?v=95"></script>
+    <script src="js/data.js?v=100"></script>
+    <script src="js/premium.js?v=100"></script>
+    <script src="js/app.js?v=100"></script>
+    <script src="js/upload.js?v=100"></script>
 
     <script>
+        let novoServiceWorker;
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) { registration.unregister(); }
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(registration => {
+                    registration.addEventListener('updatefound', () => {
+                        novoServiceWorker = registration.installing;
+                        novoServiceWorker.addEventListener('statechange', () => { 
+                            if (novoServiceWorker.state === 'installed' && navigator.serviceWorker.controller) { 
+                                mostrarAvisoAtualizacao(); 
+                            } 
+                        });
+                    });
+                });
+                let recarregando = false; 
+                navigator.serviceWorker.addEventListener('controllerchange', () => { 
+                    if (recarregando) return; 
+                    recarregando = true;
+                    window.location.reload(); 
+                });
             });
         }
-        if ('caches' in window) {
-            caches.keys().then(function(names) {
-                for (let name of names) { caches.delete(name); }
-            });
+        function mostrarAvisoAtualizacao() {
+            document.getElementById('titulo-alerta').innerHTML = `<i class="fa-solid fa-arrows-rotate texto-destaque"></i> Nova Versão!`;
+            document.getElementById('mensagem-alerta').innerText = "Temos melhorias prontas! Atualize o app agora.";
+            const botoesDiv = document.querySelector('#modal-alerta .botoes-modal');
+            botoesDiv.innerHTML = `<button class="btn-vibrante w-100" onclick="aplicarAtualizacaoApp()">Atualizar Agora</button>`;
+            document.getElementById('modal-alerta').classList.remove('escondido');
         }
+        function aplicarAtualizacaoApp() { if (novoServiceWorker) { novoServiceWorker.postMessage('SKIP_WAITING'); } }
     </script>
 </body>
 </html>
