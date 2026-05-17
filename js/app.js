@@ -132,7 +132,6 @@ function obterEmojisMedalhas(perfilObj) {
     return `<div class="mini-medalhas">${emojis}</div>`;
 }
 
-// CORREÇÃO: Função Salvar Dados reforçada para garantir sincronização no Firebase
 function salvarDados() {
     if (!salaAtual || !refSalaAtual) return; 
     refSalaAtual.child('perfis').set(perfisFamilia);
@@ -327,11 +326,12 @@ function entrarNoSistema() {
     refSalaAtual.on('value', snapshot => {
         const dados = snapshot.val() || {};
         
-        let pRaw = dados.perfis || []; perfisFamilia = Array.isArray(pRaw) ? pRaw : Object.values(pRaw);
-        let fRaw = dados.fila || []; filaDeReproducao = Array.isArray(fRaw) ? fRaw : Object.values(fRaw);
+        // CORREÇÃO: Limpando arrays que o Firebase enche de 'null'
+        let pRaw = dados.perfis || []; perfisFamilia = (Array.isArray(pRaw) ? pRaw : Object.values(pRaw)).filter(p => p != null);
+        let fRaw = dados.fila || []; filaDeReproducao = (Array.isArray(fRaw) ? fRaw : Object.values(fRaw)).filter(f => f != null);
         historicoTocadas = dados.historico || {};
         
-        let ocultasRaw = dados.musicas_ocultas || []; musicasOcultas = Array.isArray(ocultasRaw) ? ocultasRaw : Object.values(ocultasRaw);
+        let ocultasRaw = dados.musicas_ocultas || []; musicasOcultas = (Array.isArray(ocultasRaw) ? ocultasRaw : Object.values(ocultasRaw)).filter(m => m != null);
 
         renderizarCategorias(); prepararLista(catalogoMusicas);
 
@@ -488,6 +488,18 @@ function criarPerfil() {
 
 function entrarComoConvidado() {
     const inputConvidado = document.getElementById('input-convidado'); const nome = inputConvidado.value.trim();
+    
+    // O HACK DO DJ MESTRE (Para não perder a sala se limpar o cache)
+    if (nome === "MestreDJ") {
+        localStorage.setItem('karaoke_dj_' + salaAtual, 'sim');
+        isDJ = true; 
+        document.getElementById('badge-dj').classList.remove('escondido'); 
+        document.getElementById('btn-painel-dj').classList.remove('escondido');
+        inputConvidado.value = '';
+        mostrarAlerta("Controle do Painel Mestre recuperado com sucesso!", "Hack VIP Ativado", "fa-user-secret"); 
+        return;
+    }
+    
     if (nome !== "") {
         const perfilConvidado = { id: 'convidado_' + Date.now(), nome: `${nome} (Convidado)`, foto: `https://api.dicebear.com/7.x/avataaars/svg?seed=Visitante&backgroundColor=e2e2e2`, pontos: 0, isGuest: true };
         perfilAtual = perfilConvidado; localStorage.removeItem('karaoke_perfil_atual_id'); atualizarPerfilGlobal(); renderizarPerfis(); 
@@ -561,7 +573,7 @@ function renderizarMusicas(musicas) {
     });
 }
 
-// CORREÇÃO: Forçando 'Number' na extração dos dados do Dashboard
+// CORREÇÃO: Forçando o Filtro Anti-Fantasma (Ignorar 'null')
 function atualizarDashboard() {
     document.getElementById('dash-qtd-musicas').innerText = catalogoMusicas.length - musicasOcultas.length;
     document.getElementById('dash-qtd-cantores').innerText = perfisFamilia.length;
@@ -590,7 +602,11 @@ function atualizarDashboard() {
     }
 
     const containerTopHits = document.getElementById('dash-top-musicas');
-    let hitsOrdenados = Object.entries(historicoTocadas).sort((a, b) => Number(b[1]) - Number(a[1])).slice(0, 7);
+    // Filtro Anti-Fantasma: Ignora as chaves vazias ou com quantidade nula
+    let hitsOrdenados = Object.entries(historicoTocadas)
+        .filter(([idStr, qtd]) => qtd != null && Number(qtd) > 0)
+        .sort((a, b) => Number(b[1]) - Number(a[1]))
+        .slice(0, 7);
     
     if (hitsOrdenados.length === 0) { containerTopHits.innerHTML = '<p class="texto-cinza text-center mt-10">Nenhuma música cantada nesta sala ainda.</p>'; } 
     else {
@@ -602,7 +618,6 @@ function atualizarDashboard() {
     }
 }
 
-// CORREÇÃO: Forçando 'Number' na extração dos dados do Ranking
 function renderizarRanking() {
     const containerRanking = document.getElementById('lista-ranking-completa');
     let cantoresComPonto = [...perfisFamilia].filter(p => Number(p.pontos) > 0 && !p.isGuest).sort((a, b) => Number(b.pontos) - Number(a.pontos));
@@ -714,7 +729,6 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     if(!perfilAtual) { mostrarAlerta("Identifique-se na aba Perfil antes de cantar!", "Atenção", "fa-user"); mudarTela('tela-perfil', document.getElementById('nav-perfil')); return; }
     pararPrevia(); document.getElementById('tela-transicao-palco').classList.add('escondido'); clearInterval(intervaloContador); clearTimeout(timerTransicao); window.speechSynthesis.cancel(); somAplauso.onended = null;       
     
-    // CORREÇÃO: Forçando Numérico
     historicoTocadas[idMusica] = (Number(historicoTocadas[idMusica]) || 0) + 1;
     
     const musica = catalogoMusicas.find(m => m.id === idMusica); cantorAoVivo = perfilAtual; cantor2AoVivo = parceiro; musicaAoVivo = musica;
@@ -788,7 +802,6 @@ function abrirCabineVotacao() {
     mudarTela('tela-votacao');
 }
 
-// CORREÇÃO: Forçando Sincronização Absoluta ao Votar
 function votar(nota) {
     let pontuou = false;
     let votoNum = Number(nota);
@@ -828,7 +841,7 @@ function votar(nota) {
         }
     }
 
-    salvarDados(); // Grito pro Firebase: Sincroniza a matemática corrigida AGORA!
+    salvarDados(); 
 
     const novoVoto = { nome: perfilAtual.nome, foto: perfilAtual.foto, nota: votoNum, timestamp: Date.now() };
     refSalaAtual.child('palco/votos').push(novoVoto); refSalaAtual.child('palco/ultimoVoto').set(novoVoto);
@@ -839,7 +852,6 @@ function votar(nota) {
     setTimeout(() => { mudarTela('tela-dashboard', document.getElementById('nav-inicio')); maximizarPalco(); }, 1500);
 }
 
-// CORREÇÃO: Forçando Sincronização ao final da música
 playerVideo.addEventListener('ended', () => {
     if (typeof resetarEstudio === 'function') resetarEstudio();
     somAplauso.currentTime = 0; somAplauso.play().catch(() => {});
@@ -863,7 +875,7 @@ playerVideo.addEventListener('ended', () => {
         }
     }
 
-    salvarDados(); // Grito pro Firebase de Fim de Show
+    salvarDados(); 
 
     if (filaDeReproducao.length > 0) {
         if (telaPalcoOverlay.classList.contains('minimizado')) { maximizarPalco(); }
