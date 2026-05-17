@@ -24,7 +24,7 @@ let salasCriadas = [];
 let perfisFamilia = [];
 let filaDeReproducao = [];
 let historicoTocadas = {}; 
-let musicasOcultas = []; // Lista VIP de músicas apagadas pelo DJ
+let musicasOcultas = []; 
 
 let categoriaAtual = "Todas";
 let perfilAtual = null; 
@@ -55,7 +55,7 @@ const playerVideo = document.getElementById('player-video');
 const somAplauso = document.getElementById('som-aplauso');
 
 // ============================================================================
-// 🏅 SISTEMA DE CONQUISTAS (GAMIFICAÇÃO)
+// 🏅 SISTEMA DE CONQUISTAS E SALVAMENTO SEGURO
 // ============================================================================
 const DEFINICAO_MEDALHAS = {
     'quebra_gelo': { nome: 'Quebra-Gelo', icone: '🎤', desc: 'Subiu no palco e cantou a 1ª música.' },
@@ -74,6 +74,7 @@ function verificarConquistas(perfilObj) {
     if (!perfilObj.stats) perfilObj.stats = { cantadas: 0, duetos: 0, notas10: 0, votos: 0, reacoes: 0, medalhas: [] };
 
     let novasMedalhas = [];
+    let pts = Number(perfilObj.pontos) || 0;
 
     if (!perfilObj.stats.medalhas.includes('quebra_gelo') && perfilObj.stats.cantadas >= 1) novasMedalhas.push('quebra_gelo');
     if (!perfilObj.stats.medalhas.includes('inimigo_fim') && perfilObj.stats.cantadas >= 10) novasMedalhas.push('inimigo_fim');
@@ -85,8 +86,8 @@ function verificarConquistas(perfilObj) {
     let favs = JSON.parse(localStorage.getItem('karaoke_favoritas') || '[]');
     if (!perfilObj.stats.medalhas.includes('garimpeiro') && favs.length >= 10) novasMedalhas.push('garimpeiro');
 
-    if (!perfilObj.stats.medalhas.includes('astro') && perfilObj.pontos >= 100) novasMedalhas.push('astro');
-    if (!perfilObj.stats.medalhas.includes('lenda') && perfilObj.pontos >= 250) novasMedalhas.push('lenda');
+    if (!perfilObj.stats.medalhas.includes('astro') && pts >= 100) novasMedalhas.push('astro');
+    if (!perfilObj.stats.medalhas.includes('lenda') && pts >= 250) novasMedalhas.push('lenda');
 
     if (novasMedalhas.length > 0) {
         novasMedalhas.forEach(m => {
@@ -131,6 +132,15 @@ function obterEmojisMedalhas(perfilObj) {
     return `<div class="mini-medalhas">${emojis}</div>`;
 }
 
+// CORREÇÃO: Função Salvar Dados reforçada para garantir sincronização no Firebase
+function salvarDados() {
+    if (!salaAtual || !refSalaAtual) return; 
+    refSalaAtual.child('perfis').set(perfisFamilia);
+    refSalaAtual.child('fila').set(filaDeReproducao);
+    refSalaAtual.child('historico').set(historicoTocadas);
+    refSalaAtual.child('palco').update({ cantor: cantorAoVivo ? cantorAoVivo.id : null, cantor2: cantor2AoVivo ? cantor2AoVivo.id : null, musica: musicaAoVivo ? musicaAoVivo.id : null });
+}
+
 // ============================================================================
 // 🎛️ PAINEL DO DJ MESTRE (CONTROLE TOTAL)
 // ============================================================================
@@ -146,7 +156,7 @@ function renderizarPainelDJ() {
     perfisFamilia.forEach(perfil => {
         listaCantores.innerHTML += `
             <div style="display:flex; justify-content: space-between; align-items: center; background: var(--input-bg); padding: 12px; border-radius: 12px; border: 1px solid var(--bg-glass-border);">
-                <span style="font-weight: bold; font-size: 0.95rem; color: var(--text-main);">${perfil.nome} <span style="color: var(--accent-purple);">(${perfil.pontos} pts)</span></span>
+                <span style="font-weight: bold; font-size: 0.95rem; color: var(--text-main);">${perfil.nome} <span style="color: var(--accent-purple);">(${Number(perfil.pontos) || 0} pts)</span></span>
                 <div style="display:flex; gap: 8px;">
                     <button class="btn-secundario" style="padding: 5px 12px; font-size: 0.8rem;" onclick="djAlterarPontos(${perfil.id}, -5)">-5 pts</button>
                     <button class="btn-secundario" style="padding: 5px 12px; font-size: 0.8rem; background: rgba(255,71,87,0.1); color: #ff4757; border: none;" onclick="djExcluirCantor(${perfil.id})"><i class="fa-solid fa-trash"></i></button>
@@ -159,7 +169,7 @@ function renderizarPainelDJ() {
 function djAlterarPontos(idCantor, valor) {
     let index = perfisFamilia.findIndex(p => String(p.id) === String(idCantor));
     if(index !== -1) {
-        perfisFamilia[index].pontos += valor;
+        perfisFamilia[index].pontos = (Number(perfisFamilia[index].pontos) || 0) + Number(valor);
         if(perfisFamilia[index].pontos < 0) perfisFamilia[index].pontos = 0;
         salvarDados(); renderizarPainelDJ(); mostrarAlerta("Pontos ajustados!", "DJ Mestre", "fa-check");
     }
@@ -329,7 +339,6 @@ function entrarNoSistema() {
         if (idAtualSalvo) { let perfilEncontrado = perfisFamilia.find(p => String(p.id) === String(idAtualSalvo)); if(perfilEncontrado) perfilAtual = perfilEncontrado; }
 
         if (dados.palco && dados.palco.cantor) {
-            
             if (dados.palco.mensagemDJ) {
                 let msgObj = dados.palco.mensagemDJ;
                 if (msgObj.timestamp > ultimoAlertaDJVisto) { ultimoAlertaDJVisto = msgObj.timestamp; mostrarAlertaDJPalco(msgObj.texto); }
@@ -382,7 +391,6 @@ function entrarNoSistema() {
 
     if (!perfilAtual) { perfilAtual = { id: 'convidado_base', nome: "Visitante", foto: `https://api.dicebear.com/7.x/avataaars/svg?seed=Visitante&backgroundColor=e2e2e2`, pontos: 0, isGuest: true }; }
     
-    // INJEÇÃO DO BOTÃO SAIR DA SALA DIRETAMENTE NO PERFIL
     document.getElementById('badge-nome-sala').innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
             <div style="display: flex; flex-direction: column;">
@@ -399,14 +407,9 @@ function entrarNoSistema() {
     setTimeout(() => { if (typeof iniciarTour === "function") iniciarTour(); }, 1000);
 }
 
-function salvarDados() {
-    if (!salaAtual || !refSalaAtual) return; 
-    refSalaAtual.child('perfis').set(perfisFamilia);
-    refSalaAtual.child('fila').set(filaDeReproducao);
-    refSalaAtual.child('historico').set(historicoTocadas);
-    refSalaAtual.child('palco').update({ cantor: cantorAoVivo ? cantorAoVivo.id : null, cantor2: cantor2AoVivo ? cantor2AoVivo.id : null, musica: musicaAoVivo ? musicaAoVivo.id : null });
-}
-
+// ============================================================================
+// LÓGICA DAS TELAS E INTERAÇÕES
+// ============================================================================
 let passoAtualTour = 0;
 const passosTour = [
     { elemento: null, titulo: "🎉 Bem-vindo ao Karaokê VIP!", texto: "Vamos fazer um tour super rápido para você descobrir como ser a estrela dessa festa?", posicao: "centro" },
@@ -514,7 +517,6 @@ function renderizarFavoritos() {
     if(favoritas.length === 0) { container.innerHTML = '<p class="texto-cinza text-center">Nenhuma música favoritada ainda. Vá no Catálogo e clique no coração (🤍) para salvar seu repertório!</p>'; return; }
     
     container.innerHTML = '';
-    // Apenas músicas que não foram ocultadas pelo DJ
     let musicasFav = catalogoMusicas.filter(m => favoritas.includes(m.id) && !musicasOcultas.includes(m.id));
     
     musicasFav.forEach(musica => {
@@ -559,6 +561,7 @@ function renderizarMusicas(musicas) {
     });
 }
 
+// CORREÇÃO: Forçando 'Number' na extração dos dados do Dashboard
 function atualizarDashboard() {
     document.getElementById('dash-qtd-musicas').innerText = catalogoMusicas.length - musicasOcultas.length;
     document.getElementById('dash-qtd-cantores').innerText = perfisFamilia.length;
@@ -574,19 +577,21 @@ function atualizarDashboard() {
     } else { bannerAoVivo.classList.add('escondido'); }
 
     const containerTopCantores = document.getElementById('dash-top-cantores');
-    let cantoresComPonto = [...perfisFamilia].filter(p => p.pontos > 0 && !p.isGuest).sort((a, b) => b.pontos - a.pontos);
+    let cantoresComPonto = [...perfisFamilia].filter(p => Number(p.pontos) > 0 && !p.isGuest).sort((a, b) => Number(b.pontos) - Number(a.pontos));
+    
     if (cantoresComPonto.length === 0) { containerTopCantores.innerHTML = '<p class="texto-cinza text-center">Nenhum voto registrado nesta sala.</p>'; } 
     else {
         containerTopCantores.innerHTML = '';
         cantoresComPonto.slice(0, 5).forEach((perfil, index) => { 
             let cor = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#cd7f32' : 'var(--text-muted)';
             let emojisMedalhas = obterEmojisMedalhas(perfil);
-            containerTopCantores.innerHTML += `<div class="item-rank"><div class="rank-info"><span class="rank-pos" style="color:${cor}">${index + 1}º</span><img src="${perfil.foto}"><div><strong>${perfil.nome}</strong>${emojisMedalhas}</div></div><span class="rank-pontos">${perfil.pontos} pts</span></div>`;
+            containerTopCantores.innerHTML += `<div class="item-rank"><div class="rank-info"><span class="rank-pos" style="color:${cor}">${index + 1}º</span><img src="${perfil.foto}"><div><strong>${perfil.nome}</strong>${emojisMedalhas}</div></div><span class="rank-pontos">${Number(perfil.pontos)} pts</span></div>`;
         });
     }
 
     const containerTopHits = document.getElementById('dash-top-musicas');
-    let hitsOrdenados = Object.entries(historicoTocadas).sort((a, b) => b[1] - a[1]).slice(0, 7);
+    let hitsOrdenados = Object.entries(historicoTocadas).sort((a, b) => Number(b[1]) - Number(a[1])).slice(0, 7);
+    
     if (hitsOrdenados.length === 0) { containerTopHits.innerHTML = '<p class="texto-cinza text-center mt-10">Nenhuma música cantada nesta sala ainda.</p>'; } 
     else {
         containerTopHits.innerHTML = '';
@@ -597,21 +602,23 @@ function atualizarDashboard() {
     }
 }
 
+// CORREÇÃO: Forçando 'Number' na extração dos dados do Ranking
 function renderizarRanking() {
     const containerRanking = document.getElementById('lista-ranking-completa');
-    let cantoresComPonto = [...perfisFamilia].filter(p => p.pontos > 0 && !p.isGuest).sort((a, b) => b.pontos - a.pontos);
+    let cantoresComPonto = [...perfisFamilia].filter(p => Number(p.pontos) > 0 && !p.isGuest).sort((a, b) => Number(b.pontos) - Number(a.pontos));
+    
     if (cantoresComPonto.length === 0) { containerRanking.innerHTML = '<div class="empty-state"><i class="fa-solid fa-medal fa-3x"></i><p>A competição desta sala ainda não começou!</p></div>'; return; }
+    
     containerRanking.innerHTML = '';
     cantoresComPonto.forEach((perfil, index) => {
         let corPodio = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#cd7f32' : 'var(--text-muted)';
         let emojisMedalhas = obterEmojisMedalhas(perfil);
-        containerRanking.innerHTML += `<div class="item-rank" style="margin-bottom: 10px;"><div class="rank-info"><span class="rank-pos" style="color: ${corPodio};">${index + 1}º</span><img src="${perfil.foto}"><div><strong>${perfil.nome}</strong>${emojisMedalhas}</div></div><span class="rank-pontos">${perfil.pontos} <i class="fa-solid fa-star"></i></span></div>`;
+        containerRanking.innerHTML += `<div class="item-rank" style="margin-bottom: 10px;"><div class="rank-info"><span class="rank-pos" style="color: ${corPodio};">${index + 1}º</span><img src="${perfil.foto}"><div><strong>${perfil.nome}</strong>${emojisMedalhas}</div></div><span class="rank-pontos">${Number(perfil.pontos)} <i class="fa-solid fa-star"></i></span></div>`;
     });
 }
 
 function renderizarCategorias() {
     const containerCategorias = document.getElementById('container-categorias');
-    // Filtra o catálogo base primeiro
     const musicasLivre = catalogoMusicas.filter(m => !musicasOcultas.includes(m.id));
     const categorias = ["Todas", ...new Set(musicasLivre.map(m => m.categoria))]; containerCategorias.innerHTML = '';
     categorias.forEach(cat => {
@@ -706,7 +713,10 @@ function puxarDaFilaParaPalco(instanciaId) {
 function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     if(!perfilAtual) { mostrarAlerta("Identifique-se na aba Perfil antes de cantar!", "Atenção", "fa-user"); mudarTela('tela-perfil', document.getElementById('nav-perfil')); return; }
     pararPrevia(); document.getElementById('tela-transicao-palco').classList.add('escondido'); clearInterval(intervaloContador); clearTimeout(timerTransicao); window.speechSynthesis.cancel(); somAplauso.onended = null;       
-    historicoTocadas[idMusica] = (historicoTocadas[idMusica] || 0) + 1;
+    
+    // CORREÇÃO: Forçando Numérico
+    historicoTocadas[idMusica] = (Number(historicoTocadas[idMusica]) || 0) + 1;
+    
     const musica = catalogoMusicas.find(m => m.id === idMusica); cantorAoVivo = perfilAtual; cantor2AoVivo = parceiro; musicaAoVivo = musica;
     votosPalcoTemporario = {}; ultimoVotoGlobal = null;
 
@@ -778,15 +788,19 @@ function abrirCabineVotacao() {
     mudarTela('tela-votacao');
 }
 
+// CORREÇÃO: Forçando Sincronização Absoluta ao Votar
 function votar(nota) {
     let pontuou = false;
+    let votoNum = Number(nota);
     
     if(cantorAoVivo && !cantorAoVivo.isGuest) { 
         let c1Index = perfisFamilia.findIndex(p => String(p.id) === String(cantorAoVivo.id)); 
         if(c1Index !== -1) { 
-            perfisFamilia[c1Index].pontos += nota; 
-            if(nota === 10) { if(!perfisFamilia[c1Index].stats) perfisFamilia[c1Index].stats = { cantadas:0, duetos:0, notas10:0, votos:0, reacoes:0, medalhas:[] }; perfisFamilia[c1Index].stats.notas10++; }
-            refSalaAtual.child(`perfis/${c1Index}/pontos`).set(perfisFamilia[c1Index].pontos); 
+            perfisFamilia[c1Index].pontos = (Number(perfisFamilia[c1Index].pontos) || 0) + votoNum; 
+            if(votoNum === 10) { 
+                if(!perfisFamilia[c1Index].stats) perfisFamilia[c1Index].stats = { cantadas:0, duetos:0, notas10:0, votos:0, reacoes:0, medalhas:[] }; 
+                perfisFamilia[c1Index].stats.notas10 = (Number(perfisFamilia[c1Index].stats.notas10) || 0) + 1;
+            }
             verificarConquistas(perfisFamilia[c1Index]);
             pontuou = true; 
         } 
@@ -795,9 +809,11 @@ function votar(nota) {
     if(cantor2AoVivo && !cantor2AoVivo.isGuest) { 
         let c2Index = perfisFamilia.findIndex(p => String(p.id) === String(cantor2AoVivo.id)); 
         if(c2Index !== -1) { 
-            perfisFamilia[c2Index].pontos += nota; 
-            if(nota === 10) { if(!perfisFamilia[c2Index].stats) perfisFamilia[c2Index].stats = { cantadas:0, duetos:0, notas10:0, votos:0, reacoes:0, medalhas:[] }; perfisFamilia[c2Index].stats.notas10++; }
-            refSalaAtual.child(`perfis/${c2Index}/pontos`).set(perfisFamilia[c2Index].pontos); 
+            perfisFamilia[c2Index].pontos = (Number(perfisFamilia[c2Index].pontos) || 0) + votoNum; 
+            if(votoNum === 10) { 
+                if(!perfisFamilia[c2Index].stats) perfisFamilia[c2Index].stats = { cantadas:0, duetos:0, notas10:0, votos:0, reacoes:0, medalhas:[] }; 
+                perfisFamilia[c2Index].stats.notas10 = (Number(perfisFamilia[c2Index].stats.notas10) || 0) + 1;
+            }
             verificarConquistas(perfisFamilia[c2Index]);
             pontuou = true; 
         } 
@@ -807,20 +823,23 @@ function votar(nota) {
         let pIndex = perfisFamilia.findIndex(p => String(p.id) === String(perfilAtual.id));
         if (pIndex !== -1) {
             if(!perfisFamilia[pIndex].stats) perfisFamilia[pIndex].stats = { cantadas:0, duetos:0, notas10:0, votos:0, reacoes:0, medalhas:[] };
-            perfisFamilia[pIndex].stats.votos++;
+            perfisFamilia[pIndex].stats.votos = (Number(perfisFamilia[pIndex].stats.votos) || 0) + 1;
             verificarConquistas(perfisFamilia[pIndex]);
         }
     }
 
-    const novoVoto = { nome: perfilAtual.nome, foto: perfilAtual.foto, nota: nota, timestamp: Date.now() };
+    salvarDados(); // Grito pro Firebase: Sincroniza a matemática corrigida AGORA!
+
+    const novoVoto = { nome: perfilAtual.nome, foto: perfilAtual.foto, nota: votoNum, timestamp: Date.now() };
     refSalaAtual.child('palco/votos').push(novoVoto); refSalaAtual.child('palco/ultimoVoto').set(novoVoto);
 
     const frases = { 1: "Piedade... 💀", 5: "Dá pra melhorar! 🎤", 8: "Mandou bem! 🔥", 10: "ESTRELA NASCEU! 🌟" };
-    let comentario = frases[nota] || "Nota registrada!"; if(!pontuou) { comentario = "Nota dada! (Visitante não pontua)"; }
+    let comentario = frases[votoNum] || "Nota registrada!"; if(!pontuou) { comentario = "Nota dada! (Visitante não pontua)"; }
     document.getElementById('resultado-voto').innerHTML = `<span class="fade-in">Voto enviado ao palco: ${comentario}</span>`;
     setTimeout(() => { mudarTela('tela-dashboard', document.getElementById('nav-inicio')); maximizarPalco(); }, 1500);
 }
 
+// CORREÇÃO: Forçando Sincronização ao final da música
 playerVideo.addEventListener('ended', () => {
     if (typeof resetarEstudio === 'function') resetarEstudio();
     somAplauso.currentTime = 0; somAplauso.play().catch(() => {});
@@ -829,8 +848,8 @@ playerVideo.addEventListener('ended', () => {
         let c1Index = perfisFamilia.findIndex(p => String(p.id) === String(cantorAoVivo.id));
         if(c1Index !== -1) {
             if(!perfisFamilia[c1Index].stats) perfisFamilia[c1Index].stats = { cantadas:0, duetos:0, notas10:0, votos:0, reacoes:0, medalhas:[] };
-            perfisFamilia[c1Index].stats.cantadas++;
-            if (cantor2AoVivo) perfisFamilia[c1Index].stats.duetos++;
+            perfisFamilia[c1Index].stats.cantadas = (Number(perfisFamilia[c1Index].stats.cantadas) || 0) + 1;
+            if (cantor2AoVivo) perfisFamilia[c1Index].stats.duetos = (Number(perfisFamilia[c1Index].stats.duetos) || 0) + 1;
             verificarConquistas(perfisFamilia[c1Index]);
         }
     }
@@ -838,11 +857,13 @@ playerVideo.addEventListener('ended', () => {
         let c2Index = perfisFamilia.findIndex(p => String(p.id) === String(cantor2AoVivo.id));
         if(c2Index !== -1) {
             if(!perfisFamilia[c2Index].stats) perfisFamilia[c2Index].stats = { cantadas:0, duetos:0, notas10:0, votos:0, reacoes:0, medalhas:[] };
-            perfisFamilia[c2Index].stats.cantadas++;
-            perfisFamilia[c2Index].stats.duetos++;
+            perfisFamilia[c2Index].stats.cantadas = (Number(perfisFamilia[c2Index].stats.cantadas) || 0) + 1;
+            perfisFamilia[c2Index].stats.duetos = (Number(perfisFamilia[c2Index].stats.duetos) || 0) + 1;
             verificarConquistas(perfisFamilia[c2Index]);
         }
     }
+
+    salvarDados(); // Grito pro Firebase de Fim de Show
 
     if (filaDeReproducao.length > 0) {
         if (telaPalcoOverlay.classList.contains('minimizado')) { maximizarPalco(); }
