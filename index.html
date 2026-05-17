@@ -18,29 +18,15 @@
 
     <style>
         :root {
-            --bg-body: #e2e8f0; 
-            --bg-glass: rgba(255, 255, 255, 0.95); 
-            --bg-glass-border: rgba(255, 255, 255, 1);
-            --text-main: #0f172a; 
-            --text-muted: #64748b; 
-            --accent-blue: #00b4d8; 
-            --accent-purple: #8b5cf6; 
-            --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            --nav-bg: rgba(255, 255, 255, 0.98);
-            --input-bg: #ffffff; 
+            --bg-body: #e2e8f0; --bg-glass: rgba(255, 255, 255, 0.95); --bg-glass-border: rgba(255, 255, 255, 1);
+            --text-main: #0f172a; --text-muted: #64748b; --accent-blue: #00b4d8; --accent-purple: #8b5cf6; 
+            --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.08); --nav-bg: rgba(255, 255, 255, 0.98); --input-bg: #ffffff; 
         }
 
         [data-theme="dark"] {
-            --bg-body: #0f172a; 
-            --bg-glass: rgba(30, 41, 59, 0.85); 
-            --bg-glass-border: rgba(255, 255, 255, 0.1);
-            --text-main: #f8fafc; 
-            --text-muted: #94a3b8; 
-            --accent-blue: #00e5ff; 
-            --accent-purple: #c084fc; 
-            --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
-            --nav-bg: rgba(15, 23, 42, 0.98);
-            --input-bg: rgba(0, 0, 0, 0.3);
+            --bg-body: #0f172a; --bg-glass: rgba(30, 41, 59, 0.85); --bg-glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc; --text-muted: #94a3b8; --accent-blue: #00e5ff; --accent-purple: #c084fc; 
+            --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.5); --nav-bg: rgba(15, 23, 42, 0.98); --input-bg: rgba(0, 0, 0, 0.3);
         }
 
         body { font-family: 'Poppins', sans-serif; margin: 0; padding: 0 0 80px 0; background-color: var(--bg-body); color: var(--text-main); overflow-x: hidden; transition: background 0.3s ease, color 0.3s ease; }
@@ -52,6 +38,10 @@
         .texto-destaque { color: var(--accent-blue); font-weight: 700; } .icone-azul { color: var(--accent-blue); } .icone-rosa { color: var(--accent-purple); }
 
         .glass-effect, .modal-content { background: var(--bg-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--bg-glass-border); border-radius: 16px; box-shadow: var(--card-shadow); }
+
+        #tour-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.7); z-index: 9998; transition: opacity 0.3s; }
+        #tour-balao { position: absolute; width: 90%; max-width: 320px; padding: 20px; border-radius: 16px; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 2px solid var(--accent-blue); background: var(--bg-body); left: 50%; transform: translateX(-50%); transition: all 0.3s ease; }
+        .tour-highlight { position: relative !important; z-index: 9999 !important; box-shadow: 0 0 20px var(--accent-blue) !important; border-radius: 16px; background-color: var(--bg-glass) !important; pointer-events: none; }
 
         .bottom-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--nav-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--bg-glass-border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 1000; }
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--text-muted); cursor: pointer; font-size: 0.75rem; transition: 0.3s; }
@@ -93,6 +83,8 @@
 
         .lista-top { display: flex; flex-direction: column; gap: 12px; } .item-rank, .item-rank-musica { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 15px; background: var(--bg-glass); border-radius: 12px; border: 1px solid var(--bg-glass-border); box-shadow: var(--card-shadow); } .rank-info { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; } .rank-pos { font-weight: 800; font-size: 1.2rem; width: 25px; flex-shrink: 0; text-align: center; color: var(--text-muted); } .rank-info img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid var(--bg-glass-border);} .rank-info div { flex: 1; min-width: 0; } .rank-info strong { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-main); font-size: 0.95rem; } .rank-pontos { font-weight: 800; color: var(--accent-purple); flex-shrink: 0; font-size: 1.1rem; } .info-hit { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; } .titulo-hit { font-weight: 600; color: var(--text-main); font-size: 0.95rem; display: block; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .artista-hit { font-size: 0.8rem; color: var(--text-muted); display: block; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .qtd-hit { font-weight: 700; color: var(--text-muted); flex-shrink: 0; background: var(--input-bg); padding: 5px 10px; border-radius: 20px;}
 
+        .badge-sala { background: var(--input-bg); border: 1px solid var(--bg-glass-border); padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; color: var(--accent-blue); font-weight: 600; display: inline-flex; align-items: center; gap: 5px; max-width: 100%; box-sizing: border-box; } .badge-sala strong { display: inline-block; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
+
         .conquistas-grid { display: flex; overflow-x: auto; gap: 12px; margin-top: 15px; padding-bottom: 10px; scroll-behavior: smooth; } .conquistas-grid::-webkit-scrollbar { height: 6px; } .conquistas-grid::-webkit-scrollbar-thumb { background: var(--accent-blue); border-radius: 10px; } .conquistas-grid::-webkit-scrollbar-track { background: var(--input-bg); border-radius: 10px; } .item-conquista { flex: 0 0 100px; background: var(--input-bg); border-radius: 10px; padding: 15px 5px; text-align: center; border: 1px solid var(--bg-glass-border); opacity: 0.5; filter: grayscale(100%); transition: all 0.3s; } .item-conquista.desbloqueada { opacity: 1; filter: grayscale(0%); background: rgba(167, 139, 250, 0.1); border-color: var(--accent-purple); box-shadow: 0 0 15px rgba(167, 139, 250, 0.2); } .item-conquista .icone { font-size: 2.2rem; margin-bottom: 8px; } .item-conquista .nome { font-size: 0.75rem; font-weight: 600; line-height: 1.2; color: var(--text-main); } .mini-medalhas { font-size: 16px; margin-top: 5px; }
 
         .tela-palco-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-body); z-index: 9000; display: flex; flex-direction: column; } .tela-palco-overlay.minimizado { height: 120px; top: auto; bottom: 75px; background: transparent; pointer-events: none; } .palco-container { width: 100%; height: 100%; display: flex; flex-direction: column; } .player-wrapper { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; flex-shrink: 0; } .tela-palco-overlay.minimizado .player-wrapper { width: 180px; position: absolute; right: 20px; bottom: 20px; border-radius: 12px; overflow: hidden; border: 2px solid var(--accent-blue); box-shadow: 0 10px 25px rgba(0,0,0,0.5); pointer-events: auto; } #player-video { width: 100%; height: 100%; object-fit: contain; } .acoes-palco-topo { padding: 15px; display: flex; justify-content: space-between; background: var(--bg-glass); border-bottom: 1px solid var(--bg-glass-border); } .btn-acao-palco { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--bg-glass-border); padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.05);} .btn-acao-palco.btn-fechar { background: rgba(255,0,0,0.1); color: #ff4757; border-color: rgba(255,0,0,0.2);} .tela-palco-overlay.minimizado .acoes-palco-topo, .tela-palco-overlay.minimizado .conteudo-palco-expandido { display: none; } .capa-mini { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem; cursor: pointer; } .tela-palco-overlay.minimizado .capa-mini { display: flex !important; } .conteudo-palco-expandido { padding: 20px; flex-grow: 1; overflow-y: auto; background: var(--bg-body); } .info-cantando { display: flex; align-items: center; gap: 15px; padding: 15px; border-radius: 14px; background: var(--bg-glass); border: 1px solid var(--bg-glass-border); box-shadow: var(--card-shadow);} .avatares-dupla-palco { display: flex; position: relative; width: 60px; height: 60px; flex-shrink: 0; } .foto-cantor-palco { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-blue); } .foto-sobreposta-palco { position: absolute; left: 30px; border-color: var(--accent-purple); z-index: 2;} .textos-palco { flex: 1; min-width: 0; } .nome-cantor-palco { font-weight: 600; font-size: 0.9rem; color: var(--text-main); margin-bottom: 5px; display: flex; align-items: center; gap: 5px;} #titulo-atual { font-size: 1.2rem; font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;}
@@ -101,7 +93,6 @@
 
         .pulse-anim { animation: pulse 1.5s infinite; } @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } } .blink-anim { animation: blink 1s infinite; } @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } } .ponto-vermelho { display: inline-block; width: 10px; height: 10px; background: #ff4757; border-radius: 50%; margin-right: 8px; box-shadow: 0 0 10px #ff4757;}
         .paginacao { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 25px; } .btn-pagina { width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; padding: 0;} .btn-pagina:disabled { opacity: 0.5; cursor: not-allowed; background: var(--input-bg) !important; color: var(--text-muted) !important;} .info-pagina { font-weight: 600; color: var(--text-main); }
-        #tour-overlay { background: rgba(0, 0, 0, 0.7) !important; z-index: 9998; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;} #tour-balao { border: 2px solid var(--accent-blue) !important; background: var(--bg-body) !important; }
         
         #dj-alerta-palco { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); background: linear-gradient(45deg, #ff4757, #ff6b81); color: white; padding: 15px 30px; border-radius: 12px; font-size: 1.5rem; font-weight: 800; z-index: 9999; border: 3px solid white; text-transform: uppercase; box-shadow: 0 10px 30px rgba(255, 71, 87, 0.5); white-space: nowrap; animation: pulse 1s infinite; }
     </style>
@@ -109,6 +100,7 @@
 <body>
 
     <audio id="som-aplauso" src="https://www.myinstants.com/media/sounds/crowd-cheer.mp3" preload="auto"></audio>
+    <audio id="audio-plateia" autoplay playsinline></audio>
 
     <nav id="bottom-bar" class="bottom-bar escondido">
         <div id="nav-inicio" class="nav-item ativo" onclick="mudarTela('tela-dashboard', this)"><i class="fa-solid fa-house"></i><span>Início</span></div>
@@ -281,8 +273,7 @@
         <div class="container-tela">
             <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 20px;">Gestão de Perfil</h2>
             
-            <div id="badge-nome-sala" class="glass-effect p-20 mb-20" style="border-left: 4px solid var(--accent-blue);">
-                </div>
+            <div id="badge-nome-sala" class="glass-effect p-20 mb-20" style="border-left: 4px solid var(--accent-blue);"></div>
             
             <div class="glass-effect p-20 mb-20">
                 <h3 style="font-size: 1.3rem; margin-bottom: 5px;"><i class="fa-solid fa-star texto-destaque"></i> Cantor Oficial</h3>
@@ -392,6 +383,11 @@
         <div class="palco-container fade-in">
             <div class="acoes-palco-topo">
                 <button class="btn-acao-palco" onclick="minimizarPalco()"><i class="fa-solid fa-compress"></i> Minimizar</button>
+                
+                <button id="btn-transmitir-live" class="btn-acao-palco escondido" style="color: #ff4757; border-color: rgba(255,71,87,0.3); background: rgba(255,71,87,0.1);" onclick="toggleLive()">
+                    <i class="fa-solid fa-satellite-dish"></i> Transmitir
+                </button>
+                
                 <button class="btn-acao-palco btn-fechar" onclick="encerrarPalco(true)"><i class="fa-solid fa-xmark"></i> Sair</button>
             </div>
             
@@ -410,6 +406,10 @@
             <div id="container-reacoes" style="position: absolute; bottom: 80px; right: 10px; width: 60px; height: 350px; pointer-events: none; z-index: 9999;"></div>
 
             <div class="conteudo-palco-expandido">
+                <div id="indicador-live-plateia" class="escondido" style="color: #ff4757; font-weight: 800; text-align: center; margin-bottom: 10px; font-size: 0.9rem; background: var(--input-bg); padding: 8px; border-radius: 10px;">
+                    <i class="fa-solid fa-circle-dot blink-anim"></i> ÁUDIO DO CANTOR AO VIVO 🎧
+                </div>
+
                 <div id="controles-estudio" class="glass-effect mb-20" style="display: flex; justify-content: space-around; padding: 20px 10px; border-radius: 16px;">
                     <div style="text-align: center; flex: 1;">
                         <span class="icone-rosa" style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;"><i class="fa-solid fa-music"></i> Tom</span>
@@ -482,39 +482,22 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
     
-    <script src="js/data.js?v=90"></script>
-    <script src="js/premium.js?v=90"></script>
-    <script src="js/app.js?v=90"></script>
-    <script src="js/upload.js?v=90"></script>
+    <script src="js/data.js?v=95"></script>
+    <script src="js/premium.js?v=95"></script>
+    <script src="js/app.js?v=95"></script>
+    <script src="js/upload.js?v=95"></script>
 
-        <script>
-        let novoServiceWorker;
+    <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').then(registration => {
-                    registration.addEventListener('updatefound', () => {
-                        novoServiceWorker = registration.installing;
-                        novoServiceWorker.addEventListener('statechange', () => { 
-                            if (novoServiceWorker.state === 'installed' && navigator.serviceWorker.controller) { 
-                                mostrarAvisoAtualizacao(); 
-                            } 
-                        });
-                    });
-                });
-                let recarregando = false; 
-                navigator.serviceWorker.addEventListener('controllerchange', () => { 
-                    if (recarregando) return; 
-                    recarregando = true;
-                    window.location.reload(); 
-                });
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) { registration.unregister(); }
             });
         }
-        function mostrarAvisoAtualizacao() {
-            document.getElementById('titulo-alerta').innerHTML = `<i class="fa-solid fa-arrows-rotate texto-destaque"></i> Nova Versão!`;
-            document.getElementById('mensagem-alerta').innerText = "Temos melhorias prontas! Atualize o app agora.";
-            const botoesDiv = document.querySelector('#modal-alerta .botoes-modal');
-            botoesDiv.innerHTML = `<button class="btn-vibrante w-100" onclick="aplicarAtualizacaoApp()">Atualizar Agora</button>`;
-            document.getElementById('modal-alerta').classList.remove('escondido');
+        if ('caches' in window) {
+            caches.keys().then(function(names) {
+                for (let name of names) { caches.delete(name); }
+            });
         }
-        function aplicarAtualizacaoApp() { if (novoServiceWorker) { novoServiceWorker.postMessage('SKIP_WAITING'); } }
     </script>
+</body>
+</html>
