@@ -58,6 +58,10 @@
         input[type="text"], input[type="password"] { width: 100%; padding: 14px; border-radius: 10px; background: var(--input-bg); border: 1px solid var(--bg-glass-border); color: var(--text-main); font-family: 'Poppins', sans-serif; font-size: 1rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); box-sizing: border-box; }
         input[type="text"]:focus, input[type="password"]:focus { outline: none; border-color: var(--accent-blue); } input::placeholder { color: var(--text-muted); }
 
+        input[type="range"] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: var(--accent-blue); cursor: pointer; margin-top: -6px; }
+        input[type="range"]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--text-muted); border-radius: 2px; }
+
         .tela { display: none; padding: 20px; animation: fadeIn 0.3s ease; } .tela.ativa { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .header-tela { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 10px; }
@@ -95,6 +99,10 @@
         .paginacao { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 25px; } .btn-pagina { width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; padding: 0;} .btn-pagina:disabled { opacity: 0.5; cursor: not-allowed; background: var(--input-bg) !important; color: var(--text-muted) !important;} .info-pagina { font-weight: 600; color: var(--text-main); }
         
         #dj-alerta-palco { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); background: linear-gradient(45deg, #ff4757, #ff6b81); color: white; padding: 15px 30px; border-radius: 12px; font-size: 1.5rem; font-weight: 800; z-index: 9999; border: 3px solid white; text-transform: uppercase; box-shadow: 0 10px 30px rgba(255, 71, 87, 0.5); white-space: nowrap; animation: pulse 1s infinite; }
+        
+        /* EMOJIS FLUTUANTES */
+        .emoji-flutuante { position: absolute; font-size: 2rem; pointer-events: none; animation: flutuarEmoji 2s ease-out forwards; z-index: 9999; }
+        @keyframes flutuarEmoji { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-100px) scale(1.5); } }
     </style>
 </head>
 <body>
@@ -410,7 +418,7 @@
                     <i class="fa-solid fa-circle-dot blink-anim"></i> ÁUDIO DO CANTOR AO VIVO 🎧
                 </div>
 
-                <div id="controles-estudio" class="glass-effect mb-20" style="display: flex; justify-content: space-around; padding: 20px 10px; border-radius: 16px;">
+                <div id="controles-estudio" class="glass-effect mb-10" style="display: flex; justify-content: space-around; padding: 20px 10px; border-radius: 16px;">
                     <div style="text-align: center; flex: 1;">
                         <span class="icone-rosa" style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;"><i class="fa-solid fa-music"></i> Tom</span>
                         <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px;">
@@ -423,22 +431,50 @@
                     <div style="width: 1px; background: var(--bg-glass-border); margin: 0 5px;"></div>
                     
                     <div style="text-align: center; flex: 1;">
-                        <span class="texto-destaque" style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;"><i class="fa-solid fa-stopwatch"></i> Sincronia</span>
-                        <div style="display: flex; align-items: center; justify-content: center; margin-top: 10px;">
-                            <input type="range" id="slider-delay" min="0" max="1" step="0.05" value="0.3" style="width: 90%;" oninput="ajustarDelayLive(this.value)">
-                        </div>
-                        <div id="display-delay" class="texto-pequeno mt-10" style="font-weight: bold;">Atraso: 300ms</div>
-                    </div>
-
-                    <div style="width: 1px; background: var(--bg-glass-border); margin: 0 5px;"></div>
-                    
-                    <div style="text-align: center; flex: 1;">
                         <span class="texto-azul" style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;"><i class="fa-solid fa-gauge-high"></i> Vel.</span>
                         <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px;">
                             <button class="btn-secundario" onclick="ajustarVelocidade(-0.1)" style="width: 35px; height: 35px; border-radius: 10px; font-size: 1.2rem; padding: 0;">-</button>
                             <strong id="display-velocidade" style="font-size: 1.3rem; width: 45px; color: var(--text-main);">1.0x</strong>
                             <button class="btn-secundario" onclick="ajustarVelocidade(0.1)" style="width: 35px; height: 35px; border-radius: 10px; font-size: 1.2rem; padding: 0;">+</button>
                         </div>
+                    </div>
+                </div>
+
+                <button class="btn-secundario" id="btn-abrir-mixer" onclick="document.getElementById('painel-mixer').classList.toggle('escondido')" style="width: 100%; margin-bottom: 20px; font-size: 0.9rem; padding: 10px;">
+                    <i class="fa-solid fa-sliders"></i> Abrir Estúdio de Mixagem (Voz)
+                </button>
+
+                <div id="painel-mixer" class="escondido glass-effect p-20 mb-20" style="border: 2px solid var(--accent-purple);">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: var(--accent-purple); text-align: center;"><i class="fa-solid fa-headphones"></i> Mixer da Transmissão</h3>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;"><span>Sincronia (Atraso)</span><span id="lbl-mixer-sync">300ms</span></div>
+                        <input type="range" id="mix-sync" min="0" max="1" step="0.05" value="0.3" oninput="ajustarMixer('sync', this.value)">
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;"><span>Volume Música</span><span id="lbl-mixer-mus">100%</span></div>
+                        <input type="range" id="mix-musica" min="0" max="1.5" step="0.1" value="1.0" oninput="ajustarMixer('musica', this.value)">
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;"><span>Volume Voz</span><span id="lbl-mixer-voz">100%</span></div>
+                        <input type="range" id="mix-voz" min="0" max="2" step="0.1" value="1.0" oninput="ajustarMixer('voz', this.value)">
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;"><span>Grave (Peso)</span><span id="lbl-mixer-grave">0dB</span></div>
+                        <input type="range" id="mix-grave" min="-10" max="15" step="1" value="0" oninput="ajustarMixer('grave', this.value)">
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;"><span>Agudo (Brilho)</span><span id="lbl-mixer-agudo">0dB</span></div>
+                        <input type="range" id="mix-agudo" min="-10" max="15" step="1" value="0" oninput="ajustarMixer('agudo', this.value)">
+                    </div>
+
+                    <div style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: var(--accent-blue);"><span>Eco / Reverb Karaokê</span><span id="lbl-mixer-eco">Desligado</span></div>
+                        <input type="range" id="mix-eco" min="0" max="0.6" step="0.05" value="0" oninput="ajustarMixer('eco', this.value)">
                     </div>
                 </div>
 
@@ -456,7 +492,7 @@
                 
                 <div class="status-transmissao glass-effect text-center p-20 mt-20">
                     <h3 class="texto-azul" style="font-size: 1.2rem;"><i class="fa-solid fa-tower-broadcast pulse-anim"></i> Votos da Plateia</h3>
-                    <div id="feed-votos-palco" style="max-height: 150px; overflow-y: auto; margin: 15px 0; padding: 15px; background: var(--input-bg); border-radius: 12px; font-size: 0.9rem;"></div>
+                    <div id="feed-votos-palco" style="max-height: 200px; overflow-y: auto; margin: 15px 0; padding: 15px; background: var(--input-bg); border-radius: 12px; font-size: 0.9rem; display: flex; flex-direction: column; gap: 8px;"></div>
                     <div id="alerta-nota-palco" class="alerta-nota-palco escondido" style="font-size: 1.2rem; font-weight: 800; color: var(--accent-purple);"></div>
                 </div>
             </div>
@@ -468,36 +504,26 @@
             const body = document.documentElement;
             const temaAtual = body.getAttribute('data-theme');
             const novoTema = temaAtual === 'dark' ? 'light' : 'dark';
-            
             body.setAttribute('data-theme', novoTema);
             localStorage.setItem('karaoke_theme', novoTema);
-            
             const icon = document.querySelector('#theme-toggle i');
-            if(novoTema === 'dark') {
-                icon.className = 'fa-solid fa-sun';
-            } else {
-                icon.className = 'fa-solid fa-moon';
-            }
+            if(icon) { icon.className = novoTema === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'; }
         }
-
         window.addEventListener('DOMContentLoaded', () => {
             const temaSalvo = localStorage.getItem('karaoke_theme') || 'light';
             document.documentElement.setAttribute('data-theme', temaSalvo);
-            
             const icon = document.querySelector('#theme-toggle i');
-            if(icon) {
-                icon.className = temaSalvo === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-            }
+            if(icon) { icon.className = temaSalvo === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'; }
         });
     </script>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
     
-    <script src="js/data.js?v=100"></script>
-    <script src="js/premium.js?v=100"></script>
-    <script src="js/app.js?v=100"></script>
-    <script src="js/upload.js?v=100"></script>
+    <script src="js/data.js?v=101"></script>
+    <script src="js/premium.js?v=101"></script>
+    <script src="js/app.js?v=101"></script>
+    <script src="js/upload.js?v=101"></script>
 
     <script>
         let novoServiceWorker;
@@ -507,18 +533,12 @@
                     registration.addEventListener('updatefound', () => {
                         novoServiceWorker = registration.installing;
                         novoServiceWorker.addEventListener('statechange', () => { 
-                            if (novoServiceWorker.state === 'installed' && navigator.serviceWorker.controller) { 
-                                mostrarAvisoAtualizacao(); 
-                            } 
+                            if (novoServiceWorker.state === 'installed' && navigator.serviceWorker.controller) { mostrarAvisoAtualizacao(); } 
                         });
                     });
                 });
                 let recarregando = false; 
-                navigator.serviceWorker.addEventListener('controllerchange', () => { 
-                    if (recarregando) return; 
-                    recarregando = true;
-                    window.location.reload(); 
-                });
+                navigator.serviceWorker.addEventListener('controllerchange', () => { if (recarregando) return; recarregando = true; window.location.reload(); });
             });
         }
         function mostrarAvisoAtualizacao() {
