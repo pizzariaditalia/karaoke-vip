@@ -55,24 +55,52 @@ const playerVideo = document.getElementById('player-video');
 const somAplauso = document.getElementById('som-aplauso');
 
 // ============================================================================
-// 📡 FASE 2: MÓDULO DE TRANSMISSÃO AO VIVO COM SINCRONIA COMPENSATÓRIA (DELAY)
+// 📡 MÓDULO DE TRANSMISSÃO AO VIVO COM MIXER DE ÁUDIO 🎛️
 // ============================================================================
 let isBroadcasting = false;
 const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+
+// NÓS DE ÁUDIO VIRTUAIS (Os Botões da Mesa de Som)
 let audioContextLive = null;
 let destLive = null;
 let micStreamLive = null;
 let videoStreamLive = null;
 let peerConnectionsLive = {}; 
 let viewerPCLive = null;
-let delayNodeLive = null; // A NOSSA MÁQUINA DO TEMPO ⏳
 
-// Nova função acionada pela barrinha na interface
-function ajustarDelayLive(valor) {
-    const mili = Math.round(parseFloat(valor) * 1000);
-    document.getElementById('display-delay').innerText = `Atraso: ${mili}ms`;
-    if (delayNodeLive) {
-        delayNodeLive.delayTime.value = parseFloat(valor);
+let delayNodeLive = null; // Atraso Compensatório
+let musicGainNode = null; // Volume da Música
+let micGainNode = null;   // Volume da Voz
+let bassNode = null;      // Frequências Graves
+let trebleNode = null;    // Frequências Agudas
+let echoDelayNode = null; // Tempo do Eco
+let echoGainNode = null;  // Intensidade do Eco
+
+function ajustarMixer(tipo, valor) {
+    let num = parseFloat(valor);
+    if(tipo === 'sync') {
+        if(delayNodeLive) delayNodeLive.delayTime.value = num;
+        document.getElementById('lbl-mixer-sync').innerText = `${Math.round(num * 1000)}ms`;
+    }
+    if(tipo === 'musica') {
+        if(musicGainNode) musicGainNode.gain.value = num;
+        document.getElementById('lbl-mixer-mus').innerText = `${Math.round(num * 100)}%`;
+    }
+    if(tipo === 'voz') {
+        if(micGainNode) micGainNode.gain.value = num;
+        document.getElementById('lbl-mixer-voz').innerText = `${Math.round(num * 100)}%`;
+    }
+    if(tipo === 'grave') {
+        if(bassNode) bassNode.gain.value = num;
+        document.getElementById('lbl-mixer-grave').innerText = `${num > 0 ? '+'+num : num}dB`;
+    }
+    if(tipo === 'agudo') {
+        if(trebleNode) trebleNode.gain.value = num;
+        document.getElementById('lbl-mixer-agudo').innerText = `${num > 0 ? '+'+num : num}dB`;
+    }
+    if(tipo === 'eco') {
+        if(echoGainNode) echoGainNode.gain.value = num;
+        document.getElementById('lbl-mixer-eco').innerText = num === 0 ? "Desligado" : `${Math.round(num * 100)}%`;
     }
 }
 
@@ -81,72 +109,76 @@ async function toggleLive() {
     if(isBroadcasting) { pararLive(); return; }
 
     try {
-        // Pede a voz do cantor (limpando ruídos)
         micStreamLive = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
-        
-        // Pega a música do clipe que está rodando no <video>
         videoStreamLive = playerVideo.captureStream ? playerVideo.captureStream() : playerVideo.mozCaptureStream();
         
-        // Estúdio de Mixagem Virtual
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         audioContextLive = new AudioContext();
         destLive = audioContextLive.createMediaStreamDestination();
 
-        const micSource = audioContextLive.createMediaStreamSource(micStreamLive);
         const videoSource = audioContextLive.createMediaStreamSource(videoStreamLive);
+        const micSource = audioContextLive.createMediaStreamSource(micStreamLive);
         
-        // O TRUQUE DE MESTRE: Criamos um atraso artificial para a música de fundo
-        delayNodeLive = audioContextLive.createDelay(2.0); // Limite máximo de atraso = 2 segundos
-        const delayInicial = document.getElementById('slider-delay') ? parseFloat(document.getElementById('slider-delay').value) : 0.3;
-        delayNodeLive.delayTime.value = delayInicial; // Atraso padrão de 300ms
+        // 1. CANAL DA MÚSICA
+        musicGainNode = audioContextLive.createGain();
+        musicGainNode.gain.value = parseFloat(document.getElementById('mix-musica').value);
+        delayNodeLive = audioContextLive.createDelay(2.0);
+        delayNodeLive.delayTime.value = parseFloat(document.getElementById('mix-sync').value);
         
-        // A MÚSICA entra no Atraso, e o Atraso entra na Mixagem Final
-        videoSource.connect(delayNodeLive);
-        delayNodeLive.connect(destLive);
-        
-        // A VOZ (que já está atrasada pelo celular) entra direto na Mixagem Final
-        micSource.connect(destLive);
+        videoSource.connect(delayNodeLive).connect(musicGainNode).connect(destLive);
+
+        // 2. CANAL DA VOZ (EQ)
+        bassNode = audioContextLive.createBiquadFilter();
+        bassNode.type = "lowshelf";
+        bassNode.frequency.value = 250; 
+        bassNode.gain.value = parseFloat(document.getElementById('mix-grave').value);
+
+        trebleNode = audioContextLive.createBiquadFilter();
+        trebleNode.type = "highshelf";
+        trebleNode.frequency.value = 4000;
+        trebleNode.gain.value = parseFloat(document.getElementById('mix-agudo').value);
+
+        micGainNode = audioContextLive.createGain();
+        micGainNode.gain.value = parseFloat(document.getElementById('mix-voz').value);
+
+        micSource.connect(bassNode).connect(trebleNode).connect(micGainNode);
+        micGainNode.connect(destLive);
+
+        // 3. O EFEITO DE ECO (Reverb Ping-Pong)
+        echoDelayNode = audioContextLive.createDelay(1.0);
+        echoDelayNode.delayTime.value = 0.3; // Eco de 300ms
+        echoGainNode = audioContextLive.createGain();
+        echoGainNode.gain.value = parseFloat(document.getElementById('mix-eco').value);
+
+        micGainNode.connect(echoDelayNode).connect(echoGainNode).connect(destLive);
+        echoGainNode.connect(echoDelayNode); // Loop de feedback
 
         const mixedStream = destLive.stream;
-
         isBroadcasting = true;
         btn.innerHTML = '<i class="fa-solid fa-circle-stop"></i> Parar Live';
-        btn.style.color = '#fff';
-        btn.style.background = '#ff4757';
+        btn.style.color = '#fff'; btn.style.background = '#ff4757';
 
         refSalaAtual.child('palco/isLive').set(true);
         refSalaAtual.child('webrtc').remove(); 
 
         refSalaAtual.child('webrtc/offers').on('child_added', async (snapshot) => {
-            const viewerId = snapshot.key;
-            const offer = snapshot.val();
-            
+            const viewerId = snapshot.key; const offer = snapshot.val();
             const pc = new RTCPeerConnection(rtcConfig);
             peerConnectionsLive[viewerId] = pc;
 
             mixedStream.getTracks().forEach(track => pc.addTrack(track, mixedStream));
-
-            pc.onicecandidate = e => {
-                if(e.candidate) refSalaAtual.child(`webrtc/candidates/${viewerId}/broadcaster`).push(e.candidate.toJSON());
-            };
-
+            pc.onicecandidate = e => { if(e.candidate) refSalaAtual.child(`webrtc/candidates/${viewerId}/broadcaster`).push(e.candidate.toJSON()); };
+            
             await pc.setRemoteDescription(new RTCSessionDescription(offer));
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
 
             refSalaAtual.child(`webrtc/answers/${viewerId}`).set({ type: answer.type, sdp: answer.sdp });
-
-            refSalaAtual.child(`webrtc/candidates/${viewerId}/viewer`).on('child_added', (candSnap) => {
-                pc.addIceCandidate(new RTCIceCandidate(candSnap.val()));
-            });
+            refSalaAtual.child(`webrtc/candidates/${viewerId}/viewer`).on('child_added', (candSnap) => { pc.addIceCandidate(new RTCIceCandidate(candSnap.val())); });
         });
 
         mostrarAlerta("Você está ao vivo! A galera já pode ouvir sua voz.", "Live ON", "fa-satellite-dish");
-
-    } catch(e) {
-        console.error("Erro na Live:", e);
-        mostrarAlerta("Conecte um fone de ouvido e permita o uso do microfone!", "Microfone Bloqueado", "fa-microphone-slash");
-    }
+    } catch(e) { console.error("Erro na Live:", e); mostrarAlerta("Conecte um fone de ouvido e permita o uso do microfone!", "Microfone Bloqueado", "fa-microphone-slash"); }
 }
 
 function pararLive() {
@@ -155,59 +187,86 @@ function pararLive() {
     
     if(micStreamLive) micStreamLive.getTracks().forEach(t => t.stop());
     if(audioContextLive) audioContextLive.close();
-    
-    Object.values(peerConnectionsLive).forEach(pc => pc.close());
-    peerConnectionsLive = {};
+    Object.values(peerConnectionsLive).forEach(pc => pc.close()); peerConnectionsLive = {};
 
     const btn = document.getElementById('btn-transmitir-live');
-    if(btn) {
-        btn.innerHTML = '<i class="fa-solid fa-satellite-dish"></i> Transmitir';
-        btn.style.color = '#ff4757';
-        btn.style.background = 'rgba(255,71,87,0.1)';
-    }
-
-    if(refSalaAtual) {
-        refSalaAtual.child('palco/isLive').set(false);
-        refSalaAtual.child('webrtc').remove();
-    }
+    if(btn) { btn.innerHTML = '<i class="fa-solid fa-satellite-dish"></i> Transmitir'; btn.style.color = '#ff4757'; btn.style.background = 'rgba(255,71,87,0.1)'; }
+    if(refSalaAtual) { refSalaAtual.child('palco/isLive').set(false); refSalaAtual.child('webrtc').remove(); }
 }
 
 async function conectarNaLivePlateia() {
     if(viewerPCLive) return; 
-
     viewerPCLive = new RTCPeerConnection(rtcConfig);
-    
     viewerPCLive.ontrack = (event) => {
         const audioEl = document.getElementById('audio-plateia');
-        audioEl.srcObject = event.streams[0];
-        audioEl.play().catch(e => console.log("Aguardando usuário liberar som"));
+        audioEl.srcObject = event.streams[0]; audioEl.play().catch(e => console.log("Aguardando liberação de som"));
     };
 
-    viewerPCLive.onicecandidate = e => {
-        if(e.candidate && perfilAtual) refSalaAtual.child(`webrtc/candidates/${perfilAtual.id}/viewer`).push(e.candidate.toJSON());
-    };
-
+    viewerPCLive.onicecandidate = e => { if(e.candidate && perfilAtual) refSalaAtual.child(`webrtc/candidates/${perfilAtual.id}/viewer`).push(e.candidate.toJSON()); };
     const offer = await viewerPCLive.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: false });
     await viewerPCLive.setLocalDescription(offer);
 
     refSalaAtual.child(`webrtc/offers/${perfilAtual.id}`).set({ type: offer.type, sdp: offer.sdp });
-
-    refSalaAtual.child(`webrtc/answers/${perfilAtual.id}`).on('value', async (snap) => {
-        const answer = snap.val();
-        if(answer && viewerPCLive.signalingState !== "stable") {
-            await viewerPCLive.setRemoteDescription(new RTCSessionDescription(answer));
-        }
-    });
-
-    refSalaAtual.child(`webrtc/candidates/${perfilAtual.id}/broadcaster`).on('child_added', (candSnap) => {
-        viewerPCLive.addIceCandidate(new RTCIceCandidate(candSnap.val()));
-    });
+    refSalaAtual.child(`webrtc/answers/${perfilAtual.id}`).on('value', async (snap) => { const answer = snap.val(); if(answer && viewerPCLive.signalingState !== "stable") { await viewerPCLive.setRemoteDescription(new RTCSessionDescription(answer)); } });
+    refSalaAtual.child(`webrtc/candidates/${perfilAtual.id}/broadcaster`).on('child_added', (candSnap) => { viewerPCLive.addIceCandidate(new RTCIceCandidate(candSnap.val())); });
 }
 
 function desconectarLivePlateia() {
     if(viewerPCLive) { viewerPCLive.close(); viewerPCLive = null; }
-    const audioEl = document.getElementById('audio-plateia');
-    if(audioEl) audioEl.srcObject = null;
+    const audioEl = document.getElementById('audio-plateia'); if(audioEl) audioEl.srcObject = null;
+}
+
+// ============================================================================
+// 💬 SISTEMA DE CHAT DE VOTOS E REAÇÕES FLUTUANTES (CORRIGIDO)
+// ============================================================================
+function enviarReacao(emoji) {
+    if(!refSalaAtual) return;
+    refSalaAtual.child('palco/reacoes').push({ emoji: emoji, timestamp: Date.now() });
+    
+    // Opcional: ganha medalha de "Alma da Festa" ao reagir
+    if (perfilAtual && !perfilAtual.isGuest) {
+        let pIndex = perfisFamilia.findIndex(p => String(p.id) === String(perfilAtual.id));
+        if (pIndex !== -1) {
+            if(!perfisFamilia[pIndex].stats) perfisFamilia[pIndex].stats = { cantadas:0, duetos:0, notas10:0, votos:0, reacoes:0, medalhas:[] };
+            perfisFamilia[pIndex].stats.reacoes = (Number(perfisFamilia[pIndex].stats.reacoes) || 0) + 1;
+            verificarConquistas(perfisFamilia[pIndex]);
+        }
+    }
+}
+
+function mostrarEmojiFlutuante(emoji) {
+    const container = document.getElementById('container-reacoes');
+    if(!container) return;
+    const el = document.createElement('div');
+    el.classList.add('emoji-flutuante');
+    el.innerText = emoji;
+    el.style.left = Math.random() * 40 + 'px';
+    container.appendChild(el);
+    setTimeout(() => { if(el.parentNode) el.remove(); }, 2000);
+}
+
+function renderizarFeedVotos(votosObj) {
+    const feed = document.getElementById('feed-votos-palco');
+    if(!feed) return;
+    
+    const votosArray = Object.values(votosObj).sort((a,b) => b.timestamp - a.timestamp).slice(0, 10);
+    if(votosArray.length === 0) {
+        feed.innerHTML = '<p class="texto-cinza text-center" style="margin: 0; font-style: italic;">Aguardando votos dos jurados...</p>';
+        return;
+    }
+    
+    feed.innerHTML = '';
+    votosArray.forEach(v => {
+        let icone = v.nota === 10 ? '⭐' : '🎤';
+        let cor = v.nota === 10 ? 'var(--accent-purple)' : 'var(--text-main)';
+        feed.innerHTML += `
+            <div style="display: flex; align-items: center; gap: 10px; background: var(--bg-glass); border: 1px solid var(--bg-glass-border); padding: 8px 12px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); animation: fadeIn 0.3s ease;">
+                <img src="${v.foto}" style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--accent-blue);">
+                <span style="flex: 1; font-size: 0.85rem; color: var(--text-main);"><strong>${v.nome}</strong> enviou nota:</span>
+                <strong style="color: ${cor}; font-size: 1.2rem; font-weight: 800;">${v.nota} ${icone}</strong>
+            </div>
+        `;
+    });
 }
 
 // ============================================================================
@@ -366,7 +425,11 @@ function entrarNoSistema() {
     if (localStorage.getItem('karaoke_dj_' + salaAtual) === 'sim') { isDJ = true; document.getElementById('badge-dj').classList.remove('escondido'); document.getElementById('btn-painel-dj').classList.remove('escondido'); } else { isDJ = false; document.getElementById('badge-dj').classList.add('escondido'); document.getElementById('btn-painel-dj').classList.add('escondido'); }
     
     refSalaAtual = db.ref('dados_salas/' + salaAtual);
-    if (typeof escutarReacoesPalco === "function") { escutarReacoesPalco(refSalaAtual.child('palco')); }
+    
+    // ATIVAÇÃO DO ESCUTADOR DE EMOJIS (ANIMAÇÃO)
+    refSalaAtual.child('palco/reacoes').on('child_added', snap => {
+        mostrarEmojiFlutuante(snap.val().emoji);
+    });
     
     refSalaAtual.on('value', snapshot => {
         const dados = snapshot.val() || {};
@@ -411,14 +474,17 @@ function entrarNoSistema() {
             }
 
             const btnLive = document.getElementById('btn-transmitir-live');
+            const btnMixer = document.getElementById('btn-abrir-mixer');
             const indicadorLive = document.getElementById('indicador-live-plateia');
             
             if (cantorAoVivo && perfilAtual && String(cantorAoVivo.id) === String(perfilAtual.id)) {
                 btnLive.classList.remove('escondido');
+                btnMixer.classList.remove('escondido'); // Mostra a mesa de som só pro cantor
                 indicadorLive.classList.add('escondido');
                 desconectarLivePlateia();
             } else {
                 btnLive.classList.add('escondido');
+                btnMixer.classList.add('escondido'); // Esconde a mesa da plateia
                 if (dados.palco.isLive) {
                     indicadorLive.classList.remove('escondido');
                     playerVideo.muted = true; 
@@ -438,6 +504,8 @@ function entrarNoSistema() {
              pararLive();
              desconectarLivePlateia();
              document.getElementById('btn-transmitir-live').classList.add('escondido');
+             document.getElementById('btn-abrir-mixer').classList.add('escondido');
+             document.getElementById('painel-mixer').classList.add('escondido');
              document.getElementById('indicador-live-plateia').classList.add('escondido');
         }
 
