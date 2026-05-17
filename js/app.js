@@ -55,7 +55,7 @@ const playerVideo = document.getElementById('player-video');
 const somAplauso = document.getElementById('som-aplauso');
 
 // ============================================================================
-// 📡 FASE 2: MÓDULO DE TRANSMISSÃO AO VIVO (WEBRTC MIXER)
+// 📡 FASE 2: MÓDULO DE TRANSMISSÃO AO VIVO COM SINCRONIA COMPENSATÓRIA (DELAY)
 // ============================================================================
 let isBroadcasting = false;
 const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
@@ -65,6 +65,16 @@ let micStreamLive = null;
 let videoStreamLive = null;
 let peerConnectionsLive = {}; 
 let viewerPCLive = null;
+let delayNodeLive = null; // A NOSSA MÁQUINA DO TEMPO ⏳
+
+// Nova função acionada pela barrinha na interface
+function ajustarDelayLive(valor) {
+    const mili = Math.round(parseFloat(valor) * 1000);
+    document.getElementById('display-delay').innerText = `Atraso: ${mili}ms`;
+    if (delayNodeLive) {
+        delayNodeLive.delayTime.value = parseFloat(valor);
+    }
+}
 
 async function toggleLive() {
     const btn = document.getElementById('btn-transmitir-live');
@@ -85,9 +95,17 @@ async function toggleLive() {
         const micSource = audioContextLive.createMediaStreamSource(micStreamLive);
         const videoSource = audioContextLive.createMediaStreamSource(videoStreamLive);
         
-        // Junta os dois cabos na mesma saída
+        // O TRUQUE DE MESTRE: Criamos um atraso artificial para a música de fundo
+        delayNodeLive = audioContextLive.createDelay(2.0); // Limite máximo de atraso = 2 segundos
+        const delayInicial = document.getElementById('slider-delay') ? parseFloat(document.getElementById('slider-delay').value) : 0.3;
+        delayNodeLive.delayTime.value = delayInicial; // Atraso padrão de 300ms
+        
+        // A MÚSICA entra no Atraso, e o Atraso entra na Mixagem Final
+        videoSource.connect(delayNodeLive);
+        delayNodeLive.connect(destLive);
+        
+        // A VOZ (que já está atrasada pelo celular) entra direto na Mixagem Final
         micSource.connect(destLive);
-        videoSource.connect(destLive);
 
         const mixedStream = destLive.stream;
 
@@ -96,11 +114,9 @@ async function toggleLive() {
         btn.style.color = '#fff';
         btn.style.background = '#ff4757';
 
-        // Avisa a nuvem que a rádio tá ON
         refSalaAtual.child('palco/isLive').set(true);
         refSalaAtual.child('webrtc').remove(); 
 
-        // Escuta os aparelhos da plateia pedindo a música
         refSalaAtual.child('webrtc/offers').on('child_added', async (snapshot) => {
             const viewerId = snapshot.key;
             const offer = snapshot.val();
@@ -137,7 +153,6 @@ function pararLive() {
     if(!isBroadcasting) return;
     isBroadcasting = false;
     
-    // Desliga todos os cabos
     if(micStreamLive) micStreamLive.getTracks().forEach(t => t.stop());
     if(audioContextLive) audioContextLive.close();
     
@@ -157,13 +172,11 @@ function pararLive() {
     }
 }
 
-// O Celular da Plateia escutando
 async function conectarNaLivePlateia() {
     if(viewerPCLive) return; 
 
     viewerPCLive = new RTCPeerConnection(rtcConfig);
     
-    // Quando o som chegar, liga na caixa de som invisível
     viewerPCLive.ontrack = (event) => {
         const audioEl = document.getElementById('audio-plateia');
         audioEl.srcObject = event.streams[0];
@@ -397,17 +410,14 @@ function entrarNoSistema() {
                 divAlertaPalco.classList.remove('escondido'); setTimeout(() => { divAlertaPalco.classList.add('escondido'); }, 3000);
             }
 
-            // CONTROLE DO BOTÃO DE TRANSMISSÃO E ÁUDIO DA PLATEIA
             const btnLive = document.getElementById('btn-transmitir-live');
             const indicadorLive = document.getElementById('indicador-live-plateia');
             
             if (cantorAoVivo && perfilAtual && String(cantorAoVivo.id) === String(perfilAtual.id)) {
-                // Eu sou o cantor do palco!
                 btnLive.classList.remove('escondido');
                 indicadorLive.classList.add('escondido');
                 desconectarLivePlateia();
             } else {
-                // Eu sou a plateia!
                 btnLive.classList.add('escondido');
                 if (dados.palco.isLive) {
                     indicadorLive.classList.remove('escondido');
@@ -766,7 +776,6 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     playerVideo.style.pointerEvents = 'auto'; playerVideo.setAttribute('controls', 'controls');
     playerVideo.src = `${urlNuvemR2}/${encodeURIComponent(musica.arquivo)}`; 
     
-    // Se você é o cantor e tem transmissão ligada, sua música tem que rolar na sua orelha
     playerVideo.muted = false; 
 
     if (pularContagem) { playerVideo.play().catch(e => console.log("Autoplay bloqueado.")); } 
@@ -794,7 +803,7 @@ function maximizarPalco() {
     atualizarDashboard(); 
 }
 
-telaPalcoOverlay.addEventListener('click', function(e) { if (e.target.closest('button')) return; if (this.classList.contains('minimizado')) { maximizarPalco(); } });
+telaPalcoOverlay.addEventListener('click', function(e) { if (e.target.closest('button') || e.target.closest('input')) return; if (this.classList.contains('minimizado')) { maximizarPalco(); } });
 
 function encerrarPalco(forcarFechamento = false) {
     if(window.event) window.event.stopPropagation(); 
@@ -802,7 +811,7 @@ function encerrarPalco(forcarFechamento = false) {
     pararPrevia(); clearInterval(intervaloContador); clearTimeout(timerTransicao); window.speechSynthesis.cancel(); somAplauso.onended = null;
     playerVideo.pause(); playerVideo.src = ""; cantorAoVivo = null; cantor2AoVivo = null; musicaAoVivo = null;
     
-    pararLive(); // Garante que desliga a transmissão ao fechar o palco
+    pararLive(); 
     
     document.getElementById('tela-transicao-palco').classList.add('escondido'); telaPalcoOverlay.classList.add('escondido'); telaPalcoOverlay.classList.remove('minimizado');
     refSalaAtual.child('palco').set({ cantor: null, cantor2: null, musica: null, isLive: false });
@@ -864,7 +873,7 @@ function votar(nota) {
 
 playerVideo.addEventListener('ended', () => {
     if (typeof resetarEstudio === 'function') resetarEstudio();
-    pararLive(); // Derruba a transmissão quando a música acaba
+    pararLive(); 
     
     somAplauso.currentTime = 0; somAplauso.play().catch(() => {});
 
