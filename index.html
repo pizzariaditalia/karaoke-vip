@@ -66,7 +66,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .header-tela { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 10px; }
 
-        .criar-perfil-box { display: flex; gap: 10px; align-items: stretch; } .instrucao-perfil { font-size: 0.9rem; font-weight: 600; color: var(--text-main); white-space: nowrap; }
+        .criar-perfil-box { display: flex; flex-direction: column; gap: 10px; align-items: stretch; } .instrucao-perfil { font-size: 0.9rem; font-weight: 600; color: var(--text-main); white-space: nowrap; }
         .categorias-lista { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; scroll-behavior: smooth; } .categorias-lista::-webkit-scrollbar { display: none; }
         .btn-categoria { background: var(--input-bg); color: var(--text-muted); border: 1px solid var(--bg-glass-border); border-radius: 20px; padding: 8px 18px; white-space: nowrap; font-weight: 500; }
         .btn-categoria.ativo { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
@@ -100,14 +100,9 @@
         
         #dj-alerta-palco { position: absolute; top: 15%; left: 50%; transform: translateX(-50%); background: linear-gradient(45deg, #ff4757, #ff6b81); color: white; padding: 15px 30px; border-radius: 12px; font-size: 1.5rem; font-weight: 800; z-index: 9999; border: 3px solid white; text-transform: uppercase; box-shadow: 0 10px 30px rgba(255, 71, 87, 0.5); white-space: nowrap; animation: pulse 1s infinite; }
         
-        /* EMOJIS FLUTUANTES */
         .emoji-flutuante { position: absolute; font-size: 2rem; pointer-events: none; animation: flutuarEmoji 2s ease-out forwards; z-index: 9999; }
         @keyframes flutuarEmoji { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-100px) scale(1.5); } }
     </style>
-
-    
-
-
 </head>
 <body>
 
@@ -127,7 +122,21 @@
     <div id="modal-qr" class="modal-overlay escondido"><div class="modal-content glass-effect text-center" style="padding: 30px;"><h3>Entrada VIP</h3><p class="texto-pequeno mt-10">Peça para seus amigos apontarem a câmera para entrar na sala direto!</p><div id="qrcode-container" style="background: white; padding: 15px; border-radius: 10px; display: inline-block; margin: 15px 0; border: 2px solid var(--accent-blue);"></div><div class="botoes-modal"><button class="btn-secundario w-100" onclick="fecharModalQR()">Fechar</button></div></div></div>
     <div id="modal-alerta" class="modal-overlay escondido"><div class="modal-content glass-effect" style="padding: 30px;"><h3 id="titulo-alerta"><i class="fa-solid fa-bell texto-destaque"></i> Aviso</h3><p id="mensagem-alerta" class="texto-pequeno mt-15 mb-20" style="font-size: 1rem;">Sua mensagem aqui.</p><div class="botoes-modal"><button class="btn-vibrante-sm w-100" onclick="fecharModalAlerta()">OK</button></div></div></div>
     <div id="modal-dueto" class="modal-overlay escondido"><div class="modal-content glass-effect" style="padding: 30px;"><h3>Cantar em Dupla 🎤🎤</h3><p class="texto-pequeno mt-10">Quem vai cantar com você?</p><div id="lista-parceiros-modal" class="perfis-grid mt-15 mb-20"></div><div class="botoes-modal"><button class="btn-secundario w-100" onclick="fecharModalDueto()">Cancelar</button></div></div></div>
-    <div id="modal-senha" class="modal-overlay escondido"><div class="modal-content glass-effect" style="padding: 30px;"><h3><i class="fa-solid fa-lock texto-destaque"></i> Sala Privada</h3><p class="texto-pequeno mt-10">Esta sala exige uma senha para entrar.</p><div class="criar-perfil-box mt-15 mb-20"><input type="password" id="input-senha-acesso" placeholder="Digite a senha..."></div><div class="botoes-modal"><button class="btn-secundario" onclick="fecharModalSenha()">Cancelar</button><button class="btn-vibrante-sm" onclick="verificarSenha()">Entrar</button></div></div></div>
+    <div id="modal-senha" class="modal-overlay escondido"><div class="modal-content glass-effect" style="padding: 30px;"><h3><i class="fa-solid fa-lock texto-destaque"></i> Sala Privada</h3><p class="texto-pequeno mt-10">Esta sala exige uma senha para entrar.</p><div style="display: flex; flex-direction: column; gap: 10px; align-items: stretch; mt-15 mb-20"><input type="password" id="input-senha-acesso" placeholder="Digite a senha..."></div><div class="botoes-modal"><button class="btn-secundario" onclick="fecharModalSenha()">Cancelar</button><button class="btn-vibrante-sm" onclick="verificarSenha()">Entrar</button></div></div></div>
+
+    <div id="modal-pin" class="modal-overlay escondido">
+        <div class="modal-content glass-effect text-center" style="padding: 30px; border: 2px solid var(--accent-purple);">
+            <h3 id="titulo-modal-pin"><i class="fa-solid fa-lock texto-destaque"></i> Senha do Cantor</h3>
+            <p id="desc-modal-pin" class="texto-pequeno mt-10">Digite seu PIN de 4 dígitos para acessar.</p>
+            <div class="mt-15 mb-20">
+                <input type="password" id="input-pin-acesso" placeholder="****" maxlength="4" pattern="\d*" style="text-align: center; font-size: 1.8rem; letter-spacing: 15px; padding: 10px;">
+            </div>
+            <div class="botoes-modal">
+                <button class="btn-secundario" onclick="fecharModalPin()">Cancelar</button>
+                <button class="btn-vibrante-sm" onclick="confirmarPin()">Confirmar</button>
+            </div>
+        </div>
+    </div>
 
     <div id="modal-conquista" class="modal-overlay escondido">
         <div class="modal-content glass-effect text-center" style="border: 2px solid var(--accent-purple); box-shadow: 0 0 40px rgba(167,139,250,0.5); padding: 40px 20px;">
@@ -299,16 +308,19 @@
                 
                 <div id="seletor-avatares" class="avatares-grid mb-20" style="justify-content: center; display: flex; gap: 10px;"></div>
                 
-                <span class="instrucao-perfil mb-10" style="display: block;">2. Seu Nome:</span>
-                <div class="criar-perfil-box">
-                    <input type="text" id="input-novo-perfil" placeholder="Como quer ser chamado?">
-                    <button class="btn-vibrante" onclick="criarPerfil()" style="padding: 0 20px;"><i class="fa-solid fa-check"></i></button>
+                <span class="instrucao-perfil mb-10" style="display: block;">2. Seus Dados:</span>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <input type="text" id="input-novo-perfil" placeholder="Nome (Ex: João)">
+                    <div style="display: flex; gap: 10px;">
+                        <input type="password" id="input-novo-perfil-pin" placeholder="Crie um PIN (4 números)" maxlength="4" pattern="\d*" style="flex: 1; text-align: center; letter-spacing: 5px;">
+                        <button class="btn-vibrante" onclick="criarPerfil()" style="padding: 0 20px;"><i class="fa-solid fa-check"></i></button>
+                    </div>
                 </div>
             </div>
             
             <div class="glass-effect p-20 mb-20">
                 <h3 style="font-size: 1.3rem; margin-bottom: 15px;"><i class="fa-solid fa-user-astronaut icone-azul"></i> Convidado Rápido</h3>
-                <div class="criar-perfil-box">
+                <div style="display: flex; flex-direction: column; gap: 10px; align-items: stretch;">
                     <input type="text" id="input-convidado" placeholder="Nome do visitante...">
                     <button class="btn-vibrante" onclick="entrarComoConvidado()">Entrar</button>
                 </div>
@@ -395,23 +407,17 @@
         <div class="palco-container fade-in">
             <div class="acoes-palco-topo">
                 <button class="btn-acao-palco" onclick="minimizarPalco()"><i class="fa-solid fa-compress"></i> Minimizar</button>
-                
-                <button id="btn-transmitir-live" class="btn-acao-palco escondido" style="color: #ff4757; border-color: rgba(255,71,87,0.3); background: rgba(255,71,87,0.1);" onclick="toggleLive()">
-                    <i class="fa-solid fa-satellite-dish"></i> Transmitir
-                </button>
-                
+                <button id="btn-transmitir-live" class="btn-acao-palco escondido" style="color: #ff4757; border-color: rgba(255,71,87,0.3); background: rgba(255,71,87,0.1);" onclick="toggleLive()"><i class="fa-solid fa-satellite-dish"></i> Transmitir</button>
                 <button class="btn-acao-palco btn-fechar" onclick="encerrarPalco(true)"><i class="fa-solid fa-xmark"></i> Sair</button>
             </div>
             
             <div class="player-wrapper">
                 <video id="player-video" crossorigin="anonymous" playsinline controls controlsList="nodownload"></video>
                 <div id="capa-mini-player" class="capa-mini escondido" onclick="maximizarPalco()"><i class="fa-solid fa-expand"></i></div>
-                
                 <div id="tela-transicao-palco" class="transicao-palco glass-effect escondido" style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 900; background: rgba(15, 23, 42, 0.95) !important;">
                     <h2 class="texto-azul blink-anim" style="margin: 0 0 20px 0; font-size: 2.2rem; color: #00e5ff !important;">PREPARE-SE!</h2>
                     <div class="contador-circular" style="margin: 0; width: 100px; height: 100px; font-size: 3rem; font-weight: 800; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 4px solid #00e5ff; color: #fff;"><span id="transicao-contador">20</span></div>
                 </div>
-                
                 <div id="dj-alerta-palco" class="escondido"></div>
             </div>
 
@@ -431,9 +437,7 @@
                             <button class="btn-secundario" onclick="ajustarTom(1)" style="width: 35px; height: 35px; border-radius: 10px; font-size: 1.2rem; padding: 0;">+</button>
                         </div>
                     </div>
-                    
                     <div style="width: 1px; background: var(--bg-glass-border); margin: 0 5px;"></div>
-                    
                     <div style="text-align: center; flex: 1;">
                         <span class="texto-azul" style="font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;"><i class="fa-solid fa-gauge-high"></i> Vel.</span>
                         <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px;">
@@ -450,36 +454,12 @@
 
                 <div id="painel-mixer" class="escondido glass-effect p-20 mb-20" style="border: 2px solid var(--accent-purple);">
                     <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: var(--accent-purple); text-align: center;"><i class="fa-solid fa-headphones"></i> Mixer da Transmissão</h3>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;"><span>Sincronia (Atraso)</span><span id="lbl-mixer-sync">300ms</span></div>
-                        <input type="range" id="mix-sync" min="0" max="1" step="0.05" value="0.3" oninput="ajustarMixer('sync', this.value)">
-                    </div>
-
-                    <div style="margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;"><span>Volume Música</span><span id="lbl-mixer-mus">100%</span></div>
-                        <input type="range" id="mix-musica" min="0" max="1.5" step="0.1" value="1.0" oninput="ajustarMixer('musica', this.value)">
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;"><span>Volume Voz</span><span id="lbl-mixer-voz">100%</span></div>
-                        <input type="range" id="mix-voz" min="0" max="2" step="0.1" value="1.0" oninput="ajustarMixer('voz', this.value)">
-                    </div>
-
-                    <div style="margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;"><span>Grave (Peso)</span><span id="lbl-mixer-grave">0dB</span></div>
-                        <input type="range" id="mix-grave" min="-10" max="15" step="1" value="0" oninput="ajustarMixer('grave', this.value)">
-                    </div>
-
-                    <div style="margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;"><span>Agudo (Brilho)</span><span id="lbl-mixer-agudo">0dB</span></div>
-                        <input type="range" id="mix-agudo" min="-10" max="15" step="1" value="0" oninput="ajustarMixer('agudo', this.value)">
-                    </div>
-
-                    <div style="margin-bottom: 10px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: var(--accent-blue);"><span>Eco / Reverb Karaokê</span><span id="lbl-mixer-eco">Desligado</span></div>
-                        <input type="range" id="mix-eco" min="0" max="0.6" step="0.05" value="0" oninput="ajustarMixer('eco', this.value)">
-                    </div>
+                    <div style="margin-bottom: 15px;"><div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;"><span>Sincronia (Atraso)</span><span id="lbl-mixer-sync">300ms</span></div><input type="range" id="mix-sync" min="0" max="1" step="0.05" value="0.3" oninput="ajustarMixer('sync', this.value)"></div>
+                    <div style="margin-bottom: 15px;"><div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;"><span>Volume Música</span><span id="lbl-mixer-mus">100%</span></div><input type="range" id="mix-musica" min="0" max="1.5" step="0.1" value="1.0" oninput="ajustarMixer('musica', this.value)"></div>
+                    <div style="margin-bottom: 15px;"><div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;"><span>Volume Voz</span><span id="lbl-mixer-voz">100%</span></div><input type="range" id="mix-voz" min="0" max="2" step="0.1" value="1.0" oninput="ajustarMixer('voz', this.value)"></div>
+                    <div style="margin-bottom: 15px;"><div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;"><span>Grave (Peso)</span><span id="lbl-mixer-grave">0dB</span></div><input type="range" id="mix-grave" min="-10" max="15" step="1" value="0" oninput="ajustarMixer('grave', this.value)"></div>
+                    <div style="margin-bottom: 15px;"><div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600;"><span>Agudo (Brilho)</span><span id="lbl-mixer-agudo">0dB</span></div><input type="range" id="mix-agudo" min="-10" max="15" step="1" value="0" oninput="ajustarMixer('agudo', this.value)"></div>
+                    <div style="margin-bottom: 10px;"><div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: var(--accent-blue);"><span>Eco / Reverb Karaokê</span><span id="lbl-mixer-eco">Desligado</span></div><input type="range" id="mix-eco" min="0" max="0.6" step="0.05" value="0" oninput="ajustarMixer('eco', this.value)"></div>
                 </div>
 
                 <div class="info-cantando glass-effect">
@@ -524,10 +504,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
     
-    <script src="js/data.js?v=110"></script>
-    <script src="js/premium.js?v=110"></script>
-    <script src="js/app.js?v=110"></script>
-    <script src="js/upload.js?v=110"></script>
+    <script src="js/data.js?v=111"></script>
+    <script src="js/premium.js?v=111"></script>
+    <script src="js/app.js?v=111"></script>
+    <script src="js/upload.js?v=111"></script>
 
     <script>
         let novoServiceWorker;
