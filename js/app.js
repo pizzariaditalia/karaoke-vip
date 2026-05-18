@@ -146,12 +146,12 @@ async function toggleLive() {
 
         // 3. O EFEITO DE ECO (Reverb Ping-Pong)
         echoDelayNode = audioContextLive.createDelay(1.0);
-        echoDelayNode.delayTime.value = 0.3; // Eco de 300ms
+        echoDelayNode.delayTime.value = 0.3; 
         echoGainNode = audioContextLive.createGain();
         echoGainNode.gain.value = parseFloat(document.getElementById('mix-eco').value);
 
         micGainNode.connect(echoDelayNode).connect(echoGainNode).connect(destLive);
-        echoGainNode.connect(echoDelayNode); // Loop de feedback
+        echoGainNode.connect(echoDelayNode); 
 
         const mixedStream = destLive.stream;
         isBroadcasting = true;
@@ -217,13 +217,12 @@ function desconectarLivePlateia() {
 }
 
 // ============================================================================
-// 💬 SISTEMA DE CHAT DE VOTOS E REAÇÕES FLUTUANTES (CORRIGIDO)
+// 💬 SISTEMA DE CHAT DE VOTOS E REAÇÕES FLUTUANTES (A CORREÇÃO!)
 // ============================================================================
 function enviarReacao(emoji) {
     if(!refSalaAtual) return;
     refSalaAtual.child('palco/reacoes').push({ emoji: emoji, timestamp: Date.now() });
     
-    // Opcional: ganha medalha de "Alma da Festa" ao reagir
     if (perfilAtual && !perfilAtual.isGuest) {
         let pIndex = perfisFamilia.findIndex(p => String(p.id) === String(perfilAtual.id));
         if (pIndex !== -1) {
@@ -260,8 +259,8 @@ function renderizarFeedVotos(votosObj) {
         let icone = v.nota === 10 ? '⭐' : '🎤';
         let cor = v.nota === 10 ? 'var(--accent-purple)' : 'var(--text-main)';
         feed.innerHTML += `
-            <div style="display: flex; align-items: center; gap: 10px; background: var(--bg-glass); border: 1px solid var(--bg-glass-border); padding: 8px 12px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); animation: fadeIn 0.3s ease;">
-                <img src="${v.foto}" style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--accent-blue);">
+            <div style="display: flex; align-items: center; gap: 10px; background: var(--bg-glass); border: 1px solid var(--bg-glass-border); padding: 8px 12px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); animation: fadeIn 0.3s ease; margin-bottom: 8px;">
+                <img src="${v.foto}" style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--accent-blue); object-fit: cover;">
                 <span style="flex: 1; font-size: 0.85rem; color: var(--text-main);"><strong>${v.nome}</strong> enviou nota:</span>
                 <strong style="color: ${cor}; font-size: 1.2rem; font-weight: 800;">${v.nota} ${icone}</strong>
             </div>
@@ -479,12 +478,12 @@ function entrarNoSistema() {
             
             if (cantorAoVivo && perfilAtual && String(cantorAoVivo.id) === String(perfilAtual.id)) {
                 btnLive.classList.remove('escondido');
-                btnMixer.classList.remove('escondido'); // Mostra a mesa de som só pro cantor
+                btnMixer.classList.remove('escondido'); 
                 indicadorLive.classList.add('escondido');
                 desconectarLivePlateia();
             } else {
                 btnLive.classList.add('escondido');
-                btnMixer.classList.add('escondido'); // Esconde a mesa da plateia
+                btnMixer.classList.add('escondido'); 
                 if (dados.palco.isLive) {
                     indicadorLive.classList.remove('escondido');
                     playerVideo.muted = true; 
