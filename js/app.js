@@ -42,12 +42,16 @@ const musicasPorPagina = 10;
 
 let timerTransicao = null;
 let intervaloContador = null;
-let syncInterval = null; // NOVO: O RELÓGIO MESTRE DE SINCRONIA
+let syncInterval = null; 
 const playerPrevia = new Audio();
 let previewTimer = null;
 let musicaPreviaAtualId = null;
 
 let avatarSelecionadoCriacao = null; 
+
+// VARIÁVEIS DO PIN
+let perfilSelecionadoTempParaPin = null;
+let modoPinAtual = null; // 'criar' ou 'verificar'
 
 const bottomBar = document.getElementById('bottom-bar');
 const telas = document.querySelectorAll('.tela');
@@ -332,7 +336,7 @@ function salvarDados() {
 }
 
 // ============================================================================
-// 🎛️ PAINEL DO DJ MESTRE
+// 🎛️ PAINEL DO DJ MESTRE (AGORA COM RESET DE PIN)
 // ============================================================================
 function abrirPainelDJ() { renderizarPainelDJ(); document.getElementById('modal-dj').classList.remove('escondido'); }
 function fecharPainelDJ() { document.getElementById('modal-dj').classList.add('escondido'); }
@@ -342,9 +346,13 @@ function renderizarPainelDJ() {
     if(perfisFamilia.length === 0) { listaCantores.innerHTML = '<p class="texto-cinza">Nenhum cantor na sala.</p>'; }
     perfisFamilia.forEach(perfil => {
         listaCantores.innerHTML += `
-            <div style="display:flex; justify-content: space-between; align-items: center; background: var(--input-bg); padding: 12px; border-radius: 12px; border: 1px solid var(--bg-glass-border);">
+            <div style="display:flex; justify-content: space-between; align-items: center; background: var(--input-bg); padding: 12px; border-radius: 12px; border: 1px solid var(--bg-glass-border); margin-bottom: 8px;">
                 <span style="font-weight: bold; font-size: 0.95rem; color: var(--text-main);">${perfil.nome} <span style="color: var(--accent-purple);">(${Number(perfil.pontos) || 0} pts)</span></span>
-                <div style="display:flex; gap: 8px;"><button class="btn-secundario" style="padding: 5px 12px; font-size: 0.8rem;" onclick="djAlterarPontos(${perfil.id}, -5)">-5 pts</button><button class="btn-secundario" style="padding: 5px 12px; font-size: 0.8rem; background: rgba(255,71,87,0.1); color: #ff4757; border: none;" onclick="djExcluirCantor(${perfil.id})"><i class="fa-solid fa-trash"></i></button></div>
+                <div style="display:flex; gap: 6px;">
+                    <button class="btn-secundario" style="padding: 5px 10px; font-size: 0.8rem;" onclick="djAlterarPontos(${perfil.id}, -5)">-5 pts</button>
+                    <button class="btn-secundario" style="padding: 5px 10px; font-size: 0.8rem; background: rgba(0,180,216,0.1); color: var(--accent-blue); border: none;" onclick="djResetarPin(${perfil.id})" title="Resetar Senha"><i class="fa-solid fa-unlock-keyhole"></i></button>
+                    <button class="btn-secundario" style="padding: 5px 10px; font-size: 0.8rem; background: rgba(255,71,87,0.1); color: #ff4757; border: none;" onclick="djExcluirCantor(${perfil.id})" title="Banir"><i class="fa-solid fa-trash"></i></button>
+                </div>
             </div>`;
     });
 }
@@ -352,6 +360,17 @@ function renderizarPainelDJ() {
 function djAlterarPontos(idCantor, valor) {
     let index = perfisFamilia.findIndex(p => String(p.id) === String(idCantor));
     if(index !== -1) { perfisFamilia[index].pontos = (Number(perfisFamilia[index].pontos) || 0) + Number(valor); if(perfisFamilia[index].pontos < 0) perfisFamilia[index].pontos = 0; salvarDados(); renderizarPainelDJ(); mostrarAlerta("Pontos ajustados!", "DJ Mestre", "fa-check"); }
+}
+
+function djResetarPin(idCantor) {
+    if(confirm("Tem certeza que deseja apagar a senha desse cantor? Ele precisará criar uma nova no próximo acesso.")) {
+        let index = perfisFamilia.findIndex(p => String(p.id) === String(idCantor));
+        if(index !== -1) { 
+            delete perfisFamilia[index].pin; 
+            salvarDados(); renderizarPainelDJ(); 
+            mostrarAlerta("Senha apagada com sucesso!", "Cadeado Aberto", "fa-unlock"); 
+        }
+    }
 }
 
 function djExcluirCantor(idCantor) {
@@ -489,19 +508,14 @@ function entrarNoSistema() {
                 }
             }
 
-            // O RELÓGIO DA PLATEIA (Sincroniza o vídeo)
             if (dados.palco.sync && cantorAoVivo && perfilAtual && String(cantorAoVivo.id) !== String(perfilAtual.id)) {
                 let syncInfo = dados.palco.sync;
                 let timePassed = (Date.now() - syncInfo.ts) / 1000;
                 let expectedTime = syncInfo.time + (timePassed * syncInfo.rate);
                 
                 if (playerVideo.readyState >= 1) {
-                    if (Math.abs(playerVideo.currentTime - expectedTime) > 1.5) {
-                        playerVideo.currentTime = expectedTime;
-                    }
-                    if (playerVideo.playbackRate !== syncInfo.rate) {
-                        playerVideo.playbackRate = syncInfo.rate;
-                    }
+                    if (Math.abs(playerVideo.currentTime - expectedTime) > 1.5) { playerVideo.currentTime = expectedTime; }
+                    if (playerVideo.playbackRate !== syncInfo.rate) { playerVideo.playbackRate = syncInfo.rate; }
                 }
             }
 
@@ -608,14 +622,18 @@ function pararPrevia() {
 
 function criarPerfil() {
     const inputNome = document.getElementById('input-novo-perfil'); const nome = inputNome.value.trim();
+    const inputPin = document.getElementById('input-novo-perfil-pin'); const pin = inputPin.value.trim();
+    
     if (!avatarSelecionadoCriacao) { mostrarAlerta("É obrigatório enviar uma foto sua para criar o perfil oficial!", "Foto Necessária", "fa-camera"); return; }
-    if (nome !== "") {
-        const novoPerfil = { id: Date.now(), nome: nome, foto: avatarSelecionadoCriacao, pontos: 0, isGuest: false, stats: { cantadas: 0, duetos: 0, notas10: 0, votos: 0, reacoes: 0, medalhas: [] } };
-        perfisFamilia.push(novoPerfil); perfilAtual = novoPerfil; localStorage.setItem('karaoke_perfil_atual_id', novoPerfil.id); salvarDados(); 
-        inputNome.value = ""; avatarSelecionadoCriacao = null; document.getElementById('seletor-avatares').innerHTML = '';
-        mostrarAlerta(`Cantor Oficial ${nome} registrado e conectado!`, "Sucesso", "fa-circle-check");
-        renderizarPainelConquistas();
-    } else { mostrarAlerta("Por favor, digite um nome válido!", "Atenção", "fa-triangle-exclamation"); }
+    if (nome === "") { mostrarAlerta("Por favor, digite o nome do cantor!", "Atenção", "fa-triangle-exclamation"); return; }
+    if (pin.length !== 4 || isNaN(pin)) { mostrarAlerta("O PIN de segurança deve conter exatamente 4 números!", "Atenção", "fa-lock"); return; }
+
+    const novoPerfil = { id: Date.now(), nome: nome, pin: pin, foto: avatarSelecionadoCriacao, pontos: 0, isGuest: false, stats: { cantadas: 0, duetos: 0, notas10: 0, votos: 0, reacoes: 0, medalhas: [] } };
+    perfisFamilia.push(novoPerfil); salvarDados(); 
+    
+    inputNome.value = ""; inputPin.value = ""; avatarSelecionadoCriacao = null; document.getElementById('seletor-avatares').innerHTML = '';
+    
+    efetivarLoginPerfil(novoPerfil);
 }
 
 function entrarComoConvidado() {
@@ -629,16 +647,81 @@ function entrarComoConvidado() {
     } else { mostrarAlerta("Digite o nome do visitante!", "Atenção", "fa-triangle-exclamation"); }
 }
 
+// ----------------------------------------------------
+// A LÓGICA DO NOVO CADEADO VIP 🔐
+// ----------------------------------------------------
 function renderizarPerfis() {
     const listaPerfis = document.getElementById('lista-perfis'); listaPerfis.innerHTML = '';
     if(perfisFamilia.length === 0) { listaPerfis.innerHTML = '<p class="texto-cinza">Nenhum cantor oficial cadastrado nesta sala ainda.</p>'; return; }
     perfisFamilia.forEach(perfil => {
         const card = document.createElement('div'); card.classList.add('card-perfil');
         if (perfilAtual && String(perfil.id) === String(perfilAtual.id)) card.classList.add('ativo');
-        card.innerHTML = `<img src="${perfil.foto}" class="foto-perfil"><span class="nome-perfil">${perfil.nome}</span>`;
-        card.onclick = () => { perfilAtual = perfil; localStorage.setItem('karaoke_perfil_atual_id', perfil.id); atualizarPerfilGlobal(); renderizarPerfis(); mostrarAlerta(`Bem-vindo de volta! Você agora é: ${perfil.nome}`, "Perfil Selecionado", "fa-user-check"); renderizarPainelConquistas(); };
+        
+        // Se tiver cadeado, mostra o ícone de lock na foto
+        let iconeLock = perfil.pin ? '<i class="fa-solid fa-lock" style="position:absolute; bottom:25px; right:5px; background:var(--accent-purple); color:white; padding:4px; border-radius:50%; font-size:0.6rem;"></i>' : '';
+        
+        card.innerHTML = `<div style="position:relative; display:inline-block;"><img src="${perfil.foto}" class="foto-perfil">${iconeLock}</div><span class="nome-perfil">${perfil.nome}</span>`;
+        
+        card.onclick = () => { 
+            if (perfilAtual && String(perfil.id) === String(perfilAtual.id)) { mostrarAlerta(`Você já está cantando como ${perfil.nome}!`, "Aviso", "fa-check"); return; }
+            perfilSelecionadoTempParaPin = perfil;
+            if (!perfil.pin) { abrirModalPin('criar'); } else { abrirModalPin('verificar'); }
+        };
         listaPerfis.appendChild(card);
     });
+}
+
+function abrirModalPin(modo) {
+    modoPinAtual = modo;
+    const input = document.getElementById('input-pin-acesso');
+    input.value = '';
+    if (modo === 'criar') {
+        document.getElementById('titulo-modal-pin').innerHTML = `<i class="fa-solid fa-shield-halved texto-destaque"></i> Proteger Conta`;
+        document.getElementById('desc-modal-pin').innerText = `Olá ${perfilSelecionadoTempParaPin.nome}! O sistema foi atualizado. Crie agora um PIN de 4 números para proteger seu perfil.`;
+    } else {
+        document.getElementById('titulo-modal-pin').innerHTML = `<i class="fa-solid fa-lock texto-destaque"></i> Acesso Restrito`;
+        document.getElementById('desc-modal-pin').innerText = `Bem-vindo de volta, ${perfilSelecionadoTempParaPin.nome}! Digite seu PIN para entrar.`;
+    }
+    document.getElementById('modal-pin').classList.remove('escondido');
+    setTimeout(() => { input.focus(); }, 100);
+}
+
+function fecharModalPin() {
+    document.getElementById('modal-pin').classList.add('escondido');
+    perfilSelecionadoTempParaPin = null;
+    modoPinAtual = null;
+}
+
+function confirmarPin() {
+    const pin = document.getElementById('input-pin-acesso').value.trim();
+    if (pin.length !== 4 || isNaN(pin)) { mostrarAlerta("O PIN deve conter exatamente 4 números!", "Atenção", "fa-lock"); return; }
+
+    if (modoPinAtual === 'criar') {
+        let index = perfisFamilia.findIndex(p => String(p.id) === String(perfilSelecionadoTempParaPin.id));
+        if (index !== -1) {
+            perfisFamilia[index].pin = pin;
+            salvarDados();
+            efetivarLoginPerfil(perfisFamilia[index]);
+            fecharModalPin();
+            mostrarAlerta("Perfil protegido com sucesso!", "Cadeado Fechado", "fa-shield-check");
+        }
+    } else if (modoPinAtual === 'verificar') {
+        if (pin === perfilSelecionadoTempParaPin.pin) {
+            efetivarLoginPerfil(perfilSelecionadoTempParaPin);
+            fecharModalPin();
+        } else {
+            mostrarAlerta("PIN Incorreto. Tente novamente!", "Acesso Negado", "fa-circle-xmark");
+        }
+    }
+}
+
+function efetivarLoginPerfil(perfil) {
+    perfilAtual = perfil; 
+    localStorage.setItem('karaoke_perfil_atual_id', perfil.id); 
+    atualizarPerfilGlobal(); 
+    renderizarPerfis(); 
+    renderizarPainelConquistas();
+    mostrarAlerta(`Bem-vindo ao palco, ${perfil.nome}!`, "Acesso Liberado", "fa-microphone");
 }
 
 function atualizarPerfilGlobal() { if(perfilAtual) { document.getElementById('dash-foto-perfil').src = perfilAtual.foto; } }
@@ -867,12 +950,9 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     }
     atualizarDashboard();
 
-    // RELÓGIO MESTRE DO CANTOR ATIVADO AQUI
     if (perfilAtual && String(perfilAtual.id) === String(cantorAoVivo.id)) {
         syncInterval = setInterval(() => {
-            if (!playerVideo.paused && refSalaAtual) {
-                refSalaAtual.child('palco/sync').set({ time: playerVideo.currentTime, rate: playerVideo.playbackRate, ts: Date.now() });
-            }
+            if (!playerVideo.paused && refSalaAtual) { refSalaAtual.child('palco/sync').set({ time: playerVideo.currentTime, rate: playerVideo.playbackRate, ts: Date.now() }); }
         }, 1500);
     }
 }
@@ -888,7 +968,7 @@ function minimizarPalco() {
 function maximizarPalco() {
     telaPalcoOverlay.classList.remove('minimizado'); telaPalcoOverlay.classList.remove('escondido');
     playerVideo.style.pointerEvents = 'auto'; playerVideo.setAttribute('controls', 'controls');
-    if (cantorAoVivo && String(cantorAoVivo.id) !== localStorage.getItem('karaoke_perfil_atual_id')) { playerVideo.play().catch(e => console.log("Autoplay bloqueado para a plateia.")); }
+    if (cantorAoVivo && String(cantorAoVivo.id) !== localStorage.getItem('karaoke_perfil_atual_id')) { playerVideo.play().catch(e => console.log("Autoplay bloqueado.")); }
     atualizarDashboard(); 
 }
 
@@ -901,14 +981,12 @@ function encerrarPalco(forcarFechamento = false) {
     if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
     
     playerVideo.pause(); playerVideo.src = ""; cantorAoVivo = null; cantor2AoVivo = null; musicaAoVivo = null;
-    
     pararLive(); 
     
     document.getElementById('tela-transicao-palco').classList.add('escondido'); telaPalcoOverlay.classList.add('escondido'); telaPalcoOverlay.classList.remove('minimizado');
     refSalaAtual.child('palco').set({ cantor: null, cantor2: null, musica: null, isLive: false });
     
     if (typeof resetarEstudio === 'function') resetarEstudio();
-    
     atualizarDashboard();
 }
 
