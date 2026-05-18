@@ -217,7 +217,7 @@ function desconectarLivePlateia() {
 }
 
 // ============================================================================
-// 💬 SISTEMA DE CHAT DE VOTOS E REAÇÕES FLUTUANTES (A CORREÇÃO!)
+// 💬 SISTEMA DE CHAT DE VOTOS E REAÇÕES FLUTUANTES
 // ============================================================================
 function enviarReacao(emoji) {
     if(!refSalaAtual) return;
@@ -269,7 +269,7 @@ function renderizarFeedVotos(votosObj) {
 }
 
 // ============================================================================
-// 🏅 SISTEMA DE CONQUISTAS E SALVAMENTO SEGURO
+// 🏅 SISTEMA DE CONQUISTAS E SALVAMENTO SEGURO (A CORREÇÃO DO ERUDA AQUI!)
 // ============================================================================
 const DEFINICAO_MEDALHAS = {
     'quebra_gelo': { nome: 'Quebra-Gelo', icone: '🎤', desc: 'Subiu no palco e cantou a 1ª música.' },
@@ -286,6 +286,9 @@ const DEFINICAO_MEDALHAS = {
 function verificarConquistas(perfilObj) {
     if (!perfilObj || perfilObj.isGuest) return;
     if (!perfilObj.stats) perfilObj.stats = { cantadas: 0, duetos: 0, notas10: 0, votos: 0, reacoes: 0, medalhas: [] };
+    
+    // A BLINDAGEM MÁGICA CONTRA O FANTASMA DO FIREBASE!
+    if (!perfilObj.stats.medalhas) perfilObj.stats.medalhas = [];
 
     let novasMedalhas = []; let pts = Number(perfilObj.pontos) || 0;
 
@@ -326,7 +329,7 @@ function renderizarPainelConquistas() {
 }
 
 function obterEmojisMedalhas(perfilObj) {
-    if (!perfilObj || !perfilObj.stats || !perfilObj.stats.medalhas || perfilObj.stats.medalhas.length === 0) return '';
+    if (!perfilObj || !perfilObj.stats || !perfilObj.stats.medalhas || !Array.isArray(perfilObj.stats.medalhas) || perfilObj.stats.medalhas.length === 0) return '';
     let emojis = ''; perfilObj.stats.medalhas.forEach(m => { if(DEFINICAO_MEDALHAS[m]) emojis += DEFINICAO_MEDALHAS[m].icone; }); return `<div class="mini-medalhas">${emojis}</div>`;
 }
 
