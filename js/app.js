@@ -42,6 +42,7 @@ const musicasPorPagina = 10;
 
 let timerTransicao = null;
 let intervaloContador = null;
+let syncInterval = null; // NOVO: O RELÓGIO MESTRE DE SINCRONIA
 const playerPrevia = new Audio();
 let previewTimer = null;
 let musicaPreviaAtualId = null;
@@ -60,7 +61,6 @@ const somAplauso = document.getElementById('som-aplauso');
 let isBroadcasting = false;
 const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
-// NÓS DE ÁUDIO VIRTUAIS (Os Botões da Mesa de Som)
 let audioContextLive = null;
 let destLive = null;
 let micStreamLive = null;
@@ -68,13 +68,13 @@ let videoStreamLive = null;
 let peerConnectionsLive = {}; 
 let viewerPCLive = null;
 
-let delayNodeLive = null; // Atraso Compensatório
-let musicGainNode = null; // Volume da Música
-let micGainNode = null;   // Volume da Voz
-let bassNode = null;      // Frequências Graves
-let trebleNode = null;    // Frequências Agudas
-let echoDelayNode = null; // Tempo do Eco
-let echoGainNode = null;  // Intensidade do Eco
+let delayNodeLive = null; 
+let musicGainNode = null; 
+let micGainNode = null;   
+let bassNode = null;      
+let trebleNode = null;    
+let echoDelayNode = null; 
+let echoGainNode = null;  
 
 function ajustarMixer(tipo, valor) {
     let num = parseFloat(valor);
@@ -119,32 +119,26 @@ async function toggleLive() {
         const videoSource = audioContextLive.createMediaStreamSource(videoStreamLive);
         const micSource = audioContextLive.createMediaStreamSource(micStreamLive);
         
-        // 1. CANAL DA MÚSICA
         musicGainNode = audioContextLive.createGain();
         musicGainNode.gain.value = parseFloat(document.getElementById('mix-musica').value);
         delayNodeLive = audioContextLive.createDelay(2.0);
         delayNodeLive.delayTime.value = parseFloat(document.getElementById('mix-sync').value);
-        
         videoSource.connect(delayNodeLive).connect(musicGainNode).connect(destLive);
 
-        // 2. CANAL DA VOZ (EQ)
         bassNode = audioContextLive.createBiquadFilter();
         bassNode.type = "lowshelf";
         bassNode.frequency.value = 250; 
         bassNode.gain.value = parseFloat(document.getElementById('mix-grave').value);
-
         trebleNode = audioContextLive.createBiquadFilter();
         trebleNode.type = "highshelf";
         trebleNode.frequency.value = 4000;
         trebleNode.gain.value = parseFloat(document.getElementById('mix-agudo').value);
-
         micGainNode = audioContextLive.createGain();
         micGainNode.gain.value = parseFloat(document.getElementById('mix-voz').value);
 
         micSource.connect(bassNode).connect(trebleNode).connect(micGainNode);
         micGainNode.connect(destLive);
 
-        // 3. O EFEITO DE ECO (Reverb Ping-Pong)
         echoDelayNode = audioContextLive.createDelay(1.0);
         echoDelayNode.delayTime.value = 0.3; 
         echoGainNode = audioContextLive.createGain();
@@ -269,7 +263,7 @@ function renderizarFeedVotos(votosObj) {
 }
 
 // ============================================================================
-// 🏅 SISTEMA DE CONQUISTAS E SALVAMENTO SEGURO (A CORREÇÃO DO ERUDA AQUI!)
+// 🏅 SISTEMA DE CONQUISTAS E SALVAMENTO SEGURO
 // ============================================================================
 const DEFINICAO_MEDALHAS = {
     'quebra_gelo': { nome: 'Quebra-Gelo', icone: '🎤', desc: 'Subiu no palco e cantou a 1ª música.' },
@@ -286,8 +280,6 @@ const DEFINICAO_MEDALHAS = {
 function verificarConquistas(perfilObj) {
     if (!perfilObj || perfilObj.isGuest) return;
     if (!perfilObj.stats) perfilObj.stats = { cantadas: 0, duetos: 0, notas10: 0, votos: 0, reacoes: 0, medalhas: [] };
-    
-    // A BLINDAGEM MÁGICA CONTRA O FANTASMA DO FIREBASE!
     if (!perfilObj.stats.medalhas) perfilObj.stats.medalhas = [];
 
     let novasMedalhas = []; let pts = Number(perfilObj.pontos) || 0;
@@ -419,6 +411,7 @@ function fecharModalSenha() { document.getElementById('modal-senha').classList.a
 function efetivarEntradaSala(nome) { salaAtual = nome; localStorage.setItem('karaoke_sala_ativa', salaAtual); entrarNoSistema(); }
 function sairDaSala() {
     if (refSalaAtual) { refSalaAtual.off(); refSalaAtual = null; }
+    if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
     salaAtual = null; perfilAtual = null; isDJ = false; musicasOcultas = []; pararLive();
     localStorage.removeItem('karaoke_sala_ativa'); localStorage.removeItem('karaoke_perfil_atual_id'); document.getElementById('bottom-bar').classList.add('escondido'); telas.forEach(tela => tela.classList.remove('ativa')); document.getElementById('tela-salas').classList.add('ativa'); document.getElementById('badge-dj').classList.add('escondido'); document.getElementById('btn-painel-dj').classList.add('escondido'); renderizarLobbySalas(); 
 }
@@ -428,7 +421,6 @@ function entrarNoSistema() {
     
     refSalaAtual = db.ref('dados_salas/' + salaAtual);
     
-    // ATIVAÇÃO DO ESCUTADOR DE EMOJIS (ANIMAÇÃO)
     refSalaAtual.child('palco/reacoes').on('child_added', snap => {
         mostrarEmojiFlutuante(snap.val().emoji);
     });
@@ -494,6 +486,22 @@ function entrarNoSistema() {
                 } else {
                     indicadorLive.classList.add('escondido');
                     desconectarLivePlateia();
+                }
+            }
+
+            // O RELÓGIO DA PLATEIA (Sincroniza o vídeo)
+            if (dados.palco.sync && cantorAoVivo && perfilAtual && String(cantorAoVivo.id) !== String(perfilAtual.id)) {
+                let syncInfo = dados.palco.sync;
+                let timePassed = (Date.now() - syncInfo.ts) / 1000;
+                let expectedTime = syncInfo.time + (timePassed * syncInfo.rate);
+                
+                if (playerVideo.readyState >= 1) {
+                    if (Math.abs(playerVideo.currentTime - expectedTime) > 1.5) {
+                        playerVideo.currentTime = expectedTime;
+                    }
+                    if (playerVideo.playbackRate !== syncInfo.rate) {
+                        playerVideo.playbackRate = syncInfo.rate;
+                    }
                 }
             }
 
@@ -823,6 +831,8 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
     if(!perfilAtual) { mostrarAlerta("Identifique-se na aba Perfil antes de cantar!", "Atenção", "fa-user"); mudarTela('tela-perfil', document.getElementById('nav-perfil')); return; }
     pararPrevia(); document.getElementById('tela-transicao-palco').classList.add('escondido'); clearInterval(intervaloContador); clearTimeout(timerTransicao); window.speechSynthesis.cancel(); somAplauso.onended = null;       
     
+    if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
+
     historicoTocadas[idMusica] = (Number(historicoTocadas[idMusica]) || 0) + 1;
     
     const musica = catalogoMusicas.find(m => m.id === idMusica); cantorAoVivo = perfilAtual; cantor2AoVivo = parceiro; musicaAoVivo = musica;
@@ -856,6 +866,15 @@ function irParaPalco(idMusica, parceiro = null, pularContagem = false) {
         timerTransicao = setTimeout(() => { divTransicao.classList.add('escondido'); playerVideo.play().catch(e => console.log("Autoplay bloqueado.")); }, 5000);
     }
     atualizarDashboard();
+
+    // RELÓGIO MESTRE DO CANTOR ATIVADO AQUI
+    if (perfilAtual && String(perfilAtual.id) === String(cantorAoVivo.id)) {
+        syncInterval = setInterval(() => {
+            if (!playerVideo.paused && refSalaAtual) {
+                refSalaAtual.child('palco/sync').set({ time: playerVideo.currentTime, rate: playerVideo.playbackRate, ts: Date.now() });
+            }
+        }, 1500);
+    }
 }
 
 function minimizarPalco() {
@@ -879,6 +898,8 @@ function encerrarPalco(forcarFechamento = false) {
     if(window.event) window.event.stopPropagation(); 
     if (document.fullscreenElement) { document.exitFullscreen().catch(() => {}); }
     pararPrevia(); clearInterval(intervaloContador); clearTimeout(timerTransicao); window.speechSynthesis.cancel(); somAplauso.onended = null;
+    if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
+    
     playerVideo.pause(); playerVideo.src = ""; cantorAoVivo = null; cantor2AoVivo = null; musicaAoVivo = null;
     
     pararLive(); 
